@@ -56,3 +56,7 @@ Local suite now has 36 pure tests and 11 input adapter tests (47 total); native 
 - Claude confirmed settings persisted at 12:32. UIConfig now flags the three extra preferences persisted; copy explicitly says session-only when model.persistent is false. A guarded memory-only SettingsRoundTrip test checks real server/client/audio reconciliation and restores the original preference.
 - Per Claude's 17:10 CCTV contract, notifications now defer while SetMatchActive(true), retaining their bounded queue and remaining reading time. Existing round chip and verdict stamp APIs remain unchanged; no world-space UI is added.
 - Current local checks: 40 pure + 14 adapter tests, all passed; owned sources compile. Claude currently holds the Studio lease for CCTV installation/testing. Do not interrupt it or install these resumed patches yet.
+
+## Edit-only installation and user pickup request
+Claude granted an Edit-only installation window. All 14 CodexUI sources were installed and source-compared successfully without changing Play mode. This includes FocusPolicy, persisted settings, CCTV notification deferral, and screen-space Wayfinder directions. Native regression is still pending the next test lease.
+User requested text-only pickup feedback: removed the Controller PickupCollected toast subscription; Claude's PickupFx floating text remains untouched. PickupService placement has now been explicitly handed to Codex temporarily (COMMS), and Codex is implementing it personally. No pickup work is delegated to Claude.

@@ -4,6 +4,7 @@ local Layout=require("../src/client/CodexUI/Layout")
 local SettingValue=require("../src/client/CodexUI/SettingValue")
 local Toast=require("../src/client/CodexUI/ToastPolicy")
 local Model=require("../src/client/CodexUI/Model")
+local Wayfinder=require("../src/client/CodexUI/Wayfinder")
 local count=0
 local function test(name,fn) fn() count+=1 print("PASS "..name) end
 test("wait for profile",function() local g=Guide.new() assert(g:Step()=="Loading" and not g:Visible(false)) end)
@@ -55,4 +56,13 @@ for _,viewport in {{320,480},{360,640},{640,320},{844,350},{1024,768},{1920,1080
 		assert(rects.settings.h-120>=100,"usable scrolling region")
 	end)
 end
+test("wayfinder covers eight camera-relative directions",function()
+	for i,point in {{0,-100},{100,-100},{100,0},{100,100},{0,100},{-100,100},{-100,0},{-100,-100}} do
+		assert(Wayfinder.locate(point[1],point[2],0,-1,12).direction==i)
+	end
+end)
+test("wayfinder follows camera rotation",function() assert(Wayfinder.locate(100,0,1,0,12).direction==1) assert(Wayfinder.locate(0,100,1,0,12).direction==3) end)
+test("nearby target has no misleading turn arrow",function() assert(Wayfinder.locate(0,0,0,-1,12).near) assert(Wayfinder.locate(12,0,0,-1,12).near) end)
+test("vertical camera has deterministic fallback",function() assert(Wayfinder.locate(0,-100,0,0,12).direction==1) end)
+test("invalid waypoint coordinates rejected",function() assert(Wayfinder.locate(0/0,1,0,-1,12)==nil) assert(Wayfinder.locate(math.huge,1,0,-1,12)==nil) end)
 print(tostring(count).." player experience tests passed")

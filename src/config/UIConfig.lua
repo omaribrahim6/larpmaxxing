@@ -2,6 +2,12 @@
 local Tuning = require(game:GetService("ReplicatedStorage"):WaitForChild("Larp").Config.Tuning)
 return {
 	GuideStatId="Bag",
+	GuideTargets={
+		Collect={path={"Larp","Map","CarLot","ZoneBounds"},label="Car Lot"},
+		Practice={path={"Larp","Map","PracticeNpcSpot"},label="Practice Larper"},
+	},
+	GuideDirections={"Ahead","Ahead right","Turn right","Behind right","Behind you","Behind left","Turn left","Ahead left"},
+	GuideNearDistance=12,
 	Guide={
 		Collect={title="1 / 2  BUILD YOUR BAG",body="Walk over Bag pickups in the Car Lot to grow your Bag stat. Then try your first larp-off."},
 		Practice={title="2 / 2  TRY A LARP-OFF",body="Find the Practice Larper in the plaza. Use its interaction prompt to start your first match."},
@@ -33,5 +39,6 @@ return {
 		Unavailable = "Still connecting. Try again shortly.",
 		SettingsUnavailable = "Settings will be available when your profile connects.",
 		ProfileTemporary = "Session progress only",
+		Nearby = "Nearby", DistanceUnit = "studs",
 	},
 }

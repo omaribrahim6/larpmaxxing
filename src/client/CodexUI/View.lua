@@ -77,9 +77,12 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks)
 	self.helpOpen=button(self.actions,"Help","How to play",UDim2.fromOffset(8,100),UDim2.new(1,-16,0,48),function() callbacks.helpOpen() end)
 	self.guide=panel("Guide",UDim2.new(0.5,0,0,176),UDim2.new(0.94,0,0,112))
 	self.guide.AnchorPoint=Vector2.new(0.5,0) self.guide.Visible=false
-	create("UISizeConstraint",self.guide,{MaxSize=Vector2.new(440,112)})
+	create("UISizeConstraint",self.guide,{MaxSize=Vector2.new(440,128)})
 	self.guideTitle=self.label(self.guide,"Title","",UDim2.fromOffset(14,8),UDim2.new(1,-76,0,24),16,c.Accent)
 	self.guideBody=self.label(self.guide,"Body","",UDim2.fromOffset(14,36),UDim2.new(1,-28,0,68),14)
+	self.guideLocation=self.label(self.guide,"Location","",UDim2.new(0,14,1,-24),UDim2.new(1,-28,0,18),12,c.Muted)
+	self.guideLocation.TextScaled=true
+	create("UITextSizeConstraint",self.guideLocation,{MinTextSize=10,MaxTextSize=12})
 	self.guideDismiss=button(self.guide,"Dismiss","×",UDim2.new(1,-52,0,4),UDim2.fromOffset(44,44),function() callbacks.helpDismiss() end)
 	self.event = self.label(self.hud,"Event","",UDim2.new(0.5,0,0,12),UDim2.new(0.4,0,0,40),16)
 	self.event.AnchorPoint = Vector2.new(0.5,0) self.event.Visible = false
@@ -163,7 +166,7 @@ function View:Render(model)
 			frame.Position=UDim2.fromOffset(rect.x,rect.y)
 			frame.Size=UDim2.fromOffset(rect.w,rect.h)
 		end
-		self.guideBody.Size=UDim2.new(1,-28,1,-40)
+		self.guideBody.Size=UDim2.new(1,-28,1,-64)
 	end
 	self.guide.Visible=guide~=nil and guide:Visible(model.inMatch or model.incoming~=nil or self.settings.Visible or model.rematch~=nil)
 	if guide then
@@ -171,6 +174,7 @@ function View:Render(model)
 		local copy=self.config.Guide[step]
 		if copy then self.guideTitle.Text=copy.title self.guideBody.Text=copy.body end
 	end
+	self.guideLocation.Text=model.guideLocation or ""
 	self.hud.Visible=not model.inMatch
 	if model.loaded then
 		local p=self.rankMath.progress(model.total,self.catalog.ranks)

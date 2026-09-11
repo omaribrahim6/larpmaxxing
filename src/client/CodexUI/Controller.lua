@@ -11,6 +11,7 @@ local Config=require(script.Parent.UIConfig)
 local Onboarding=require(script.Parent.Onboarding)
 local InputController=require(script.Parent.InputController)
 local SettingValue=require(script.Parent.SettingValue)
+local Wayfinder=require(script.Parent.Wayfinder)
 local Controller={}
 local active
 function Controller.start()
@@ -162,13 +163,26 @@ function Controller.start()
 			local rank=catalog.ranks[index]
 			if rank then notice("Promoted to "..rank.name,"success") end
 		end,
-		PickupCollected=function(itemId,points,statId)
-			if not catalog.itemsById[itemId] or not catalog.statsById[statId] or type(points)~="number"
-				or points~=points or math.abs(points)==math.huge or points<=0 then return end
-			notice("+"..tostring(math.floor(points)).." "..catalog.statsById[statId].displayName,"success")
-		end,
+		-- PickupFx owns floating pickup text; do not duplicate it with a toast card.
 	})
 	self.cleanup:Add(self.adapter)
+	local function updateGuideLocation()
+		self.model.guideLocation=nil
+		if not self.view.guide.Visible then return end
+		local def=Config.GuideTargets[self.model.onboarding:Step()]
+		local root=player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		local camera=workspace.CurrentCamera
+		if not def or not root or not camera then return end
+		local target=workspace
+		for _,name in def.path do target=target:FindFirstChild(name) if not target then return end end
+		if not target:IsA("BasePart") then return end
+		local delta=target.Position-root.Position
+		local forward=camera.CFrame.LookVector
+		local location=Wayfinder.locate(delta.X,delta.Z,forward.X,forward.Z,Config.GuideNearDistance)
+		if not location then return end
+		self.model.guideLocation=def.label.." · "..(if location.near then Config.Words.Nearby
+			else tostring(location.distance).." "..Config.Words.DistanceUnit.." · "..Config.GuideDirections[location.direction])
+	end
 	local elapsed=0
 	self.cleanup:Add(RunService.Heartbeat:Connect(function(dt)
 		elapsed+=dt if elapsed<0.1 then return end elapsed=0
@@ -181,6 +195,7 @@ function Controller.start()
 			self.view.event.Text=self.eventInfo.label.."  "..string.format("%d:%02d",math.floor(left/60),left%60)
 			if left==0 then self.eventInfo=nil end
 		end
+		updateGuideLocation()
 		self.view:Tick(now) self.view:Render(self.model)
 	end))
 	self.cleanup:Add(player.CharacterAdded:Connect(function()
