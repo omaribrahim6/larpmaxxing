@@ -25,7 +25,7 @@ function InputController.new(controller)
 				local targets=view:FocusTargets()
 				local index=Policy.nextIndex(table.find(targets,GuiService.SelectedObject),#targets,
 					UIS:IsKeyDown(Enum.KeyCode.LeftShift) or UIS:IsKeyDown(Enum.KeyCode.RightShift))
-				if index then GuiService.SelectedObject=targets[index] end
+				if index then GuiService.SelectedObject=targets[index] view:RevealFocused(targets[index]) end
 			elseif action=="activate" then
 				if not view:ActivateFocused(GuiService.SelectedObject) then return Enum.ContextActionResult.Pass end
 			elseif action=="accept" then controller:Respond(true)
@@ -62,6 +62,7 @@ function InputController.new(controller)
 		view.decline.Text=if pad then "Decline [B]" elseif UIS.TouchEnabled then "Decline" else "Decline [N]"
 	end
 	connections[1]=RunService.Heartbeat:Connect(refresh)
+	connections[2]=GuiService:GetPropertyChangedSignal("SelectedObject"):Connect(function() view:RevealFocused(GuiService.SelectedObject) end)
 	return {Destroy=function()
 		CAS:UnbindAction(actionName)
 		for _,connection in connections do connection:Disconnect() end

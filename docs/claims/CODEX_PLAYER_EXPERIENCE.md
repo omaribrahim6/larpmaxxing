@@ -40,3 +40,7 @@ No game scripts or instances changed during declaration. Studio was observed in 
 - 24 local Luau tests cover progression, profile validation, input routing/focus and six viewport bounds. Owned Lua sources compile with official Luau CLI 0.737. These are not physical-device or native Studio results.
 - Prepared tests/PlayerExperienceRuntime.client.lua: isolated native View/model tests, no gameplay remotes or profile writes. Run only during Codex lease.
 - Nothing in this checkpoint is installed in Studio yet. User owns the current Play session. Claude acknowledged Codex installs first when Edit returns; coordination is in docs/COMMS.md.
+
+## Follow-on settings and test tooling
+Repository implementation now includes bounded volume minus/plus buttons (44px), focus scrolling, 28 pure tests plus 10 tests of actual InputController source against mocked services. Public ChangeSetting(key, direction) accepts optional +1/-1; booleans still toggle. Numeric settings clamp instead of wrapping to mute. Guide stat identity is configurable.
+The Python test runner and pinned-checksum GitHub CI require no Studio or secrets. The package tool emits a local review manifest without writing Studio. Native runtime tests include volume target bounds and focus scrolling; execution remains pending Edit availability. No new gameplay ownership is claimed.

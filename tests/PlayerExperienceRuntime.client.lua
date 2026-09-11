@@ -55,6 +55,19 @@ if view then
 		model.onboarding:Reopen() view:Render(model)
 		assert(view.guideTitle.Text==config.Guide.Practice.title)
 	end)
+	check("volume controls expose bounded accessible targets",function()
+		view:SetSettings(true) view:Render(model)
+		local controls=view.volumeButtons.musicVolume
+		assert(controls.minus.AbsoluteSize.X>=44 and controls.plus.AbsoluteSize.Y>=44)
+		assert(controls.minus.Selectable and not controls.plus.Selectable)
+		model:SetSetting("musicVolume",0) view:Render(model)
+		assert(not controls.minus.Selectable and controls.plus.Selectable)
+		assert(table.find(view:FocusTargets(),controls.plus)~=nil)
+		assert(table.find(view:FocusTargets(),controls.minus)==nil)
+		view:RevealFocused(controls.plus)
+		local relative=controls.plus.AbsolutePosition.Y-view.settings.Options.AbsolutePosition.Y
+		assert(relative>=-1 and relative+44<=view.settings.Options.AbsoluteSize.Y+1)
+	end)
 	view:Destroy()
 end
 gui:Destroy()

@@ -1,0 +1,20 @@
+-- Client bootstrap for the Larp world renderers (pickup FX, challenge prompts, the
+-- larp-off scene director). The HUD, popups, settings and screen stamps belong to
+-- Codex's CodexUI package; we reuse its controller instead of drawing our own.
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local Larp = ReplicatedStorage:WaitForChild("Larp")
+local Net = require(Larp.Shared.Net)
+
+local ui = require(player:WaitForChild("PlayerScripts"):WaitForChild("CodexUI"):WaitForChild("Controller")).start()
+
+require(script:WaitForChild("SoundKit")).init(ui)
+require(script:WaitForChild("PickupFx")).start(ui)
+require(script:WaitForChild("ChallengePrompts")).start()
+require(script:WaitForChild("SceneDirector")).start(ui)
+
+-- Every listener is connected now: ask for the profile snapshot (the server also
+-- sends one on load; whichever arrives, the UI renders the same data).
+Net.get("ClientReady"):FireServer()

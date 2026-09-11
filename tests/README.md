@@ -1,4 +1,14 @@
 # Testing
+## Current Codex UI checks
+Run `python tools/test-codex-ui.py --luau PATH_TO_LUAU` using the official Luau 0.737 CLI release (the compiler must be alongside it). This runs 28 pure state/input/layout/setting tests, 10 tests of the actual InputController with mocked Roblox services, and compiles all owned UI source. The GitHub workflow runs the same checks with a checksum-verified Linux CLI.
+
+Native validation for the new onboarding/input changes remains pending while the user's Studio playtest is active. After taking the Studio lease and installing the owned modules, inject `PlayerExperienceRuntime.client.lua` as a temporary LocalScript under PlayerScripts. It creates an isolated disabled View and synthetic Model, performs native layout checks, destroys its fixture, and writes JSON to `CodexPlayerExperienceResults`. It never sends gameplay remotes or changes a real profile. Physical gamepad/touch behavior still requires a device test.
+
+`python tools/package-codex-ui.py` generates `.local/codex-ui-manifest.json` with source, Studio paths and normalized hashes for review. It does not synchronize or modify Studio. Compare live Source before every installation.
+
+## Historical baseline evidence
+The following describes the original UI baseline and the then-incomplete gameplay backend. Claude has since completed the Bag vertical slice. **Do not run the old ServerFixture against the current full backend or follow its final no-remotes expectation on the live place.**
+
 Executed September 11, 2026 in the existing Studio instance. See results/*.json.
 - UnitSuite: 24 cases, 24 passed in a fresh play server.
 - ClientSuite: 10 cases, 10 passed after fixing narrow-screen rank clipping.

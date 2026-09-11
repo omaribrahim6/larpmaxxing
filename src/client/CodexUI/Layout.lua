@@ -1,7 +1,7 @@
 -- Pixel rectangles inside ScreenGui's inset-safe root. Pure for device tests.
 local Layout={}
 function Layout.compute(width,height)
-	assert(width>=240 and height>=240,"unsupported viewport")
+	assert(width>=240 and height>=250,"unsupported viewport")
 	local short=height<480
 	local guideWidth=math.min(width-24,440)
 	local guideHeight=if short then 100 else 112

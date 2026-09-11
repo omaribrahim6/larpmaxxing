@@ -10,6 +10,7 @@ local Adapter=require(script.Parent.RemoteAdapter)
 local Config=require(script.Parent.UIConfig)
 local Onboarding=require(script.Parent.Onboarding)
 local InputController=require(script.Parent.InputController)
+local SettingValue=require(script.Parent.SettingValue)
 local Controller={}
 local active
 function Controller.start()
@@ -45,14 +46,15 @@ function Controller.start()
 			GuiService.SelectedObject=nil
 		end
 	end
-	function self:ChangeSetting(key)
+	function self:ChangeSetting(key,direction)
 		for _,def in Config.Settings do
 			if def.key==key then
 				if def.persisted and (not self.model.loaded or not self.adapter:IsReady("UpdateSetting")) then
 					notice(Config.Words.SettingsUnavailable,"warning") return false
 				end
 				local old=self.model.settings[key]
-				local value=if def.step then (if old>=1 then 0 else math.min(1,old+def.step)) else not old
+				local value=SettingValue.next(def,old,direction)
+				if value==nil then return false end
 				self.model:SetSetting(key,value)
 				if def.persisted then self.adapter:Send("UpdateSetting",key,value) end
 				settingChanged(key)
@@ -77,7 +79,7 @@ function Controller.start()
 		require(larp.Shared.Format),{
 			settingsOpen=function() if not self.model.incoming then self.view:SetSettings(true) self.view:Render(self.model) end end,
 			settingsClose=function() self.view:SetSettings(false) self.view:Render(self.model) end,
-			setting=function(key) self:ChangeSetting(key) end,
+			setting=function(key,direction) self:ChangeSetting(key,direction) end,
 			respond=function(accept) self:Respond(accept) end,
 			helpOpen=function() self.model.onboarding:Reopen() self.view:Render(self.model) end,
 			helpDismiss=function() self.model.onboarding:Dismiss() self.view:Render(self.model) end,

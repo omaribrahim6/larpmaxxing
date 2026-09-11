@@ -1,6 +1,7 @@
 local Guide=require("../src/client/CodexUI/Onboarding")
 local Input=require("../src/client/CodexUI/InputPolicy")
 local Layout=require("../src/client/CodexUI/Layout")
+local SettingValue=require("../src/client/CodexUI/SettingValue")
 local count=0
 local function test(name,fn) fn() count+=1 print("PASS "..name) end
 test("wait for profile",function() local g=Guide.new() assert(g:Step()=="Loading" and not g:Visible(false)) end)
@@ -21,6 +22,10 @@ test("gamepad B dismisses modal only",function() assert(Input.route("ButtonB",{}
 test("gamepad Y cannot accidentally accept",function() assert(Input.route("ButtonY",{})=="settings") assert(Input.route("ButtonY",{challenge=true})==nil) end)
 test("keyboard focus is scoped to modals",function() assert(Input.route("Tab",{})==nil) assert(Input.route("Tab",{settings=true})=="focus") assert(Input.route("Return",{challenge=true})=="activate") assert(Input.route("Return",{typing=true,challenge=true})==nil) end)
 test("focus wraps and starts correctly in both directions",function() assert(Input.nextIndex(nil,7,false)==1) assert(Input.nextIndex(nil,7,true)==7) assert(Input.nextIndex(1,7,true)==7) assert(Input.nextIndex(7,7,false)==1) assert(Input.nextIndex(nil,0,false)==nil) end)
+test("volume steps in both directions",function() assert(SettingValue.next({step=.25},.5,1)==.75) assert(SettingValue.next({step=.25},.5,-1)==.25) end)
+test("volume boundaries never wrap",function() assert(SettingValue.next({step=.25},1,1)==1) assert(SettingValue.next({step=.25},0,-1)==0) end)
+test("invalid volume arguments rejected",function() assert(SettingValue.next({step=.25},0/0,1)==nil) assert(SettingValue.next({step=.25},.5,100)==nil) end)
+test("boolean settings retain toggle API",function() assert(SettingValue.next({},true)==false) assert(SettingValue.next({},false)==true) end)
 for _,viewport in {{320,480},{360,640},{640,320},{844,350},{1024,768},{1920,1080}} do
 	test("viewport "..viewport[1].."x"..viewport[2],function()
 		local rects=Layout.compute(viewport[1],viewport[2])

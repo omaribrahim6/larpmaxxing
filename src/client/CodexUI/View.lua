@@ -11,7 +11,7 @@ local function create(class, parent, props)
 end
 function View.new(playerGui, config, catalog, rankMath, format, callbacks)
 	local self = setmetatable({config = config, catalog = catalog, rankMath = rankMath,
-		format = format, callbacks = callbacks, rows = {}, settingButtons = {}, toasts = {}, focusActions = {},
+		format = format, callbacks = callbacks, rows = {}, settingButtons = {}, volumeButtons = {}, settingFocus = {}, toasts = {}, focusActions = {},
 		tweens = {}, stampSequence = 0}, View)
 	local c = config.Colors
 	self.gui = create("ScreenGui", playerGui, {Name = "LarpCodexUI", ResetOnSpawn = false,
@@ -93,9 +93,20 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks)
 		ScrollingDirection=Enum.ScrollingDirection.Y})
 	for i, def in config.Settings do
 		local y = (i-1)*62
-		self.label(list,def.key.."Label",def.label,UDim2.fromOffset(2,y),UDim2.new(0.59,-4,0,52),16)
-		self.settingButtons[def.key] = button(list,def.key,"",UDim2.new(0.6,0,0,y+2),
-			UDim2.new(0.4,-8,0,48),function() callbacks.setting(def.key) end)
+		if def.step then
+			self.label(list,def.key.."Label",def.label,UDim2.fromOffset(2,y),UDim2.new(1,-158,0,52),15)
+			local minus=button(list,def.key.."Decrease","−",UDim2.new(1,-152,0,y+4),UDim2.fromOffset(44,44),function() callbacks.setting(def.key,-1) end)
+			self.settingButtons[def.key]=self.label(list,def.key,"",UDim2.new(1,-104,0,y+4),UDim2.fromOffset(44,44),13)
+			self.settingButtons[def.key].TextXAlignment=Enum.TextXAlignment.Center
+			local plus=button(list,def.key.."Increase","+",UDim2.new(1,-56,0,y+4),UDim2.fromOffset(44,44),function() callbacks.setting(def.key,1) end)
+			self.volumeButtons[def.key]={minus=minus,plus=plus}
+			table.insert(self.settingFocus,minus) table.insert(self.settingFocus,plus)
+		else
+			self.label(list,def.key.."Label",def.label,UDim2.fromOffset(2,y),UDim2.new(0.59,-4,0,52),16)
+			self.settingButtons[def.key] = button(list,def.key,"",UDim2.new(0.6,0,0,y+2),
+				UDim2.new(0.4,-8,0,48),function() callbacks.setting(def.key) end)
+			table.insert(self.settingFocus,self.settingButtons[def.key])
+		end
 	end
 	self.label(self.settings,"SessionNote",config.Words.SessionPreferences,UDim2.new(0,18,1,-51),
 		UDim2.new(1,-36,0,40),12,c.Muted)
@@ -171,6 +182,13 @@ function View:Render(model)
 		b.Text=if type(value)=="boolean" then (if value then "ON" else "OFF") else tostring(math.floor(value*100+0.5)).."%"
 		b.BackgroundColor3=if value==true then c.Positive else c.Raised
 		b.TextColor3=if value==true then c.Panel else c.Text
+		local volume=self.volumeButtons[key]
+		if volume then
+			volume.minus.Active=value>0 volume.minus.Selectable=value>0
+			volume.plus.Active=value<1 volume.plus.Selectable=value<1
+			volume.minus.TextTransparency=if value>0 then 0 else .65
+			volume.plus.TextTransparency=if value<1 then 0 else .65
+		end
 	end
 	local pending=model.incoming
 	self.challenge.Visible=pending~=nil
@@ -194,10 +212,19 @@ function View:FocusTargets()
 	if self.challenge.Visible then return {self.decline,self.accept} end
 	if self.settings.Visible then
 		local targets={self.settingsClose}
-		for _,def in self.config.Settings do table.insert(targets,self.settingButtons[def.key]) end
+		for _,target in self.settingFocus do if target.Selectable then table.insert(targets,target) end end
 		return targets
 	end
 	return {}
+end
+function View:RevealFocused(selected)
+	if not selected or not selected:IsDescendantOf(self.settings.Options) then return end
+	local list=self.settings.Options
+	local top=selected.AbsolutePosition.Y-list.AbsolutePosition.Y+list.CanvasPosition.Y
+	local bottom=top+selected.AbsoluteSize.Y
+	local scroll=list.CanvasPosition.Y
+	if top<scroll then scroll=top elseif bottom>scroll+list.AbsoluteSize.Y then scroll=bottom-list.AbsoluteSize.Y end
+	list.CanvasPosition=Vector2.new(0,math.clamp(scroll,0,math.max(0,list.AbsoluteCanvasSize.Y-list.AbsoluteSize.Y)))
 end
 function View:ActivateFocused(selected)
 	for _,target in self:FocusTargets() do
