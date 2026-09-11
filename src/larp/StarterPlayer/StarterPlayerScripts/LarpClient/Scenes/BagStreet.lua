@@ -194,6 +194,14 @@ function BagStreet.prepare(ctx, key: string, tier: number)
 	local def = Data.tiers[math.clamp(tier, 1, 6)]
 	local rideTemplate = def and template(def.asset)
 	st.vehicle = if rideTemplate then spawn(rideTemplate, st.parkCF, feed.props) else nil
+	-- the bus waits at its stop: the sign goes on the curb by its front door, on the far
+	-- side of the bus from the camera
+	local stopTemplate = template("BusStop")
+	if tier == 1 and st.vehicle and stopTemplate then
+		local curb = if st.parkCF.RightVector:Dot(st.poseCF.Position - st.parkCF.Position) > 0 then 1 else -1
+		local p = (st.parkCF * CFrame.new(curb * 6, 0, -7)).Position
+		spawn(stopTemplate, CFrame.new(p.X, st.poseCF.Position.Y, p.Z), feed.props)
+	end
 
 	-- the walk: along the sidewalk towards the selfie spot
 	st.walkDir = flat(st.poseCF.Position - st.walkCF.Position)
@@ -446,9 +454,11 @@ local function signature(ctx, st, tier: number)
 		ctx.crowd:react("erupt", 1.5)
 		ctx.crowd:setPhones(true)
 	end
-	local caption = Data.tiers[tier] and Data.tiers[tier].caption
-	if caption then
-		feed:caption(headOf(st) + Vector3.new(0, 2.6, 0), caption, Color3.fromRGB(255, 236, 170), 1.2)
+	-- what the flex is, in words, while the selfie lands
+	local def = Data.tiers[tier]
+	local flex = def and (def.flex or def.caption)
+	if flex then
+		feed:banner(flex, true, 2.4)
 	end
 end
 
@@ -473,7 +483,8 @@ function BagStreet.selfie(ctx, key: string, tier: number, duration: number, snap
 			avatar:PivotTo(from:Lerp(st.selfieCF, a))
 		end
 	end, kit.Ease.outQuad)
-	local u = duration / 1.1
+	-- the turn, glances and flash take 1.1s at most; any extra is time to read the flex
+	local u = math.min(1, duration / 1.1)
 	Poses.apply(kit, avatar, "SneakL", 0.1)
 	kit:after(0.2 * u, function()
 		Poses.apply(kit, avatar, "SneakR", 0.1)
@@ -594,7 +605,7 @@ function BagStreet.fumble(ctx, key: string, variant: string?)
 		end
 		Poses.apply(kit, avatar, "Slump", 0.15)
 	end
-	feed:caption(headOf(st) + Vector3.new(0, 3, 0), fumble and fumble.caption or "FUMBLED", Color3.fromRGB(255, 120, 110), 1.2)
+	feed:banner(fumble and (fumble.exposed or fumble.caption) or "FUMBLED", false, 2.2)
 	ctx.crowd:react("wince", 1)
 end
 

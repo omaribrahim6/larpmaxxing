@@ -1,6 +1,21 @@
 # Handoff
-## LATEST: Claude, parallel session with Codex, 2026-09-11 afternoon (read this first)
-The user is away. Agent-to-agent messages go in [COMMS.md](COMMS.md). **Codex ran out of usage mid-lease at about 12:25.** Claude stopped the leftover Codex Play session at the user's direction. Codex's installed CodexUI (12 modules) exactly matches its repo working copy. Codex's uncommitted View/UIConfig/ToastPolicy/tests changes are left on disk for Codex to commit.
+## LATEST: Claude, 2026-09-11 evening (read this first)
+**Codex is out of usage until 2026-09-15.** Claude is the only agent until then, and the user lets Claude start and stop Studio sessions. Studio is in Edit and the lease is released.
+- **The CCTV larp-off scene is now the default** (`Tuning.SceneMode = "Cctv"`, user direction).
+  - **What happens:** both larpers are on a split security-cam monitor. Each walks down a sidewalk, double-takes at a parked ride (their tier), glances around and takes a selfie with it.
+  - **Banners:** a gold banner says what the flex is ("📸 THE PAPARAZZI FOUND THEM"). The loser's fumble shows a red banner ("🚨 CAR ALARM! NOT THEIR CAR"), and then their feed cuts to SIGNAL LOST and shrinks to a thumbnail.
+  - **The post:** the winner's feed takes over and their selfie goes up as a "MY NEW CAR" phone post. Its likes count up to the rolled number, and the loser posts a salty comment.
+  - **Who sees what:** larpers watch the monitor full-screen; the audience watches it on the stage's BigScreen. At the verdict, the larpers' monitor moves back onto the big screen.
+  - **Code:** `Shared.StreetPlan` (the timeline, 8.9s per round, tested), `LarpClient.Cctv` (the monitor and phone), `StreetRound` and `Scenes.BagStreet`.
+  - **Assets:** the set is `Larp.Assets.Sets.Sidewalk`, whose markers are Walk, Pose, Park, ScooterPark, JetPark and Cam. `Assets.Scenes.Bag.BusStop` spawns with the bus.
+  - **Copy:** the banner texts are in `Config.Scenes.Bag` (`flex` per tier, `exposed` per fumble).
+  - **Fallbacks:** the older "Screen" and "Stage" modes still work.
+- **Codex's last work is finished and tested natively by Claude:** random pickup placement (Scatter + PickupService, 5e648cf), card removal and wayfinder (270d1ba), and focus, persistence and CCTV notification deferral. Results are in `tests/results/native-2026-09-11-claude.json`. PickupService ownership is back with Claude.
+- **Testing tips:**
+  - For screenshots, stretch `Tuning.Timing.street` at runtime from the server (e.g. `post = 14`), because the capture lags about 5–10s.
+  - Client UI tests that need the live Controller must be injected as a LocalScript under PlayerScripts. `execute_luau` gets a separate module cache.
+
+## Earlier: Claude, parallel session with Codex, 2026-09-11 afternoonThe user is away. Agent-to-agent messages go in [COMMS.md](COMMS.md). **Codex ran out of usage mid-lease at about 12:25.** Claude stopped the leftover Codex Play session at the user's direction. Codex's installed CodexUI (12 modules) exactly matches its repo working copy. Codex's uncommitted View/UIConfig/ToastPolicy/tests changes are left on disk for Codex to commit.
 
 Everything below was playtested at 12:28–12:32 in one fresh play server: 41/41 unit tests, no script errors in the console.
 - **Done: first-larp-off balance.** A 0-Bag practice attempt shows the Car Lot notice and starts no match. With 5 Bag against the rookie NPC the player won (+25, Wins 1). The rookie band applies until the first Win, and the floor is 1. See DECISIONS.

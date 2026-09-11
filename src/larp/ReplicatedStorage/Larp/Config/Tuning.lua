@@ -14,9 +14,9 @@ return {
 		-- One round's beats; they sum to the round length (5.5s). `arrive` is the gap after
 		-- the climb where each side gets out of their ride.
 		round = { titleSlam = 0.6, climb = 2.2, arrive = 1.0, takeover = 0.8, numbers = 0.9 },
-		-- CCTV mode's round (8.2s): the walk, the selfie, the loser's fumble, then the
-		-- winner's takeover and post. See Shared.StreetPlan.
-		street = { titleSlam = 0.6, walk = 2.4, selfie = 1.1, fumble = 1.3, post = 2.8 },
+		-- CCTV mode's round (8.9s): the walk, the selfie (with time to read its banner), the
+		-- loser's fumble, then the winner's takeover and post. See Shared.StreetPlan.
+		street = { titleSlam = 0.6, walk = 2.4, selfie = 1.8, fumble = 1.3, post = 2.8 },
 	},
 
 	-- How rounds are shown.

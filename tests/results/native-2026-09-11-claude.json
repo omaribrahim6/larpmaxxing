@@ -1,0 +1,10 @@
+{
+  "ranBy": "Claude (Codex out of usage until 2026-09-15)",
+  "date": "2026-09-11",
+  "studioSourcesMatchRepo": { "CodexUI": 14, "UIConfig": true, "CodexShared": ["Cleanup", "RateLimiter", "Scatter"], "PickupService": "5e648cf" },
+  "unitTests": { "run": 48, "passed": 48 },
+  "pickupLayout": { "passed": true, "count": 40, "expected": 40, "minSpacing": 8.34, "requiredSpacing": 8, "outside": 0, "blocked": 0, "rows": 40, "columns": 40 },
+  "pickupFeedback": { "passed": true, "floatingText": true, "pickupCard": false, "points": 50, "stat": "Bag", "respawnDistanceFromOld": 40.8, "respawnNearestOther": 8.5 },
+  "playerExperienceRuntime": { "passed": 10, "total": 10 },
+  "settingsRoundTrip": { "passed": true, "restorePassed": true, "method": "injected LocalScript under PlayerScripts (live Controller)" }
+}

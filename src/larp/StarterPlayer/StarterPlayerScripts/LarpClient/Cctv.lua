@@ -305,7 +305,8 @@ function Feed:caption(position: Vector3, text: string, color: Color3?, lifetime:
 		local at = self:project(position)
 		l.Visible = at ~= nil
 		if at then
-			l.Position = UDim2.fromScale(at.X, at.Y)
+			-- kept fully inside the feed
+			l.Position = UDim2.fromScale(math.clamp(at.X, 0.32, 0.68), math.clamp(at.Y, 0.08, 0.7))
 		end
 	end
 	place()
@@ -324,6 +325,46 @@ function Feed:caption(position: Vector3, text: string, color: Color3?, lifetime:
 	return l
 end
 
+-- A banner low on the feed that says what's going on ("📸 THE PAPARAZZI FOUND THEM").
+-- `good` picks gold (a flex) or red (a fumble). A new banner replaces the feed's last one.
+function Feed:banner(text: string, good: boolean, lifetime: number?)
+	if self.currentBanner then
+		self.currentBanner:Destroy()
+	end
+	local color = if good then Color3.fromRGB(255, 214, 90) else Color3.fromRGB(255, 104, 96)
+	local bar = make("Frame", {
+		Name = "Banner",
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.fromScale(0.5, 0.86),
+		Size = UDim2.fromScale(0.94, 0.1),
+		BackgroundColor3 = INK,
+		BackgroundTransparency = 0.15,
+		BorderSizePixel = 0,
+		ZIndex = 7,
+		Parent = self.panel,
+	})
+	make("UICorner", { CornerRadius = UDim.new(0.25, 0), Parent = bar })
+	make("UIStroke", { Thickness = 2, Color = color, Parent = bar })
+	label({
+		Text = text,
+		Font = Enum.Font.FredokaOne,
+		TextColor3 = color,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(0.94, 0.72),
+		ZIndex = 8,
+		Parent = bar,
+	})
+	local scale = make("UIScale", { Scale = 0.6, Parent = bar })
+	tween(scale, 0.2, { Scale = 1 }, Enum.EasingStyle.Back)
+	self.currentBanner = bar
+	self.kit:after(lifetime or 2.2, function()
+		bar:Destroy()
+	end)
+	return bar
+end
+
 -- Big slammed stamp across the feed ("FUMBLED", "VIRAL MOMENT").
 function Feed:stamp(text: string, color: Color3, lifetime: number?, rotation: number?, y: number?)
 	return self.monitor:_stamp(self.panel, text, color, lifetime, rotation, y)
@@ -331,7 +372,7 @@ end
 
 -- Little "♥ 312" pill at the bottom of the feed.
 function Feed:badge(text: string)
-	local pill = label({ Text = text, Font = UI_FONT, TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = Color3.new(1, 1, 1), AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.fromScale(0.5, 0.86), Size = UDim2.fromScale(0.42, 0.075), BackgroundTransparency = 0.25, BackgroundColor3 = INK, ZIndex = 7, Parent = self.panel })
+	local pill = label({ Text = text, Font = UI_FONT, TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = Color3.new(1, 1, 1), AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.fromScale(0.5, 0.72), Size = UDim2.fromScale(0.42, 0.075), BackgroundTransparency = 0.25, BackgroundColor3 = INK, ZIndex = 7, Parent = self.panel })
 	make("UICorner", { CornerRadius = UDim.new(0.5, 0), Parent = pill })
 	make("UIPadding", { PaddingTop = UDim.new(0.14, 0), PaddingBottom = UDim.new(0.14, 0), Parent = pill })
 	return pill
