@@ -2,6 +2,10 @@
 -- eased animations, camera shots with shake, screen flashes, world captions/stamps,
 -- big numbers, confetti and money rain. One Kit per larp-off; Destroy() cleans it all up.
 -- Camera/flash/title effects only run for participants; world effects show to everyone.
+--
+-- Big-screen mode: a Kit can drive another Camera (a ViewportFrame's) instead of the
+-- player's, and put captions/stamps/numbers on a 2D overlay that tracks the scene
+-- camera, because ViewportFrames don't render BillboardGuis or ParticleEmitters.
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -31,11 +35,19 @@ end
 Kit.Ease = Ease
 
 -- opts: participant, reduceEffects, folder (Folder for local props)
+-- Big-screen mode also takes:
+--   camera       a Camera to drive instead of the player's (e.g. a ViewportFrame's)
+--   overlay      true for a full-screen 2D layer, or a GuiObject to hold one
+--   stageFolder  a workspace Folder for billboards and confetti on the real stage
+--   noParticles  use part confetti (ViewportFrames don't render ParticleEmitters)
 function Kit.new(opts)
 	local self = setmetatable({
 		participant = opts.participant == true,
 		reduce = opts.reduceEffects == true,
 		folder = opts.folder,
+		viewCam = opts.camera,
+		stageFolder = opts.stageFolder or opts.folder,
+		noParticles = opts.noParticles == true,
 		timeScale = 1,
 		anims = {},
 		loops = {},
@@ -61,6 +73,23 @@ function Kit.new(opts)
 	flash.BorderSizePixel = 0
 	flash.Parent = gui
 	self.flashFrame = flash
+
+	if opts.overlay then
+		-- 2D layer for captions, stamps and numbers that follow the scene camera
+		local layer = Instance.new("Frame")
+		layer.Name = "LarpSceneLayer"
+		layer.Size = UDim2.fromScale(1, 1)
+		layer.BackgroundTransparency = 1
+		layer.ClipsDescendants = true
+		layer.ZIndex = 5
+		layer.Parent = if typeof(opts.overlay) == "Instance" then opts.overlay else gui
+		self.layer = layer
+		if typeof(opts.overlay) == "Instance" then
+			local layerFlash = flash:Clone()
+			layerFlash.Parent = layer
+			self.layerFlash = layerFlash
+		end
+	end
 
 	self.stepConn = RunService.RenderStepped:Connect(function(dt)
 		self:_step(dt)
@@ -98,6 +127,24 @@ function Kit:_step(dt: number)
 			self.loops[loop] = nil
 		end
 	end
+	if self.viewCam and self.camCF then
+		self.viewCam.CFrame = self:_shaken(self.camCF)
+		self.viewCam.FieldOfView = self.camFov
+	end
+end
+
+-- The camera frame with any active shake applied.
+function Kit:_shaken(cf: CFrame): CFrame
+	if os.clock() < self.shakeUntil and not self.reduce then
+		local s = self.shakeStrength
+		return cf * CFrame.new((math.random() - 0.5) * s, (math.random() - 0.5) * s, 0) * CFrame.Angles(0, 0, (math.random() - 0.5) * s * 0.05)
+	end
+	return cf
+end
+
+-- True if this kit moves a camera: the player's (participants) or a screen's.
+function Kit:_drives(): boolean
+	return self.participant or self.viewCam ~= nil
 end
 
 -- Runs fn(easedAlpha, rawAlpha) every frame for `duration` scene-seconds.
@@ -160,10 +207,15 @@ end
 ------------------------------------------------------------------ camera (participants)
 
 function Kit:_bindCamera()
-	if self.bound or not self.participant then
+	if self.bound or not self:_drives() then
 		return
 	end
 	self.bound = true
+	if self.viewCam then
+		-- a screen's camera: _step applies camCF every frame
+		self.camCF = self.camCF or self.viewCam.CFrame
+		return
+	end
 	local camera = workspace.CurrentCamera
 	self.prevCameraType = camera.CameraType
 	self.prevFov = camera.FieldOfView
@@ -173,19 +225,14 @@ function Kit:_bindCamera()
 		if not self.camCF then
 			return
 		end
-		local cf = self.camCF
-		if os.clock() < self.shakeUntil and not self.reduce then
-			local s = self.shakeStrength
-			cf = cf * CFrame.new((math.random() - 0.5) * s, (math.random() - 0.5) * s, 0) * CFrame.Angles(0, 0, (math.random() - 0.5) * s * 0.05)
-		end
-		camera.CFrame = cf
+		camera.CFrame = self:_shaken(self.camCF)
 		camera.FieldOfView = self.camFov
 	end)
 end
 
 -- Moves the camera to a shot. duration 0 = hard cut.
 function Kit:shot(cf: CFrame, fov: number?, duration: number?, ease)
-	if not self.participant then
+	if not self:_drives() then
 		return
 	end
 	self:_bindCamera()
@@ -210,7 +257,7 @@ end
 
 -- Slow orbit around `center` from angle a0 to a1 (degrees).
 function Kit:orbit(center: Vector3, radius: number, height: number, a0: number, a1: number, duration: number, fov: number?)
-	if not self.participant then
+	if not self:_drives() then
 		return
 	end
 	self:_bindCamera()
@@ -229,7 +276,7 @@ end
 
 -- Quick FOV punch-in and back.
 function Kit:punch(amount: number, duration: number)
-	if not self.participant then
+	if not self:_drives() then
 		return
 	end
 	local base = self.camFov
@@ -239,26 +286,27 @@ function Kit:punch(amount: number, duration: number)
 end
 
 function Kit:shake(strength: number, seconds: number)
-	if self.reduce or not self.participant then
+	if self.reduce or not self:_drives() then
 		return
 	end
 	self.shakeStrength = math.max(if os.clock() < self.shakeUntil then self.shakeStrength else 0, strength)
 	self.shakeUntil = math.max(self.shakeUntil, os.clock() + seconds)
 end
 
--- White screen flash (softened with Reduce Effects).
+-- White screen flash (softened with Reduce Effects). On the big screen it flashes the screen.
 function Kit:flash(strength: number, seconds: number)
-	if not self.participant then
+	local frame = if self.participant then self.flashFrame else self.layerFlash
+	if not frame then
 		return
 	end
 	local peak = if self.reduce then math.min(strength, 0.2) else strength
-	self.flashFrame.BackgroundTransparency = 1 - peak
-	TweenService:Create(self.flashFrame, TweenInfo.new(seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 1 }):Play()
+	frame.BackgroundTransparency = 1 - peak
+	TweenService:Create(frame, TweenInfo.new(seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 1 }):Play()
 end
 
 ------------------------------------------------------------------ world text
 
-local function anchorAt(self, position: Vector3): BasePart
+local function anchorAt(self, position: Vector3, parent: Instance?): BasePart
 	local anchor = Instance.new("Part")
 	anchor.Anchored = true
 	anchor.CanCollide = false
@@ -267,12 +315,12 @@ local function anchorAt(self, position: Vector3): BasePart
 	anchor.Transparency = 1
 	anchor.Size = Vector3.one
 	anchor.CFrame = CFrame.new(position)
-	anchor.Parent = self.folder
+	anchor.Parent = parent or self.folder
 	return anchor
 end
 
-local function billboardText(self, position: Vector3, text: string, color: Color3, font, sizePx: Vector2, rotation: number?)
-	local anchor = anchorAt(self, position)
+local function billboardText(self, position: Vector3, text: string, color: Color3, font, sizePx: Vector2, rotation: number?, parent: Instance?)
+	local anchor = anchorAt(self, position, parent)
 	local gui = Instance.new("BillboardGui")
 	gui.Size = UDim2.fromOffset(sizePx.X, sizePx.Y)
 	gui.AlwaysOnTop = true
@@ -298,9 +346,68 @@ local function billboardText(self, position: Vector3, text: string, color: Color
 	return anchor, label, scale, stroke
 end
 
+-- Where a world position lands on the 2D layer (0..1 on each axis), or nil if it's
+-- behind the scene camera. Roblox FieldOfView is vertical.
+function Kit:_project(position: Vector3): Vector2?
+	if not self.camCF or not self.layer then
+		return nil
+	end
+	local rel = self.camCF:PointToObjectSpace(position)
+	if rel.Z > -0.5 then
+		return nil
+	end
+	local size = self.layer.AbsoluteSize
+	local aspect = if size.Y > 0 then size.X / size.Y else 16 / 9
+	local t = math.tan(math.rad(self.camFov) / 2)
+	return Vector2.new(0.5 + (rel.X / -rel.Z) / (t * aspect) / 2, 0.5 - (rel.Y / -rel.Z) / t / 2)
+end
+
+-- Overlay counterpart of billboardText: a label on the 2D layer that follows the
+-- projection of `position`. Returns (holder, label, scale, stroke); destroying the
+-- holder removes it. `size` is a fraction of the layer (width, height).
+local function overlayText(self, position: Vector3, text: string, color: Color3, font, size: Vector2, rotation: number?)
+	local label = Instance.new("TextLabel")
+	label.AnchorPoint = Vector2.new(0.5, 0.5)
+	label.Size = UDim2.fromScale(size.X, size.Y)
+	label.BackgroundTransparency = 1
+	label.Font = font
+	label.TextScaled = true
+	label.Text = text
+	label.TextColor3 = color
+	label.Rotation = rotation or 0
+	label.ZIndex = 6
+	local stroke = Instance.new("UIStroke")
+	stroke.Thickness = 3
+	stroke.Color = Color3.fromRGB(16, 16, 20)
+	stroke.Parent = label
+	local scale = Instance.new("UIScale")
+	scale.Scale = 0.2
+	scale.Parent = label
+	local function place()
+		local at = self:_project(position)
+		label.Visible = at ~= nil
+		if at then
+			label.Position = UDim2.fromScale(at.X, at.Y)
+		end
+	end
+	place()
+	label.Parent = self.layer
+	local stop = self:loop(place)
+	label.Destroying:Connect(stop)
+	return label, label, scale, stroke
+end
+
+-- The right text builder for this kit: overlay on the big screen, billboards otherwise.
+local function worldText(self, position: Vector3, text: string, color: Color3, font, sizePx: Vector2, sizeScale: Vector2, rotation: number?)
+	if self.layer then
+		return overlayText(self, position, text, color, font, sizeScale, rotation)
+	end
+	return billboardText(self, position, text, color, font, sizePx, rotation)
+end
+
 -- Pop-in caption above a world position ("*coo*", "BEEP BEEP BEEP").
 function Kit:caption(position: Vector3, text: string, color: Color3?, lifetime: number?)
-	local anchor, label, scale, stroke = billboardText(self, position, text, color or Color3.new(1, 1, 1), Enum.Font.FredokaOne, Vector2.new(260, 56))
+	local anchor, label, scale, stroke = worldText(self, position, text, color or Color3.new(1, 1, 1), Enum.Font.FredokaOne, Vector2.new(260, 56), Vector2.new(0.3, 0.075))
 	TweenService:Create(scale, TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
 	local life = lifetime or 1.4
 	task.delay(life, function()
@@ -315,9 +422,7 @@ function Kit:caption(position: Vector3, text: string, color: Color3?, lifetime: 
 	return anchor
 end
 
--- Big slammed stamp over a world position (everyone sees these).
-function Kit:worldStamp(position: Vector3, text: string, color: Color3, lifetime: number?, rotation: number?)
-	local anchor, label, scale = billboardText(self, position, text, color, Enum.Font.LuckiestGuy, Vector2.new(300, 90), rotation or -8)
+local function slam(anchor, scale, lifetime: number?)
 	scale.Scale = 2.4
 	TweenService:Create(scale, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Scale = 1 }):Play()
 	task.delay(lifetime or 1.2, function()
@@ -326,9 +431,22 @@ function Kit:worldStamp(position: Vector3, text: string, color: Color3, lifetime
 	return anchor
 end
 
+-- Big slammed stamp over a world position (everyone sees these).
+function Kit:worldStamp(position: Vector3, text: string, color: Color3, lifetime: number?, rotation: number?)
+	local anchor, _, scale = worldText(self, position, text, color, Enum.Font.LuckiestGuy, Vector2.new(300, 90), Vector2.new(0.36, 0.12), rotation or -8)
+	return slam(anchor, scale, lifetime)
+end
+
+-- A stamp on the real stage (a billboard in stageFolder), whatever this kit renders.
+-- In big-screen mode the verdict lands on the players standing on stage.
+function Kit:stageStamp(position: Vector3, text: string, color: Color3, lifetime: number?, rotation: number?)
+	local anchor, _, scale = billboardText(self, position, text, color, Enum.Font.LuckiestGuy, Vector2.new(300, 90), rotation or -8, self.stageFolder)
+	return slam(anchor, scale, lifetime)
+end
+
 -- A number that counts up from 0 over a world position.
 function Kit:bigNumber(position: Vector3, value: number, color: Color3, lifetime: number?)
-	local anchor, label, scale = billboardText(self, position, "0", color, Enum.Font.FredokaOne, Vector2.new(220, 70))
+	local anchor, label, scale = worldText(self, position, "0", color, Enum.Font.FredokaOne, Vector2.new(220, 70), Vector2.new(0.22, 0.09))
 	scale.Scale = 1
 	local format = require(game:GetService("ReplicatedStorage").Larp.Shared.Format)
 	self:animate(0.45, function(a)
@@ -340,12 +458,14 @@ function Kit:bigNumber(position: Vector3, value: number, color: Color3, lifetime
 	return anchor
 end
 
--- Screen title for participants ("BAG"), plus a world copy spectators can read.
+-- Screen title for participants ("BAG"), plus a world copy spectators can read. On the
+-- big screen the title goes across the screen itself.
 function Kit:title(text: string, color: Color3, worldPosition: Vector3?)
-	if worldPosition then
+	if worldPosition and not self.layer then
 		self:worldStamp(worldPosition, text, color, 0.9, 0)
 	end
-	if not self.participant then
+	local container = if self.participant then self.gui else self.layer
+	if not container then
 		return
 	end
 	local label = Instance.new("TextLabel")
@@ -364,7 +484,8 @@ function Kit:title(text: string, color: Color3, worldPosition: Vector3?)
 	local scale = Instance.new("UIScale")
 	scale.Scale = if self.reduce then 1 else 3
 	scale.Parent = label
-	label.Parent = self.gui
+	label.ZIndex = 7
+	label.Parent = container
 	TweenService:Create(scale, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Scale = 1 }):Play()
 	task.delay(0.75, function()
 		TweenService:Create(label, TweenInfo.new(0.2), { TextTransparency = 1 }):Play()
@@ -377,7 +498,44 @@ end
 
 ------------------------------------------------------------------ particles & props
 
+-- Part confetti, for places particles don't render (ViewportFrames).
+local function partConfetti(self, position: Vector3, count: number, parent: Instance)
+	local colors = { Color3.fromRGB(255, 198, 64), Color3.fromRGB(240, 124, 167), Color3.fromRGB(92, 176, 255), Color3.fromRGB(122, 214, 112) }
+	local bits = {}
+	for i = 1, math.min(count, 40) do
+		local p = Instance.new("Part")
+		p.Size = Vector3.new(0.35, 0.05, 0.35)
+		p.Color = colors[(i % #colors) + 1]
+		p.Material = Enum.Material.SmoothPlastic
+		p.Anchored = true
+		p.CanCollide = false
+		p.CanQuery = false
+		p.CanTouch = false
+		p.Parent = parent
+		local angle = math.random() * math.pi * 2
+		local out = 4 + math.random() * 8
+		bits[i] = { part = p, v = Vector3.new(math.cos(angle) * out, 18 + math.random() * 12, math.sin(angle) * out), spin = math.random() * 12 }
+	end
+	local stop
+	stop = self:loop(function(t)
+		for _, b in bits do
+			local pos = position + b.v * t + Vector3.new(0, -25 * t * t / 2, 0)
+			b.part.CFrame = CFrame.new(pos) * CFrame.Angles(t * b.spin, t * b.spin * 0.7, 0)
+		end
+		if t > 2 then
+			stop()
+			for _, b in bits do
+				b.part:Destroy()
+			end
+		end
+	end)
+end
+
 function Kit:confetti(position: Vector3, count: number?)
+	if self.noParticles then
+		partConfetti(self, position, count or 60, self.folder)
+		return
+	end
 	local anchor = anchorAt(self, position)
 	local colors = { Color3.fromRGB(255, 198, 64), Color3.fromRGB(240, 124, 167), Color3.fromRGB(92, 176, 255), Color3.fromRGB(122, 214, 112) }
 	for _, c in colors do
@@ -397,6 +555,14 @@ function Kit:confetti(position: Vector3, count: number?)
 	task.delay(2.5, function()
 		anchor:Destroy()
 	end)
+end
+
+-- Confetti on the real stage (particles in stageFolder), whatever this kit renders.
+function Kit:stageConfetti(position: Vector3, count: number?)
+	local particles, folder = self.noParticles, self.folder
+	self.noParticles, self.folder = false, self.stageFolder
+	self:confetti(position, count)
+	self.noParticles, self.folder = particles, folder
 end
 
 -- Green bills tumbling down over a spot for `seconds`.
@@ -437,7 +603,10 @@ function Kit:Destroy()
 	self.stepConn:Disconnect()
 	table.clear(self.anims)
 	table.clear(self.loops)
-	if self.bound then
+	if self.layer then
+		self.layer:Destroy()
+	end
+	if self.bound and not self.viewCam then
 		RunService:UnbindFromRenderStep("LarpSceneCamera")
 		local camera = workspace.CurrentCamera
 		camera.CameraType = Enum.CameraType.Custom

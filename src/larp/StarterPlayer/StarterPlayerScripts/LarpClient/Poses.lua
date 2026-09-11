@@ -33,6 +33,8 @@ Poses.Defs = {
 type Handle = { object: Instance, prop: string }
 
 local originals: { [Instance]: { prop: string, value: CFrame } } = {}
+-- avatar copy -> the real character that mirrors its poses (big-screen mode)
+local links: { [Model]: Model } = {}
 
 local function joints(character: Model): { [string]: Handle }
 	local out = {}
@@ -48,12 +50,7 @@ local function joints(character: Model): { [string]: Handle }
 	return out
 end
 
--- Blends `character` into the named pose over `duration` seconds using the kit clock.
-function Poses.apply(kit, character: Model?, name: string, duration: number?)
-	if not character then
-		return
-	end
-	local def = Poses.Defs[name] or Poses.Defs.Idle
+local function applyOne(kit, character: Model, def, duration: number?)
 	for jointName, handle in joints(character) do
 		local object, prop = handle.object, handle.prop
 		if not originals[object] then
@@ -69,7 +66,27 @@ function Poses.apply(kit, character: Model?, name: string, duration: number?)
 	end
 end
 
--- Restores every joint this module touched.
+-- Blends `character` into the named pose over `duration` seconds using the kit clock.
+-- A linked real character (see link) strikes the same pose.
+function Poses.apply(kit, character: Model?, name: string, duration: number?)
+	if not character then
+		return
+	end
+	local def = Poses.Defs[name] or Poses.Defs.Idle
+	applyOne(kit, character, def, duration)
+	local mirror = links[character]
+	if mirror and mirror.Parent then
+		applyOne(kit, mirror, def, duration)
+	end
+end
+
+-- Big-screen mode: poses applied to the avatar copy in the scene set are mirrored
+-- onto the player standing on the stage. Cleared by reset().
+function Poses.link(copy: Model, real: Model?)
+	links[copy] = real
+end
+
+-- Restores every joint this module touched and forgets all links.
 function Poses.reset()
 	for object, saved in originals do
 		if object.Parent then
@@ -77,6 +94,7 @@ function Poses.reset()
 		end
 	end
 	table.clear(originals)
+	table.clear(links)
 end
 
 -- The character's right hand (for holding the phone), if it has one.

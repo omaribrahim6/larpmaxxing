@@ -152,6 +152,41 @@ function PracticeNpcService:_start(player: Player, isRematch: boolean, skipCheck
 	self.Matches:Enqueue(challenger, opponent)
 end
 
+-- Studio-only (the LarpDebug hook's "demo" command): the Practice Larper vs a temporary
+-- second NPC through the real match pipeline, so one tester can watch as a spectator.
+function PracticeNpcService:_demo(bag: number?)
+	if not npc or not npc.Parent or self.Matches:IsBusy(PracticeNpcService.KEY) then
+		return "busy"
+	end
+	local rival, prompt = spawnNpc()
+	if not rival then
+		return "no rival"
+	end
+	prompt:Destroy()
+	rival.Name = "Demo Larper"
+	local function combatant(model, key, name)
+		local stats = {}
+		for _, id in Catalog.statIds do
+			stats[id] = math.floor((bag or 20000) * rng:NextNumber(0.6, 1.4))
+		end
+		return Combatant.fromNpc(model, key, name, stats, RankMath.indexFor(Catalog.total(stats), Catalog.ranks))
+	end
+	local a = combatant(npc, PracticeNpcService.KEY, Text.Practice.name)
+	local b = combatant(rival, "npc:demo", "Demo Larper")
+	a.onFinished = function()
+		local root = npc:FindFirstChild("HumanoidRootPart")
+		local humanoid = npc:FindFirstChildOfClass("Humanoid")
+		if root and humanoid then
+			npc:PivotTo(home * CFrame.new(0, humanoid.HipHeight + root.Size.Y / 2, 0))
+		end
+	end
+	b.onFinished = function()
+		rival:Destroy()
+	end
+	local position = self.Matches:Enqueue(a, b)
+	return if position then "demo queued" else "could not queue"
+end
+
 function PracticeNpcService:Start()
 	local spot = workspace.Larp:FindFirstChild("Map") and workspace.Larp.Map:FindFirstChild("PracticeNpcSpot")
 	if spot and spot:IsA("BasePart") then

@@ -77,6 +77,17 @@ return function(t)
 		expect.equal(#find(beats, "draw"), 1)
 	end)
 
+	-- An arrive gap pushes the fumble, takeover and numbers back and lengthens the round.
+	t.test("arrive gap delays the takeover", function()
+		local timing = { titleSlam = 0.6, climb = 2.2, arrive = 1.0, takeover = 0.8, numbers = 0.9 }
+		local beats = ClimbPlan.build({ a = side(3), b = side(5), winner = "B", fumble = "TowTruck" }, timing)
+		expect.near(find(beats, "fumble")[1].t, 3.8)
+		expect.near(find(beats, "takeover")[1].t, 3.8)
+		expect.near(find(beats, "numbers")[1].t, 4.6)
+		expect.near(ClimbPlan.duration(timing), 5.5)
+		expect.truthy(find(beats, "settle", "B")[1].t < 2.8)
+	end)
+
 	-- Beats are time-ordered and fit inside the round.
 	t.test("beats are sorted and inside the round", function()
 		local beats = ClimbPlan.build({ a = side(6, 3, true), b = side(2), winner = "A", fumble = "PhoneDrop" }, TIMING)

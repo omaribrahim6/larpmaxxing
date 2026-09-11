@@ -11,9 +11,16 @@ return {
 	Timing = {
 		introSeconds = 3,
 		verdictSeconds = 4,
-		-- One round's beats; they sum to the round length (4.5s).
-		round = { titleSlam = 0.6, climb = 2.2, takeover = 0.8, numbers = 0.9 },
+		-- One round's beats; they sum to the round length (5.5s). `arrive` is the gap after
+		-- the climb where each side gets out of their ride.
+		round = { titleSlam = 0.6, climb = 2.2, arrive = 1.0, takeover = 0.8, numbers = 0.9 },
 	},
+
+	-- How rounds are shown. "Screen": each round plays in its own 3D set far from the map;
+	-- participants watch it full-screen and the audience watches the stage's big screen.
+	-- "Stage": props appear on the stage itself (the original prototype).
+	SceneMode = "Screen",
+	Screen = { setOrigin = Vector3.new(0, 0, 3000) },
 
 	-- Rolled-value floors for Tier 2, 3, 4, 5 and Maxxed (Tier 6).
 	Tiers = { 100, 1000, 5000, 20000, 50000 },

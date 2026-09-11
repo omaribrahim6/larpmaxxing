@@ -1,6 +1,12 @@
--- The Bag round: a selfie in front of whatever you can afford. Each climb step swaps
--- the vehicle behind a side; the tier a side settles on plays its signature moment;
--- the winner takes over the loser's spot; the loser fumbles.
+-- The Bag round: pull up in whatever you can afford. Each climb step brings a better
+-- ride; the tier a side settles on plays its signature moment; the winner takes over
+-- the loser's spot; the loser fumbles.
+--
+-- Screen mode (ctx.screenMode, see SceneDirector): each ride drives in from off-screen
+-- facing the centre while the previous one backs out, and the avatar stays out of sight
+-- until their final ride stops. Then they get out (off the bus, out of the scissor
+-- doors, down the jet's airstairs) and walk to their mark. Stage mode keeps the original
+-- pop-in-and-selfie version.
 --
 -- ctx.sides[key] (built by SceneDirector): character, mark (CFrame), vehicleCF, jetCF,
 -- billboard, outward (-1 left, +1 right), userId, name. Scene state lives on the side.
@@ -14,6 +20,19 @@ local ASSETS = Larp.Assets.Scenes.Bag
 local Bag = {}
 
 local VEHICLE_Y_DROP = 9
+local DRIVE_IN = 36 -- studs a ride travels onto the screen
+local WALK_FALLBACK = "rbxassetid://507777826" -- Roblox's default R15 walk
+
+-- Per-tier arrival: how long after the ride stops the avatar steps out, and how far
+-- along the ride (fraction of its length, towards its nose) the door is.
+local EXIT = {
+	[1] = { delay = 0.15, along = 0.32 }, -- bus: front door
+	[2] = { delay = 0.05, along = 0 }, -- e-scooter: hop off
+	[3] = { delay = 0.15, along = 0.1 },
+	[4] = { delay = 0.15, along = 0.1 },
+	[5] = { delay = 0.45, along = 0.1 }, -- after the scissor doors open
+	[6] = { delay = 0.3, along = 0 }, -- down the airstairs
+}
 
 local function template(name: string): Instance?
 	return ASSETS:FindFirstChild(name)
@@ -34,16 +53,64 @@ local function eachNamed(model: Instance?, name: string, fn)
 	end
 end
 
--- Where a tier's vehicle parks for this side.
-local function parkCF(side, tier: number): CFrame
+-- Where a tier's vehicle parks for this side. In screen mode rides face the centre so
+-- they can drive in forwards from off-screen.
+local function parkCF(ctx, side, tier: number): CFrame
 	if tier >= 6 then
 		return side.jetCF
 	end
+	local park = side.vehicleCF
 	if tier == 2 then
 		-- the scooter is small: park it right behind the player
-		return side.vehicleCF * CFrame.new(0, 0, 6)
+		park = side.vehicleCF * CFrame.new(0, 0, 6)
 	end
-	return side.vehicleCF
+	if ctx.screenMode then
+		park *= CFrame.Angles(0, math.pi, 0)
+	end
+	return park
+end
+
+-- Shows or hides a model by stashing each part's transparency in an attribute.
+local function setShown(model: Model?, shown: boolean)
+	if not model then
+		return
+	end
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") or d:IsA("Decal") then
+			local was = d:GetAttribute("LarpTransparency")
+			if shown and was ~= nil then
+				d.Transparency = was
+				d:SetAttribute("LarpTransparency", nil)
+			elseif not shown and was == nil then
+				d:SetAttribute("LarpTransparency", d.Transparency)
+				d.Transparency = 1
+			end
+		end
+	end
+end
+
+-- Plays the player's own walk animation on their avatar copy (or Roblox's default).
+local function playWalk(side): AnimationTrack?
+	local humanoid = side.character and side.character:FindFirstChildOfClass("Humanoid")
+	local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
+	if not animator then
+		return nil
+	end
+	local id = WALK_FALLBACK
+	local animate = side.stageCharacter and side.stageCharacter:FindFirstChild("Animate")
+	local walk = animate and animate:FindFirstChild("walk")
+	local anim = walk and walk:FindFirstChildOfClass("Animation")
+	if anim and anim.AnimationId ~= "" then
+		id = anim.AnimationId
+	end
+	local animation = Instance.new("Animation")
+	animation.AnimationId = id
+	local ok, track = pcall(animator.LoadAnimation, animator, animation)
+	if ok and track then
+		track:Play(0.1)
+		return track
+	end
+	return nil
 end
 
 local function attachPhone(kit, side)
@@ -93,18 +160,126 @@ local function selfieFlash(kit, side, loud: boolean)
 	end
 end
 
-local function removeVehicle(kit, side)
+local function removeVehicle(ctx, side)
+	local kit = ctx.kit
 	local old = side.vehicle
 	side.vehicle = nil
 	if old and old.Parent then
 		local from = old:GetPivot()
-		kit:tweenPivot(old, from, from * CFrame.new(0, -VEHICLE_Y_DROP, 0), 0.18, kit.Ease.inQuad, function()
-			old:Destroy()
-		end)
+		if ctx.screenMode and side.tier < 6 then
+			-- backs out the way it came
+			kit:tweenPivot(old, from, from * CFrame.new(0, 0, DRIVE_IN), 0.22, kit.Ease.inQuad, function()
+				old:Destroy()
+			end)
+		else
+			kit:tweenPivot(old, from, from * CFrame.new(0, -VEHICLE_Y_DROP, 0), 0.18, kit.Ease.inQuad, function()
+				old:Destroy()
+			end)
+		end
 	end
 end
 
--- One climb step: a new vehicle arrives behind the side and they snap a selfie.
+local function openDoors(kit, side)
+	local vehicle = side.vehicle
+	if not vehicle or side.doorsOpen then
+		return
+	end
+	side.doorsOpen = true
+	for _, doorName in { "DoorL", "DoorR" } do
+		local door = vehicle:FindFirstChild(doorName)
+		if door and door.PrimaryPart then
+			local rest = door:GetPivot()
+			local open = math.rad(door:GetAttribute("OpenDegrees") or -70)
+			kit:animate(1.1, function(a)
+				if door.Parent then
+					door:PivotTo(rest * CFrame.Angles(open * a, 0, 0))
+				end
+			end, kit.Ease.inOutQuad)
+		end
+	end
+end
+
+-- Red carpet from the jet's airstair to the player.
+local function rollCarpet(kit, side)
+	local vehicle = side.vehicle
+	if side.carpet then
+		return
+	end
+	local start = vehicle and vehicle.PrimaryPart and vehicle.PrimaryPart:FindFirstChild(if side.outward < 0 then "CarpetStartL" else "CarpetStartR")
+	if not start then
+		return
+	end
+	local a = start.WorldPosition
+	local b = side.mark.Position
+	local carpet = Instance.new("Part")
+	carpet.Name = "RedCarpet"
+	carpet.Anchored = true
+	carpet.CanCollide = false
+	carpet.CanQuery = false
+	carpet.CanTouch = false
+	carpet.Color = Color3.fromRGB(196, 24, 36)
+	carpet.Material = Enum.Material.Fabric
+	carpet.Parent = kit.folder
+	side.carpet = carpet
+	local flatA = Vector3.new(a.X, b.Y + 0.08, a.Z)
+	local dir = (Vector3.new(b.X, flatA.Y, b.Z) - flatA)
+	kit:animate(0.7, function(k)
+		local len = math.max(0.1, dir.Magnitude * k)
+		carpet.Size = Vector3.new(3.2, 0.12, len)
+		carpet.CFrame = CFrame.lookAt(flatA, flatA + dir) * CFrame.new(0, 0, -len / 2)
+	end, kit.Ease.outQuad)
+end
+
+-- Screen mode: the avatar gets out of their ride and walks to their mark, then `done`.
+local function arrive(ctx, key: string, tier: number, done: () -> ())
+	local kit, side = ctx.kit, ctx.sides[key]
+	local avatar, vehicle = side.character, side.vehicle
+	if not avatar or side.arrived then
+		done()
+		return
+	end
+	side.arrived = true
+	local rest = side.avatarRest or avatar:GetPivot()
+	side.avatarRest = rest
+	local exit = EXIT[math.clamp(tier, 1, 6)]
+	kit:after(exit.delay, function()
+		local door = rest.Position
+		local stairs = vehicle and vehicle.PrimaryPart and vehicle.PrimaryPart:FindFirstChild(if side.outward < 0 then "CarpetStartL" else "CarpetStartR")
+		if tier >= 6 and stairs then
+			door = stairs.WorldPosition
+		elseif vehicle and vehicle.Parent then
+			-- the camera-facing side of the ride (bays run along X, the camera looks down -Z)
+			local cf, size = vehicle:GetBoundingBox()
+			local along = cf.LookVector * size.Z * exit.along
+			door = Vector3.new(cf.X + along.X, rest.Y, cf.Z + size.X / 2 + 1.2)
+		end
+		local from = Vector3.new(door.X, rest.Y, door.Z)
+		local path = rest.Position - from
+		local facing = if path.Magnitude > 0.1 then CFrame.lookAt(from, from + Vector3.new(path.X, 0, path.Z)).Rotation else rest.Rotation
+		avatar:PivotTo(CFrame.new(from) * facing)
+		setShown(avatar, true)
+		local walk = playWalk(side)
+		local duration = math.clamp(path.Magnitude / 14, 0.35, 0.9)
+		kit:animate(duration, function(a)
+			if avatar.Parent then
+				local p = from:Lerp(rest.Position, a) + Vector3.new(0, math.abs(math.sin(a * math.pi * 3)) * 0.2, 0)
+				avatar:PivotTo(CFrame.new(p) * (if a < 0.85 then facing else rest.Rotation))
+			end
+		end, kit.Ease.linear, function()
+			if avatar.Parent then
+				avatar:PivotTo(rest)
+			end
+			if walk then
+				walk:Stop(0.15)
+			end
+			attachPhone(kit, side)
+			Poses.apply(kit, avatar, "Selfie", 0.12)
+			done()
+		end)
+	end)
+end
+
+-- One climb step: a better ride arrives behind the side.
 function Bag.showTier(ctx, key: string, tier: number, big: boolean?)
 	local kit, side = ctx.kit, ctx.sides[key]
 	local def = Data.tiers[tier]
@@ -112,28 +287,35 @@ function Bag.showTier(ctx, key: string, tier: number, big: boolean?)
 	if not t then
 		return
 	end
-	removeVehicle(kit, side)
-	local park = parkCF(side, tier)
+	removeVehicle(ctx, side)
+	local park = parkCF(ctx, side, tier)
 	local vehicle = kit:spawn(t, park)
 	side.vehicle = vehicle
 	side.tier = tier
+	side.doorsOpen = nil
 	if tier >= 6 then
 		kit:tweenPivot(vehicle, park * CFrame.new(0, 45, 40) * CFrame.Angles(math.rad(12), 0, 0), park, 0.4, kit.Ease.outQuad, function()
 			kit:sound("Boom", { volume = 0.7 })
 			kit:shake(1.2, 0.35)
 			ctx.crowd:react("erupt", 1.2)
 		end)
+	elseif ctx.screenMode then
+		-- drives in forwards from off-screen
+		kit:tweenPivot(vehicle, park * CFrame.new(0, 0, DRIVE_IN), park, if big then 0.45 else 0.3, kit.Ease.outQuad)
+		kit:sound("Whoosh", { volume = 0.35, speed = 0.85 + tier * 0.08 })
 	else
 		kit:tweenPivot(vehicle, park * CFrame.new(0, 0, -16), park, if big then 0.4 else 0.28, kit.Ease.outBack)
 		kit:sound("Whoosh", { volume = 0.3, speed = 0.9 + tier * 0.08 })
 	end
-	attachPhone(kit, side)
-	Poses.apply(kit, side.character, "Selfie", 0.12)
-	selfieFlash(kit, side, false)
+	if not ctx.screenMode then
+		attachPhone(kit, side)
+		Poses.apply(kit, side.character, "Selfie", 0.12)
+		selfieFlash(kit, side, false)
+	end
 end
 
--- The side settled on `tier`: play that tier's signature moment.
-function Bag.signature(ctx, key: string, tier: number)
+-- The tier's signature moment, once the side is standing on their mark.
+local function signatureBody(ctx, key: string, tier: number)
 	local kit, side = ctx.kit, ctx.sides[key]
 	local vehicle = side.vehicle
 	local outward = side.outward
@@ -217,23 +399,10 @@ function Bag.signature(ctx, key: string, tier: number)
 		kit:shake(0.35, 0.3)
 		selfieFlash(kit, side, true)
 	elseif tier == 5 then
-		if vehicle then
-			for _, doorName in { "DoorL", "DoorR" } do
-				local door = vehicle:FindFirstChild(doorName)
-				if door and door.PrimaryPart then
-					local rest = door:GetPivot()
-					local open = math.rad(door:GetAttribute("OpenDegrees") or -70)
-					kit:animate(1.1, function(a)
-						if door.Parent then
-							door:PivotTo(rest * CFrame.Angles(open * a, 0, 0))
-						end
-					end, kit.Ease.inOutQuad)
-				end
-			end
-			eachNamed(vehicle, "Underglow", function(p)
-				p.Transparency = 0
-			end)
-		end
+		openDoors(kit, side)
+		eachNamed(vehicle, "Underglow", function(p)
+			p.Transparency = 0
+		end)
 		kit:moneyRain(markPos, 2.2, 5)
 		local valetT = template("Valet")
 		if valetT then
@@ -275,28 +444,7 @@ function Bag.signature(ctx, key: string, tier: number)
 	elseif tier >= 6 then
 		-- red carpet rolls from the airstair to the player, the street closes, the
 		-- billboard on this side switches to their selfie, and the camera pulls out
-		local start = vehicle and vehicle.PrimaryPart and vehicle.PrimaryPart:FindFirstChild(if outward < 0 then "CarpetStartL" else "CarpetStartR")
-		if start then
-			local a = start.WorldPosition
-			local b = markPos
-			local carpet = Instance.new("Part")
-			carpet.Name = "RedCarpet"
-			carpet.Anchored = true
-			carpet.CanCollide = false
-			carpet.CanQuery = false
-			carpet.CanTouch = false
-			carpet.Color = Color3.fromRGB(196, 24, 36)
-			carpet.Material = Enum.Material.Fabric
-			carpet.Parent = kit.folder
-			side.carpet = carpet
-			local flatA = Vector3.new(a.X, b.Y + 0.08, a.Z)
-			local dir = (Vector3.new(b.X, flatA.Y, b.Z) - flatA)
-			kit:animate(0.7, function(k)
-				local len = math.max(0.1, dir.Magnitude * k)
-				carpet.Size = Vector3.new(3.2, 0.12, len)
-				carpet.CFrame = CFrame.lookAt(flatA, flatA + dir) * CFrame.new(0, 0, -len / 2)
-			end, kit.Ease.outQuad)
-		end
+		rollCarpet(kit, side)
 		-- Positions are offsets from the stage's markers (stages face -Z, like every shot),
 		-- so the same scene works on any stage.
 		local barrierT = template("StreetBarrier")
@@ -333,11 +481,38 @@ function Bag.signature(ctx, key: string, tier: number)
 	end
 end
 
+-- The side settled on `tier`. Screen mode: their ride has stopped, so they get out
+-- (supercar doors open first, the jet's carpet rolls as they walk) and then the
+-- signature plays.
+function Bag.signature(ctx, key: string, tier: number)
+	if not ctx.screenMode then
+		signatureBody(ctx, key, tier)
+		return
+	end
+	local side = ctx.sides[key]
+	if tier >= 6 then
+		-- the walk down the airstairs is long: the Maxxed moment (carpet, road closed,
+		-- pull-out shot) plays around them as they walk
+		signatureBody(ctx, key, tier)
+		arrive(ctx, key, tier, function() end)
+		return
+	end
+	if tier == 5 then
+		openDoors(ctx.kit, side)
+	end
+	arrive(ctx, key, tier, function()
+		signatureBody(ctx, key, tier)
+	end)
+end
+
 -- The winner's scene spills onto the loser's spot.
 function Bag.takeover(ctx, winKey: string, loseKey: string)
 	local kit = ctx.kit
 	local win, lose = ctx.sides[winKey], ctx.sides[loseKey]
 	local v = win.vehicle
+	-- screen-mode rides face the centre: the winner drives forwards into the loser's
+	-- spot, and the loser's ride gets shoved backwards off-screen
+	local back = if ctx.screenMode then 1 else -1
 	if win.tier >= 6 then
 		-- the red carpet keeps rolling across the divider to the loser
 		if win.carpet then
@@ -353,7 +528,8 @@ function Bag.takeover(ctx, winKey: string, loseKey: string)
 		end
 	elseif v and v.Parent then
 		local from = v:GetPivot()
-		local to = parkCF(lose, win.tier)
+		local target = parkCF(ctx, lose, win.tier)
+		local to = if ctx.screenMode then CFrame.new(target.Position) * from.Rotation else target
 		kit:tweenPivot(v, from, to, 0.6, kit.Ease.inOutQuad)
 	end
 	-- When the winner arrives, bump whatever the loser still has parked there (unless
@@ -364,7 +540,7 @@ function Bag.takeover(ctx, winKey: string, loseKey: string)
 		kit:after(0.55, function()
 			if lv.Parent then
 				local from = lv:GetPivot()
-				kit:tweenPivot(lv, from, from * CFrame.new(0, 2, -18) * CFrame.Angles(0, 0, math.rad(40 * lose.outward)), 0.45, kit.Ease.inQuad, function()
+				kit:tweenPivot(lv, from, from * CFrame.new(0, 2, back * 18) * CFrame.Angles(0, 0, math.rad(40 * lose.outward)), 0.45, kit.Ease.inQuad, function()
 					lv:Destroy()
 				end)
 			end
@@ -422,9 +598,12 @@ function Bag.fumble(ctx, key: string, variant: string?)
 		side.vehicleLeaving = true
 		local truckT = template("TowTruck")
 		if truckT then
+			-- dir 1: tow by the nose towards the front; screen mode (-1): hook the tail and
+			-- drag it off-screen backwards, away from the other side
+			local dir = if ctx.screenMode then -1 else 1
 			local carCF = v:GetPivot()
 			local length = v:GetAttribute("Length") or 14
-			local hitch = carCF * CFrame.new(0, 0, -(length / 2 + 9.5))
+			local hitch = carCF * CFrame.new(0, 0, -dir * (length / 2 + 9.5)) * (if dir < 0 then CFrame.Angles(0, math.pi, 0) else CFrame.identity)
 			local truck = kit:spawn(truckT, hitch * CFrame.new(0, 0, -24))
 			kit:tweenPivot(truck, hitch * CFrame.new(0, 0, -24), hitch, 0.35, kit.Ease.outQuad, function()
 				kit:sound("CarAlarm", { volume = 0.5, speed = 0.6 })
@@ -432,14 +611,13 @@ function Bag.fumble(ctx, key: string, variant: string?)
 					return
 				end
 				local carFrom = v:GetPivot()
-				local tilted = carFrom * CFrame.new(0, 0, -length / 2) * CFrame.Angles(math.rad(-14), 0, 0) * CFrame.new(0, 0, length / 2)
+				local tilted = carFrom * CFrame.new(0, 0, -dir * length / 2) * CFrame.Angles(math.rad(-14 * dir), 0, 0) * CFrame.new(0, 0, dir * length / 2)
 				kit:animate(0.5, function(a)
-					local offset = CFrame.new(0, 0, -32 * a * a)
 					if v.Parent then
-						v:PivotTo((carFrom:Lerp(tilted, math.min(1, a * 4))) * offset)
+						v:PivotTo((carFrom:Lerp(tilted, math.min(1, a * 4))) * CFrame.new(0, 0, -dir * 32 * a * a))
 					end
 					if truck.Parent then
-						truck:PivotTo(hitch * offset)
+						truck:PivotTo(hitch * CFrame.new(0, 0, -32 * a * a))
 					end
 				end, kit.Ease.linear)
 			end)
@@ -472,12 +650,20 @@ function Bag.fumble(ctx, key: string, variant: string?)
 end
 
 -- Clears one side's round state (vehicles etc. live in the kit folder and go with it).
+-- In screen mode the avatar goes back out of sight until their ride arrives.
 function Bag.resetSide(ctx, key: string)
 	local side = ctx.sides[key]
 	side.vehicle = nil
 	side.carpet = nil
 	side.vehicleLeaving = nil
+	side.doorsOpen = nil
 	side.tier = 0
+	if ctx.screenMode and side.character and side.character.Parent then
+		side.arrived = false
+		side.avatarRest = side.avatarRest or side.character:GetPivot()
+		side.character:PivotTo(side.avatarRest)
+		setShown(side.character, false)
+	end
 	local screen = side.billboard and side.billboard:FindFirstChild("Screen")
 	if screen and side.billboardWas then
 		screen.Selfie.Image = side.billboardWas.image

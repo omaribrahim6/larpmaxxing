@@ -50,6 +50,9 @@ if game:GetService("RunService"):IsStudio() then
 			return "queued"
 		elseif command == "stats" then
 			return services.StatService:GetStats(target)
+		elseif command == "demo" then
+			-- NPC vs NPC larp-off the target can watch as a spectator (stand near the stage)
+			return services.PracticeNpcService:_demo(...)
 		end
 		return "unknown command"
 	end

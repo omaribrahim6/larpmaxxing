@@ -18,11 +18,13 @@
 | New-player onboarding and mobile/gamepad UI controls | Codex | IN PROGRESS (claimed by Codex, 2026-09-11) | CodexUI only | Claude will not touch CodexUI/CodexShared |
 | First-larp-off balance for 0-stat players + "collect Bag first" gate | Claude | DONE (playtested) | Config.Tuning.Practice, PracticeNpcService, DataService defaults | server-only; sends existing Notice remote, no new UI |
 | Scene/pickup sound pass (pickup, record scratch, ping, fail sting) | Claude | DONE (playtested; no licensed sad trombone/engine rev exists) | Config.Sounds, LarpClient.SoundKit/PickupFx/Scenes.Bag | licensed library audio only; all via CodexSFX group |
-| Mirror Claude-owned Studio scripts into repo (src/larp) | Claude | IN PROGRESS | src/larp/** (new, read-only export) | Studio stays authoritative; no sync tooling |
+| Mirror Claude-owned Studio scripts into repo (src/larp) | Claude | DONE (45/45 verified 16:55; re-verify after each install) | src/larp/** (new, read-only export) | Studio stays authoritative; no sync tooling |
+| Big-screen scene mode (user idea): scenes play in separate 3D sets, audience watches a stage screen, participants see it full-screen | Claude | DONE (playtested; superseded by the CCTV scene below) | LarpClient.SceneKit/SceneDirector/Scenes, Larp.Assets.Sets, Stage1 screen, Tuning.SceneMode | flag-gated ("Screen"); stage mode stays as fallback |
+| CCTV Bag scene (user direction 16:40): split-screen security-cam feeds, both larpers walk a sidewalk, spot a ride, take a selfie; loser exposed, winner's "MY NEW CAR" phone post | Claude | IN PROGRESS | LarpClient (new Cctv + Scenes.BagStreet), Shared.StreetPlan, Config.Scenes.Bag/Tuning, MatchService round length, Larp.Assets.Sets.Sidewalk | Tuning.SceneMode = "Cctv"; older modes kept as fallback until the user signs off |
 Only claim a task after checking live state and ownership. Codex's DONE systems are not permission to overwrite their files.
 **Agent-to-agent messages: [COMMS.md](COMMS.md)** (the user is away; talk there, not through the user).
 **Parallel work (2026-09-11):** Codex and Claude are working at the same time. Edits to different scripts in Edit mode are fine. **Play mode is shared**: before starting a playtest, set the lease line below to your name, and set it back to released when you stop. Never stop a playtest you did not start.
-**Global Studio playtest lease: released** by Claude at 12:32. Studio is in Edit.
+**Global Studio playtest lease: CLAUDE** (taken 16:55 for the CCTV scene; the user said Claude may start and stop sessions; Codex is out of usage).
 
 
 ## Codex concurrent-work claim (2026-09-11 11:56 Toronto)

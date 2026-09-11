@@ -2,13 +2,14 @@
 -- Builds the beat timeline for one larp-off round ("the climb").
 -- Both sides start at Tier 1 and step up together; a side stops ("settles") at its
 -- final tier while the other keeps climbing. A viral side climbs to its pre-viral
--- tier, then jumps to its final tier on a "viral" beat. Times are seconds from the
--- start of the round. Pure, so the server can test it and every client plays the
--- same schedule.
+-- tier, then jumps to its final tier on a "viral" beat. After the climb, an optional
+-- `arrive` gap lets scenes play their arrivals (getting out of the ride) before the
+-- takeover. Times are seconds from the start of the round. Pure, so the server can
+-- test it and every client plays the same schedule.
 
 export type Side = { tier: number, preTier: number, viral: boolean }
 export type Package = { a: Side, b: Side, winner: string, fumble: string? }
-export type Timing = { titleSlam: number, climb: number, takeover: number, numbers: number }
+export type Timing = { titleSlam: number, climb: number, arrive: number?, takeover: number, numbers: number }
 export type Beat = {
 	t: number,
 	kind: string, -- "title" | "tier" | "viral" | "settle" | "faceoff" | "takeover" | "fumble" | "draw" | "numbers"
@@ -73,21 +74,22 @@ function ClimbPlan.build(pkg: Package, timing: Timing): { Beat }
 		end
 	end
 
+	local actEnd = climbEnd + (timing.arrive or 0)
 	if pkg.winner ~= "Draw" and pkg.a.tier == pkg.b.tier then
-		add({ t = math.max(lastSettle + 0.05, climbEnd - 0.5), kind = "faceoff" })
+		add({ t = math.max(lastSettle + 0.05, actEnd - 0.5), kind = "faceoff" })
 	end
 
 	if pkg.winner == "Draw" then
-		add({ t = climbEnd, kind = "draw" })
+		add({ t = actEnd, kind = "draw" })
 	else
 		local loser = if pkg.winner == "A" then "B" else "A"
 		-- Same instant, fumble first: the loser's fumble decides what happens to their
 		-- vehicle before the winner's takeover arrives.
-		add({ t = climbEnd, kind = "fumble", side = loser, variant = pkg.fumble })
-		add({ t = climbEnd, kind = "takeover", side = pkg.winner })
+		add({ t = actEnd, kind = "fumble", side = loser, variant = pkg.fumble })
+		add({ t = actEnd, kind = "takeover", side = pkg.winner })
 	end
 
-	add({ t = climbEnd + timing.takeover, kind = "numbers" })
+	add({ t = actEnd + timing.takeover, kind = "numbers" })
 
 	table.sort(beats, function(x, y)
 		if x.t == y.t then
@@ -100,7 +102,7 @@ end
 
 -- Total round length in seconds.
 function ClimbPlan.duration(timing: Timing): number
-	return timing.titleSlam + timing.climb + timing.takeover + timing.numbers
+	return timing.titleSlam + timing.climb + (timing.arrive or 0) + timing.takeover + timing.numbers
 end
 
 return ClimbPlan

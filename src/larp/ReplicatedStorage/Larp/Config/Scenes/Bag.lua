@@ -5,6 +5,7 @@ return {
 	id = "Bag",
 	title = "BAG",
 	set = "A city parking spot at night",
+	setModel = "CityStreet", -- Larp.Assets.Sets model the round plays in (Screen mode)
 
 	tiers = {
 		[1] = { asset = "T1_Bus", label = "The bus", caption = "*coo*" },

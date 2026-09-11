@@ -1,12 +1,20 @@
 -- Plays larp-offs from the server's packets (see MatchService for the shapes).
 -- Participants get the full cinematic: camera, screen stamps (Codex UI), flashes.
--- Spectators near the stage see the same props, captions and world stamps.
+--
+-- Config.Tuning.SceneMode picks how a round is shown:
+--   "Screen"  Each round plays in its own 3D set (Larp.Assets.Sets, placed far from the
+--             map) with local copies of both avatars. Participants watch the set
+--             full-screen; everyone else near the stage watches it on the stage's
+--             BigScreen (a ViewportFrame). The intro and the verdict happen live on the
+--             real stage, and the players on stage strike the same poses as their copies.
+--   "Stage"   The original mode: props appear on the stage itself.
 local Players = game:GetService("Players")
 
 local Larp = game:GetService("ReplicatedStorage"):WaitForChild("Larp")
 local Catalog = require(Larp.Shared.Catalog)
 local ClimbPlan = require(Larp.Shared.ClimbPlan)
 local Text = require(Larp.Config.Text)
+local Tuning = require(Larp.Config.Tuning)
 local Net = require(Larp.Shared.Net)
 
 local Kit = require(script.Parent.SceneKit)
@@ -15,6 +23,9 @@ local Crowd = require(script.Parent.Crowd)
 local ChallengePrompts = require(script.Parent.ChallengePrompts)
 
 local SceneDirector = {}
+
+local SCREEN_MODE = Tuning.SceneMode == "Screen"
+local SET_POSITION = Tuning.Screen and Tuning.Screen.setOrigin or Vector3.new(0, 0, 3000)
 
 local player = Players.LocalPlayer
 local scenes = {}
@@ -37,11 +48,17 @@ local function scene(id: string)
 	return scenes[id] or nil
 end
 
-local function localFolder(): Folder
-	local folder = workspace:FindFirstChild("LarpSceneLocal")
+-- The set model a scene plays in (Config.Scenes.<id>.setModel), or nil.
+local function setNameFor(sceneId: string?): string?
+	local config = sceneId and Larp.Config.Scenes:FindFirstChild(sceneId)
+	return config and require(config).setModel
+end
+
+local function localFolder(name: string): Folder
+	local folder = workspace:FindFirstChild(name)
 	if not folder then
 		folder = Instance.new("Folder")
-		folder.Name = "LarpSceneLocal"
+		folder.Name = name
 		folder.Parent = workspace
 	end
 	return folder
@@ -49,6 +66,123 @@ end
 
 local function headPos(side, extra: number?)
 	return side.mark.Position + Vector3.new(0, extra or 7.5, 0)
+end
+
+-- Height of a character's pivot above the ground it stands on (matches MatchService).
+local function standHeight(model: Model): number
+	local humanoid = model:FindFirstChildOfClass("Humanoid")
+	local root = model:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not humanoid or not root then
+		return 3
+	end
+	if humanoid.RigType == Enum.HumanoidRigType.R15 then
+		return humanoid.HipHeight + root.Size.Y / 2
+	end
+	return 2 + root.Size.Y / 2
+end
+
+-- A local, inert copy of a character for the scene set: no scripts, sounds, prompts or
+-- nameplate, root anchored on `mark`.
+local function avatarCopy(model: Model?, mark: CFrame, parent: Instance): Model?
+	if not model or not model.Parent then
+		return nil
+	end
+	local archivable = model.Archivable
+	model.Archivable = true
+	local ok, copy = pcall(model.Clone, model)
+	model.Archivable = archivable
+	if not ok or not copy then
+		return nil
+	end
+	for _, d in copy:GetDescendants() do
+		if d:IsA("BaseScript") or d:IsA("Sound") or d:IsA("BillboardGui") or d:IsA("ProximityPrompt") then
+			d:Destroy()
+		elseif d:IsA("BasePart") then
+			d.CanCollide = false
+			d.CanQuery = false
+			d.CanTouch = false
+		end
+	end
+	local humanoid = copy:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+		pcall(function()
+			humanoid.EvaluateStateMachine = false
+		end)
+	end
+	local root = copy:FindFirstChild("HumanoidRootPart")
+	if root then
+		root.Anchored = true
+	end
+	copy.Name = "Avatar"
+	copy:PivotTo(mark * CFrame.new(0, standHeight(copy), 0))
+	copy.Parent = parent
+	return copy
+end
+
+-- This client's live feed on the stage's big screen, or nil if the stage has none.
+-- The feed is a SurfaceGui in PlayerGui adorned to the screen part (a ViewportFrame in
+-- the part's own SurfaceGui doesn't render); it draws over the part's idle card and
+-- copies its Viewport/Overlay templates.
+local function bigScreen(stage: Instance)
+	local model = stage:FindFirstChild("BigScreen")
+	local part = model and model:FindFirstChild("Screen")
+	local template = part and part:FindFirstChild("Surface")
+	local viewportTemplate = template and template:FindFirstChild("Viewport")
+	if not viewportTemplate then
+		return nil
+	end
+	local playerGui = player:WaitForChild("PlayerGui")
+	local name = "LarpBigScreen_" .. stage.Name
+	local gui = playerGui:FindFirstChild(name)
+	if not gui then
+		gui = Instance.new("SurfaceGui")
+		gui.Name = name
+		gui.ResetOnSpawn = false
+		gui.Enabled = false
+		gui.Adornee = part
+		gui.Face = template.Face
+		gui.SizingMode = template.SizingMode
+		gui.PixelsPerStud = template.PixelsPerStud
+		gui.LightInfluence = template.LightInfluence
+		gui.Brightness = template.Brightness
+		gui.ClipsDescendants = true
+		gui.ZOffset = 1
+		local viewport = viewportTemplate:Clone()
+		viewport.Visible = true
+		for _, child in viewport:GetChildren() do
+			if not child:IsA("WorldModel") then
+				child:Destroy()
+			end
+		end
+		viewport.Parent = gui
+		local overlay = template:FindFirstChild("Overlay")
+		if overlay then
+			overlay:Clone().Parent = gui
+		end
+		gui.Parent = playerGui
+	end
+	return { gui = gui, viewport = gui:FindFirstChild("Viewport"), overlay = gui:FindFirstChild("Overlay") }
+end
+
+local function showScreen(screen, live: boolean)
+	if not screen then
+		return
+	end
+	screen.gui.Enabled = live
+	if not live then
+		local world = screen.viewport:FindFirstChildOfClass("WorldModel")
+		if world then
+			world:ClearAllChildren()
+		end
+	end
+end
+
+-- The idle card's hint line on a stage's big screen (shows "A VS B" during a match).
+local function idleHint(stage: Instance): TextLabel?
+	local model = stage:FindFirstChild("BigScreen")
+	local idle = model and model:FindFirstChild("Idle", true)
+	return idle and idle:FindFirstChild("Hint")
 end
 
 local function buildContext(header, ui)
@@ -60,17 +194,60 @@ local function buildContext(header, ui)
 	local isA = header.a.userId == player.UserId
 	local isB = header.b.userId == player.UserId
 	local participant = isA or isB
-	local folder = localFolder()
-	folder:ClearAllChildren()
-	local kit = Kit.new({ participant = participant, reduceEffects = ui:GetSetting("reduceEffects"), folder = folder })
+
+	local root = localFolder("LarpSceneLocal")
+	root:ClearAllChildren()
+	local stageFx = localFolder("LarpStageFx")
+	stageFx:ClearAllChildren()
+
+	local screenMode = SCREEN_MODE and setNameFor(Catalog.statsById[Catalog.statIds[1]].scene) ~= nil
+	local screen = if screenMode and not participant then bigScreen(stage) else nil
+	local world: Instance = root
+	local camera = nil
+	if screen then
+		-- spectators watch the round on the stage's big screen
+		local worldModel = screen.viewport:FindFirstChildOfClass("WorldModel")
+		if not worldModel then
+			worldModel = Instance.new("WorldModel")
+			worldModel.Parent = screen.viewport
+		end
+		worldModel:ClearAllChildren()
+		camera = screen.viewport.CurrentCamera
+		if not camera then
+			camera = Instance.new("Camera")
+			camera.Parent = screen.viewport
+			screen.viewport.CurrentCamera = camera
+		end
+		world = worldModel
+		showScreen(screen, true)
+	end
+	local props = Instance.new("Folder")
+	props.Name = "Props"
+	props.Parent = world
+	local setFolder = Instance.new("Folder")
+	setFolder.Name = "Set"
+	setFolder.Parent = world
+
+	local kit = Kit.new({
+		participant = participant,
+		reduceEffects = ui:GetSetting("reduceEffects"),
+		folder = props,
+		camera = camera,
+		overlay = if screenMode then (if screen then screen.overlay else participant) else nil,
+		stageFolder = stageFx,
+		noParticles = camera ~= nil,
+	})
 	local function side(info, suffix: string, outward: number)
+		local mark = markers:FindFirstChild("Mark" .. suffix).CFrame
 		return {
-			character = info.model,
+			character = info.model, -- the set's avatar copy in Screen mode
+			stageCharacter = info.model,
 			name = info.name,
 			userId = info.userId,
 			kind = info.kind,
 			rankIndex = info.rankIndex,
-			mark = markers:FindFirstChild("Mark" .. suffix).CFrame,
+			mark = mark, -- the set's mark in Screen mode
+			stageMark = mark,
 			vehicleCF = markers:FindFirstChild("Vehicle" .. suffix).CFrame,
 			jetCF = markers:FindFirstChild("Jet" .. suffix).CFrame,
 			billboard = stage:FindFirstChild("Billboard" .. suffix),
@@ -85,13 +262,56 @@ local function buildContext(header, ui)
 		ui = ui,
 		kit = kit,
 		participant = participant,
+		screenMode = screenMode,
+		screen = screen,
+		setFolder = setFolder,
 		mySide = if isA then "A" elseif isB then "B" else nil,
 		markers = markers,
-		focus = markers.CameraFocus.Position,
+		focus = markers.CameraFocus.Position, -- the set's focus in Screen mode
+		stageFocus = markers.CameraFocus.Position,
+		screenCenter = if stage:FindFirstChild("BigScreen") then stage.BigScreen:GetPivot().Position else nil,
 		sides = { A = side(header.a, "L", -1), B = side(header.b, "R", 1) },
 	}
 	ctx.crowd = Crowd.new(kit, stage:FindFirstChild("Crowd"))
+	local hint = idleHint(stage)
+	if hint then
+		ctx.hint, ctx.hintWas = hint, hint.Text
+		hint.Text = ("%s  VS  %s"):format(header.a.name, header.b.name)
+	end
 	return ctx
+end
+
+-- Screen mode: puts the named set in place (if it isn't already) with fresh avatar
+-- copies on its marks, and points the sides at the set's markers.
+local function ensureSet(ctx, setName: string?)
+	if not ctx.screenMode or not setName or ctx.setName == setName then
+		return
+	end
+	local sets = Larp.Assets:FindFirstChild("Sets")
+	local template = sets and sets:FindFirstChild(setName)
+	if not template then
+		warn("[LarpScene] Missing set " .. tostring(setName))
+		return
+	end
+	ctx.setFolder:ClearAllChildren()
+	local set = template:Clone()
+	set:PivotTo(CFrame.new(SET_POSITION) * template:GetPivot().Rotation)
+	set.Parent = ctx.setFolder
+	ctx.setName = setName
+	local m = set:FindFirstChild("Markers")
+	ctx.focus = m.CameraFocus.Position
+	for key, suffix in { A = "L", B = "R" } do
+		local s = ctx.sides[key]
+		s.mark = m:FindFirstChild("Mark" .. suffix).CFrame
+		s.vehicleCF = m:FindFirstChild("Vehicle" .. suffix).CFrame
+		s.jetCF = m:FindFirstChild("Jet" .. suffix).CFrame
+		s.billboard = set:FindFirstChild("Billboard" .. suffix)
+		s.avatarRest = nil
+		s.character = avatarCopy(s.stageCharacter, s.mark, ctx.setFolder)
+		if s.character then
+			Poses.link(s.character, s.stageCharacter)
+		end
+	end
 end
 
 ------------------------------------------------------------------ shots
@@ -112,9 +332,33 @@ end
 
 local function intro(ctx)
 	local kit, header = ctx.kit, ctx.header
+	if ctx.screenMode then
+		local first = Catalog.statsById[Catalog.statIds[1]].scene
+		ensureSet(ctx, setNameFor(first))
+		-- the street starts empty: everyone arrives in their ride once the round starts
+		local sc = scene(first)
+		if sc and sc.resetSide then
+			for _, key in { "A", "B" } do
+				sc.resetSide(ctx, key)
+			end
+		end
+	end
 	local f = ctx.focus
-	kit:lookShot(f + Vector3.new(0, 16, 52), f + Vector3.new(0, 2, -12), 70, 0)
-	kit:lookShot(f + Vector3.new(0, 5, 32), f + Vector3.new(0, 0, -4), 60, header.introSeconds * 0.8)
+	if ctx.screenMode and ctx.participant then
+		-- live on stage first, then the camera dives into the big screen
+		local sf = ctx.stageFocus
+		-- aim between the players and the screen so both are in frame
+		local target = sf:Lerp(ctx.screenCenter or (sf + Vector3.new(0, 16, -26)), 0.55)
+		kit:lookShot(sf + Vector3.new(0, 14, 50), sf + Vector3.new(0, 6, -10), 70, 0)
+		kit:lookShot(sf + Vector3.new(0, 9, 20), target, 50, header.introSeconds * 0.8)
+		kit:after(header.introSeconds - 0.25, function()
+			kit:flash(0.7, 0.3)
+			bothShot(ctx, 0)
+		end)
+	else
+		kit:lookShot(f + Vector3.new(0, 16, 52), f + Vector3.new(0, 2, -12), 70, 0)
+		kit:lookShot(f + Vector3.new(0, 5, 32), f + Vector3.new(0, 0, -4), 60, header.introSeconds * 0.8)
+	end
 	kit:title(Text.LarpOff, Color3.fromRGB(255, 214, 90), f + Vector3.new(0, 12, 0))
 	kit:after(0.9, function()
 		kit:title(("%s  VS  %s"):format(header.a.name, header.b.name), Color3.new(1, 1, 1))
@@ -138,6 +382,7 @@ local function playRound(ctx, pkg)
 		warn("[LarpScene] No client scene module for " .. tostring(pkg.scene))
 		return
 	end
+	ensureSet(ctx, setNameFor(pkg.scene))
 	for _, key in { "A", "B" } do
 		if sc.resetSide then
 			sc.resetSide(ctx, key)
@@ -191,6 +436,8 @@ local function playRound(ctx, pkg)
 		ctx.crowd:react("erupt", 1)
 		if ctx.participant then
 			ctx.ui:ShowStamp("Viral", 0.9)
+		end
+		if ctx.participant or ctx.screen then
 			closeShot(ctx, b.side, 0.15)
 			kit:after(0.45, function()
 				bothShot(ctx, 0.3)
@@ -204,7 +451,7 @@ local function playRound(ctx, pkg)
 		sc.signature(ctx, b.side, b.tier)
 	end
 	function handlers.faceoff()
-		if not ctx.participant then
+		if not ctx.participant and not ctx.screen then
 			return
 		end
 		closeShot(ctx, "A", 0)
@@ -270,8 +517,47 @@ end
 local function verdict(ctx, outcome)
 	local kit = ctx.kit
 	local winner = outcome.winner
+	-- Screen mode: the verdict lands on the players standing on the real stage. The
+	-- participants' camera comes back to the stage; the big screen keeps showing the set.
+	local live = ctx.screenMode
+	local camOnStage = live and ctx.participant
+	local function stagePos(s, height: number)
+		return s.stageMark.Position + Vector3.new(0, height, 0)
+	end
+	local function camPos(s): Vector3
+		return if camOnStage then s.stageMark.Position else s.mark.Position
+	end
+	local function stamp(s, height: number, text: string, color: Color3, lifetime: number, rotation: number)
+		if live then
+			kit:stageStamp(stagePos(s, height), text, color, lifetime, rotation)
+			if ctx.screen then
+				kit:worldStamp(headPos(s, height), text, color, lifetime, rotation)
+			end
+		else
+			kit:worldStamp(headPos(s, height), text, color, lifetime, rotation)
+		end
+	end
+	local function confetti(s, count: number)
+		if live then
+			kit:stageConfetti(s.stageMark.Position + Vector3.new(0, 1, 0), count)
+		else
+			kit:confetti(s.mark.Position + Vector3.new(0, 1, 0), count)
+		end
+	end
+	if camOnStage then
+		local sf = ctx.stageFocus
+		kit:flash(0.5, 0.25)
+		kit:lookShot(sf + Vector3.new(0, 4, 22), sf + Vector3.new(0, 1.5, -6), 58, 0)
+	end
+
 	if winner ~= "A" and winner ~= "B" then
-		kit:worldStamp(ctx.focus + Vector3.new(0, 8, 0), Text.Stamps.Draw, COLORS.Fumbled, 2, 0)
+		local where = if live then ctx.stageFocus else ctx.focus
+		if live then
+			kit:stageStamp(where + Vector3.new(0, 8, 0), Text.Stamps.Draw, COLORS.Fumbled, 2, 0)
+		end
+		if not live or ctx.screen then
+			kit:worldStamp(ctx.focus + Vector3.new(0, 8, 0), Text.Stamps.Draw, COLORS.Fumbled, 2, 0)
+		end
 		return
 	end
 	local loser = if winner == "A" then "B" else "A"
@@ -284,8 +570,14 @@ local function verdict(ctx, outcome)
 		kit:sound("RecordScratch", { volume = 0.7, duration = 0.9 })
 		kit:sound("Slam", { volume = 0.9, speed = 0.8 })
 		kit:shake(1.4, 0.5)
-		kit:confetti(w.mark.Position + Vector3.new(0, 1, 0), 90)
-		kit:worldStamp(ctx.focus + Vector3.new(0, 10, 0), Text.Stamps.Upset, COLORS.Upset, 1.6, -6)
+		confetti(w, 90)
+		local center = if live then ctx.stageFocus else ctx.focus
+		if live then
+			kit:stageStamp(center + Vector3.new(0, 10, 0), Text.Stamps.Upset, COLORS.Upset, 1.6, -6)
+		end
+		if not live or ctx.screen then
+			kit:worldStamp(ctx.focus + Vector3.new(0, 10, 0), Text.Stamps.Upset, COLORS.Upset, 1.6, -6)
+		end
 		kit:after(0.5, function()
 			kit:sound("CrowdErupt", { volume = 0.6 })
 			ctx.crowd:react("erupt", 1.5)
@@ -296,11 +588,11 @@ local function verdict(ctx, outcome)
 	end
 	kit:after(delay, function()
 		Poses.apply(kit, w.character, "Victory", 0.2)
-		kit:worldStamp(headPos(w, 8), Text.Stamps.Certified, COLORS.Certified, 1.6, -4)
+		stamp(w, 8, Text.Stamps.Certified, COLORS.Certified, 1.6, -4)
 		kit:sound("Fanfare", { volume = 0.5 })
-		kit:confetti(w.mark.Position + Vector3.new(0, 1, 0), 50)
+		confetti(w, 50)
 		ctx.crowd:react("cheer", 1.2)
-		kit:orbit(w.mark.Position + Vector3.new(0, 2.5, 0), 12, 3.5, -35, 25, 1.6, 55)
+		kit:orbit(camPos(w) + Vector3.new(0, 2.5, 0), 12, 3.5, -35, 25, 1.6, 55)
 		if ctx.participant then
 			ctx.ui:ShowStamp("Certified", 1.1)
 		end
@@ -312,7 +604,7 @@ local function verdict(ctx, outcome)
 			light.Enabled = true
 			ctx.spotOn = light
 		end
-		kit:worldStamp(headPos(l, 8), Text.Stamps.Exposed, COLORS.Exposed, 1.8, 6)
+		stamp(l, 8, Text.Stamps.Exposed, COLORS.Exposed, 1.8, 6)
 		kit:sound("Shutter", { volume = 0.8 })
 		kit:sound("FailSting", { volume = 0.5 })
 		kit:sound("CrowdMixed", { volume = 0.35 })
@@ -322,8 +614,8 @@ local function verdict(ctx, outcome)
 			kit:flash(0.3, 0.2)
 		end)
 		ctx.crowd:react("wince", 1)
-		ctx.crowd:look(l.mark.Position)
-		local p = l.mark.Position
+		ctx.crowd:look(l.stageMark.Position)
+		local p = camPos(l)
 		kit:lookShot(p + Vector3.new(-l.outward * 1.2, 4.4, 7), p + Vector3.new(0, 4.2, 0), 42, 0.5)
 		if ctx.participant then
 			ctx.ui:ShowStamp("Exposed", 1.1)
@@ -353,6 +645,14 @@ local function finish(ctx, aborted: boolean, reason: string?)
 	ctx.crowd:reset()
 	Poses.reset()
 	ctx.kit:Destroy()
+	if ctx.setFolder and ctx.setFolder.Parent then
+		ctx.setFolder:Destroy()
+	end
+	showScreen(ctx.screen, false)
+	localFolder("LarpStageFx"):ClearAllChildren()
+	if ctx.hint and ctx.hint.Parent then
+		ctx.hint.Text = ctx.hintWas
+	end
 	if ctx.participant then
 		ChallengePrompts.setEnabled(true)
 		ctx.ui:SetMatchActive(false)
