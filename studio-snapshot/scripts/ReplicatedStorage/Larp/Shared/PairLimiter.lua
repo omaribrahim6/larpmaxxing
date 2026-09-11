@@ -56,4 +56,3 @@ function PairLimiter.record(self: PairLimiter, a: string, b: string)
 end
 
 return PairLimiter
-

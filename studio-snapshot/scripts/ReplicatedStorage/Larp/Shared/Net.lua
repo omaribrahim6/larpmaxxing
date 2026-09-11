@@ -64,4 +64,3 @@ function Net.get(name: string): RemoteEvent
 end
 
 return Net
-

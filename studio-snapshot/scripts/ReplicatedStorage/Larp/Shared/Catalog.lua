@@ -54,4 +54,3 @@ function Catalog.total(stats: { [string]: number }): number
 end
 
 return Catalog
-

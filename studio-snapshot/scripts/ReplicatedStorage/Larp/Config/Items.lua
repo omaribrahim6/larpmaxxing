@@ -7,4 +7,3 @@ return {
 	{ id = "DesignerBag", name = "Designer bag", stat = "Bag", rarity = "Epic" },
 	{ id = "BlackCard", name = "Black card", stat = "Bag", rarity = "Legendary" },
 }
-

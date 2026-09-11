@@ -28,4 +28,3 @@ return {
 	RewardsLimited = "No bonus: you've already larped-off each other twice in 10 minutes",
 	SavingDisabled = "Progress won't save this session",
 }
-

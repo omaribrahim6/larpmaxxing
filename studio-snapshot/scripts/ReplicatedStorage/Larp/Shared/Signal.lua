@@ -29,4 +29,3 @@ function Signal:Fire(...: any)
 end
 
 return Signal
-

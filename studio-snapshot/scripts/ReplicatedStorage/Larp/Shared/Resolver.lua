@@ -154,4 +154,3 @@ function Resolver.upsetGapPct(winnerTotal: number, loserTotal: number): number
 end
 
 return Resolver
-

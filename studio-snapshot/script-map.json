@@ -3,138 +3,161 @@
     "studioPath": "ReplicatedStorage.Larp.Config.Scenes.Bag",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Config/Scenes/Bag.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "25a12b4de438592c64f20d47c2dbf74b010d64e48beac7d569096fb2e8347a45"
   },
   {
     "studioPath": "ReplicatedStorage.Larp.Config.Game",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Config/Game.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "6fb85bf76aea895ab21b5136f47bc4e9b35deeef0a289b59f723a37f5dec2ea4"
   },
   {
     "studioPath": "ReplicatedStorage.Larp.Config.Stats",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Config/Stats.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "df4eb5244e317f10e80a18f442dc335867003ce83a770dc90687826d843943c7"
   },
   {
     "studioPath": "ReplicatedStorage.Larp.Config.Rarities",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Config/Rarities.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "8b3aa6701090f13ced0fbf450d3929ad4da08fc9370d55e9353697faccc3f66e"
   },
   {
     "studioPath": "ReplicatedStorage.Larp.Config.Items",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Config/Items.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "d4a66d6b871d8e55340fd53f16a4181240ee2a7f0908d67f47671c4e87645ebb"
   },
   {
     "studioPath": "ReplicatedStorage.Larp.Config.Ranks",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Config/Ranks.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "9c98a66bd9459f96d094a798a65e4eae8dee3fbf8bbc5a59149877e38f49f166"
   },
   {
     "studioPath": "ReplicatedStorage.Larp.Config.Tuning",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Config/Tuning.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "22dba6b167b667c40e91dab6e31fd93553dc3e303fadb580ef024577d0da96ed"
   },
   {
     "studioPath": "ReplicatedStorage.Larp.Config.Text",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Config/Text.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "3080ba0dd799c915ae36d2c892dd049481402a111ebd549595420c0de07472df"
   },
   {
     "studioPath": "ReplicatedStorage.Larp.Shared.Resolver",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/Resolver.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "ba040c607b8435e3b811b209b162bfd4dca2884788745dbfaf0db19ef2719b53"
   },
   {
     "studioPath": "ReplicatedStorage.Larp.Shared.Tiers",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/Tiers.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "5787b969013882a930a5625cd78d1f045133a38891dc90dc12b960b60cb5c5cc"
   },
   {
     "studioPath": "ReplicatedStorage.Larp.Shared.RankMath",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/RankMath.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "b475b205893e42b58436e548a16b5591bd001ec8701130b61cded13ac95e2aa1"
   },
   {
     "studioPath": "ReplicatedStorage.Larp.Shared.PairLimiter",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/PairLimiter.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "793265e3a5def9584ab74b073057ae861c8a87357922402acc78dcebd37fa827"
   },
   {
     "studioPath": "ReplicatedStorage.Larp.Shared.Format",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/Format.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "12a9d2066465aaf7e0279d134eb98593d1546e11540183e598a38d5fc6dec47f"
   },
   {
     "studioPath": "ReplicatedStorage.Larp.Shared.ClimbPlan",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/ClimbPlan.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "6de30d5c412463a7d773c10a8ad97ed6e9b0316191a1656479ec31dbf4129538"
   },
   {
     "studioPath": "ReplicatedStorage.Larp.Shared.Net",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/Net.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "4b0fafaecb26013ee1194727200231fb228a9d3accafd5fc068e89ad1763b081"
   },
   {
     "studioPath": "ReplicatedStorage.Larp.Shared.Signal",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/Signal.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "967647a71e4f631f9933845fb35e458eed9e5612acde32e3882d4aa613171734"
   },
   {
     "studioPath": "ReplicatedStorage.Larp.Shared.Catalog",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/Catalog.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "2a851c9600d88368949f133f3179277557827a4c2655ef5e83003a191fee1617"
   },
   {
     "studioPath": "ReplicatedStorage.Larp.Shared.SceneRules",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/SceneRules.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "67a58e7fa1c4533dd70b38d0644090491c0cb77d877762e812d067cbe8d478c9"
   },
   {
     "studioPath": "ServerScriptService.Larp.Services.DataService",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ServerScriptService/Larp/Services/DataService.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "de1abae67484d8cd41f3a5f19cef6a36ec2f3e5464d23d09a27181daee8fbd73"
   },
   {
     "studioPath": "ServerScriptService.Larp.Services.SettingsService",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ServerScriptService/Larp/Services/SettingsService.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "ccc5984dc03e5cd31002cf595cc7be9dc1b587b7c9070cf1b92f10c52a6453fb"
   },
   {
     "studioPath": "ServerScriptService.Larp.Services.StatService",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ServerScriptService/Larp/Services/StatService.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "151b2fc54b99a88bcb7aa0a767cc345181de3cbf940f4b722d7f66adffcbcc29"
   },
   {
     "studioPath": "ServerScriptService.Larp.Lib.SessionStore",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ServerScriptService/Larp/Lib/SessionStore.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "ccc223d7e475c922140a4fd24a56f65d44d731b2017e37bc90e1c4acea2fcdf0"
   },
   {
     "studioPath": "ServerScriptService.Larp.Lib.Combatant",
     "class": "ModuleScript",
     "repoPath": "studio-snapshot/scripts/ServerScriptService/Larp/Lib/Combatant.lua",
-    "owner": "Claude"
+    "owner": "Claude",
+    "sha256": "155cbc70fd32d4e12891ff0c66b9f14ea9b3cdfb6cd8bc35add615d654541d4f"
   }
 ]

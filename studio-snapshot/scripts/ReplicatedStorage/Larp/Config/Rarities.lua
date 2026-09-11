@@ -8,4 +8,3 @@ return {
 	Epic = { points = 150, weight = 4, color = Color3.fromRGB(196, 112, 255) },
 	Legendary = { points = 500, weight = 1, color = Color3.fromRGB(255, 198, 64), announce = true },
 }
-

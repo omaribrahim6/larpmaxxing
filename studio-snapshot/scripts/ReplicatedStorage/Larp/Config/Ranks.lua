@@ -9,4 +9,3 @@ return {
 	{ name = "Aura Farmer", threshold = 60000, color = Color3.fromRGB(176, 132, 255) },
 	{ name = "LARP Maxxer", threshold = 150000, color = Color3.fromRGB(255, 198, 64) },
 }
-

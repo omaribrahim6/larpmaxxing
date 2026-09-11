@@ -26,4 +26,3 @@ function Format.short(n: number): string
 end
 
 return Format
-

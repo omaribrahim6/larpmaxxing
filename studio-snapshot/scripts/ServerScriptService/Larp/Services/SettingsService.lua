@@ -33,4 +33,3 @@ function SettingsService:Get(player: Player, key: string)
 end
 
 return SettingsService
-

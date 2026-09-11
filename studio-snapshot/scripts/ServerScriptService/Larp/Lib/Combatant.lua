@@ -63,4 +63,3 @@ function Combatant.header(c)
 end
 
 return Combatant
-

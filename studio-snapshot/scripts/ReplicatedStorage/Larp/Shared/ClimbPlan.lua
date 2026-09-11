@@ -102,4 +102,3 @@ function ClimbPlan.duration(timing: Timing): number
 end
 
 return ClimbPlan
-

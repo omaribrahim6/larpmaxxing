@@ -25,4 +25,3 @@ return {
 		{ id = "PhoneDrop", tiers = { 1, 2, 3, 4, 5, 6 }, caption = "CRACK" },
 	},
 }
-

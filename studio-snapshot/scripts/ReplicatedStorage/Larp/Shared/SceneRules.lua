@@ -25,4 +25,3 @@ function SceneRules.pickFumble(fumbles: { Fumble }, tier: number, rng: any): str
 end
 
 return SceneRules
-

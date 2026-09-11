@@ -44,4 +44,3 @@ function RankMath.progress(total: number, ranks: { Rank }): Progress
 end
 
 return RankMath
-

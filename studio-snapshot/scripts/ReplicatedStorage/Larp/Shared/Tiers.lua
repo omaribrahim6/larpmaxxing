@@ -26,4 +26,3 @@ function Tiers.preViral(rolled: number, viral: boolean, multiplier: number, floo
 end
 
 return Tiers
-

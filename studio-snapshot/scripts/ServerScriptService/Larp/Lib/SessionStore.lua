@@ -84,4 +84,3 @@ function SessionStore:save(key: string, data: any, release: boolean?)
 end
 
 return SessionStore
-
