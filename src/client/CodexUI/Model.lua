@@ -50,7 +50,7 @@ function Model:Incoming(id, userId, name, rankIndex, seconds)
 	if #self.seenOrder>64 then self.seen[table.remove(self.seenOrder,1)]=nil end
 	local previous = self.incoming and self.incoming.id
 	self.incoming = {id = id, userId = userId, name = name, rankIndex = rankIndex,
-		deadline = self.clock() + math.min(seconds, 10), duration = math.min(seconds, 10)}
+		deadline = self.clock() + math.min(seconds, self.config.ChallengeMaxSeconds), duration = math.min(seconds, self.config.ChallengeMaxSeconds)}
 	return true, previous
 end
 function Model:Close(id)
@@ -76,7 +76,7 @@ function Model:SetRematch(kind, userId, seconds)
 	if kind ~= "Player" and kind ~= "Npc" then return false end
 	if kind == "Player" and (not finite(userId) or userId % 1 ~= 0 or userId == 0) then return false end
 	if not finite(seconds) or seconds <= 0 then return false end
-	self.rematch = {kind = kind, userId = userId, deadline = self.clock() + math.min(seconds, 60), sent = false}
+	self.rematch = {kind = kind, userId = userId, deadline = self.clock() + math.min(seconds, self.config.RematchMaxSeconds), sent = false}
 	return true
 end
 function Model:RequestRematch()

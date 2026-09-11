@@ -1,5 +1,8 @@
 -- Codex-owned presentation only. Gameplay definitions remain in Larp.Config.
+local Tuning = require(game:GetService("ReplicatedStorage"):WaitForChild("Larp").Config.Tuning)
 return {
+	ChallengeMaxSeconds = Tuning.Challenge.acceptSeconds,
+	RematchMaxSeconds = math.max(Tuning.Challenge.rematchWindowSeconds, Tuning.Practice.rematchWindowSeconds),
 	Colors = {
 		Panel = Color3.fromRGB(29, 27, 38), Raised = Color3.fromRGB(48, 44, 60),
 		Text = Color3.fromRGB(250, 246, 236), Muted = Color3.fromRGB(191, 184, 199),
