@@ -1,0 +1,99 @@
+{
+  "cases": [
+    {
+      "name": "profile snapshot copies stats and preserves omitted preferences",
+      "passed": true
+    },
+    {
+      "name": "invalid profile is atomic",
+      "passed": true
+    },
+    {
+      "name": "settings reject unknown keys, wrong types and non-finite volumes",
+      "passed": true
+    },
+    {
+      "name": "challenge accept consumes response exactly once",
+      "passed": true
+    },
+    {
+      "name": "consumed request replay is ignored and replay memory is bounded",
+      "passed": true
+    },
+    {
+      "name": "deadline acceptance becomes decline at exactly ten seconds",
+      "passed": true
+    },
+    {
+      "name": "challenge auto-decline fires once",
+      "passed": true
+    },
+    {
+      "name": "duplicate active challenge never extends timer",
+      "passed": true
+    },
+    {
+      "name": "stale close cannot dismiss a newer challenge",
+      "passed": true
+    },
+    {
+      "name": "invalid challenge cannot replace pending request",
+      "passed": true
+    },
+    {
+      "name": "disabled challenges and match state prevent acceptance",
+      "passed": true
+    },
+    {
+      "name": "rematch identity, one request, expiry and NPC mode",
+      "passed": true
+    },
+    {
+      "name": "rate limiter burst and exact refill",
+      "passed": true
+    },
+    {
+      "name": "rate limiter rejects bad costs without credit",
+      "passed": true
+    },
+    {
+      "name": "rate limiter bounds memory, removes player, evicts idle full buckets",
+      "passed": true
+    },
+    {
+      "name": "rate limiter clock rewind never grants extra tokens",
+      "passed": true
+    },
+    {
+      "name": "cleanup continues past throwing disposer and runs once",
+      "passed": true
+    },
+    {
+      "name": "cleanup disconnects real connection and destroys instance",
+      "passed": true
+    },
+    {
+      "name": "every rank threshold selects correct rank and starts empty progress",
+      "passed": true
+    },
+    {
+      "name": "mid-rank and maximum rank progress",
+      "passed": true
+    },
+    {
+      "name": "reward floor, rank clamps, upset multiplier",
+      "passed": true
+    },
+    {
+      "name": "reward split conserves every point and respects configured order",
+      "passed": true
+    },
+    {
+      "name": "zero stat round is draw and seeded match repeats",
+      "passed": true
+    }
+  ],
+  "total": 23,
+  "passed": 23,
+  "failed": 0
+}

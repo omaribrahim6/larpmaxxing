@@ -1,0 +1,35 @@
+{
+  "npcRematchOnce": true,
+  "optOutDeclineOnce": true,
+  "requests": [
+    {
+      "name": "UpdateSetting",
+      "args": [
+        "reduceEffects",
+        true
+      ]
+    },
+    {
+      "name": "UpdateSetting",
+      "args": [
+        "acceptLarpOffs",
+        false
+      ]
+    },
+    {
+      "name": "RequestPractice",
+      "args": [
+        {
+          "rematch": true
+        }
+      ]
+    },
+    {
+      "name": "RespondChallenge",
+      "args": [
+        "opted-out",
+        false
+      ]
+    }
+  ]
+}

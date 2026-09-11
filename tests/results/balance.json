@@ -1,0 +1,17 @@
+{
+  "report": {
+    "statIds": [
+      "Bag"
+    ],
+    "draws": 0,
+    "winsA": 2497,
+    "deficit": 0.2,
+    "upsets": 2497,
+    "seed": 1729,
+    "underdogWinRate": 0.2497,
+    "matches": 10000,
+    "base": 1000,
+    "winsB": 7503
+  },
+  "checks": 3
+}
