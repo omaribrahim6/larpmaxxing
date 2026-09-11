@@ -14,12 +14,19 @@ return {
 		-- One round's beats; they sum to the round length (5.5s). `arrive` is the gap after
 		-- the climb where each side gets out of their ride.
 		round = { titleSlam = 0.6, climb = 2.2, arrive = 1.0, takeover = 0.8, numbers = 0.9 },
+		-- CCTV mode's round (8.2s): the walk, the selfie, the loser's fumble, then the
+		-- winner's takeover and post. See Shared.StreetPlan.
+		street = { titleSlam = 0.6, walk = 2.4, selfie = 1.1, fumble = 1.3, post = 2.8 },
 	},
 
-	-- How rounds are shown. "Screen": each round plays in its own 3D set far from the map;
-	-- participants watch it full-screen and the audience watches the stage's big screen.
-	-- "Stage": props appear on the stage itself (the original prototype).
-	SceneMode = "Screen",
+	-- How rounds are shown.
+	-- "Cctv":   security-cam footage on a split monitor: both larpers walk a street, clock a
+	--           ride and take a selfie with it; the winner's selfie becomes a post. The two
+	--           larpers watch the monitor full-screen; the audience watches it on the
+	--           stage's big screen while the larpers pose on stage.
+	-- "Screen": each round plays in its own 3D set far from the map, shown the same way.
+	-- "Stage":  props appear on the stage itself (the original prototype).
+	SceneMode = "Cctv",
 	Screen = { setOrigin = Vector3.new(0, 0, 3000) },
 
 	-- Rolled-value floors for Tier 2, 3, 4, 5 and Maxxed (Tier 6).

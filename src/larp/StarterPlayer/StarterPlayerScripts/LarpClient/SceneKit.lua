@@ -565,8 +565,8 @@ function Kit:stageConfetti(position: Vector3, count: number?)
 	self.noParticles, self.folder = particles, folder
 end
 
--- Green bills tumbling down over a spot for `seconds`.
-function Kit:moneyRain(center: Vector3, seconds: number, spread: number?)
+-- Green bills tumbling down over a spot for `seconds` (into `folder`, default the kit's).
+function Kit:moneyRain(center: Vector3, seconds: number, spread: number?, folder: Instance?)
 	local r = spread or 7
 	local bills = {}
 	for i = 1, 22 do
@@ -578,7 +578,7 @@ function Kit:moneyRain(center: Vector3, seconds: number, spread: number?)
 		bill.CanCollide = false
 		bill.CanQuery = false
 		bill.CanTouch = false
-		bill.Parent = self.folder
+		bill.Parent = folder or self.folder
 		bills[i] = { part = bill, x = (math.random() - 0.5) * 2 * r, z = (math.random() - 0.5) * 2 * r, delay = math.random() * seconds * 0.6, speed = 5 + math.random() * 4, spin = math.random() * 6 }
 	end
 	local stop

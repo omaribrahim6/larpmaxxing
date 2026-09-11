@@ -5,7 +5,8 @@
 -- Packets (all RemoteEvents from Larp.Shared.Net):
 --   MatchBegin(header)
 --     header = { matchId, stageName, stage = Model, a = Side, b = Side, rounds = n,
---                introSeconds, roundSeconds, verdictSeconds, timing = Tuning.Timing.round }
+--                introSeconds, roundSeconds, verdictSeconds, timing }   timing = Tuning.Timing.street
+--                in CCTV scene mode (Shared.StreetPlan), else Tuning.Timing.round (Shared.ClimbPlan)
 --     Side   = { kind = "Player"|"Npc", userId, name, rankIndex, model = Model }
 --   MatchRound(pkg)
 --     pkg = { matchId, header, index, count, statId, scene, winner = "A"|"B"|"Draw", fumble = id?,
@@ -23,12 +24,16 @@ local Catalog = require(Larp.Shared.Catalog)
 local Resolver = require(Larp.Shared.Resolver)
 local Tiers = require(Larp.Shared.Tiers)
 local ClimbPlan = require(Larp.Shared.ClimbPlan)
+local StreetPlan = require(Larp.Shared.StreetPlan)
 local SceneRules = require(Larp.Shared.SceneRules)
 local PairLimiter = require(Larp.Shared.PairLimiter)
 local Net = require(Larp.Shared.Net)
 local Combatant = require(script.Parent.Parent.Lib.Combatant)
 
 local MatchService = {}
+
+-- CCTV scene mode has its own round timeline (see Config.Tuning.SceneMode).
+local CCTV = Tuning.SceneMode == "Cctv"
 
 local rng = Random.new()
 local limiter = PairLimiter.new(Tuning.SamePairRewardLimit.count, Tuning.SamePairRewardLimit.windowSeconds)
@@ -356,9 +361,9 @@ function MatchService:_run(stage, A, B)
 		b = Combatant.header(B),
 		rounds = #result.rounds,
 		introSeconds = Tuning.Timing.introSeconds,
-		roundSeconds = ClimbPlan.duration(Tuning.Timing.round),
+		roundSeconds = if CCTV then StreetPlan.duration(Tuning.Timing.street) else ClimbPlan.duration(Tuning.Timing.round),
 		verdictSeconds = Tuning.Timing.verdictSeconds,
-		timing = Tuning.Timing.round,
+		timing = if CCTV then Tuning.Timing.street else Tuning.Timing.round,
 	}
 
 	local finished = false

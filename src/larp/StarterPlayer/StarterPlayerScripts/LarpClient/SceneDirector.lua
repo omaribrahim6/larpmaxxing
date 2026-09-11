@@ -2,6 +2,12 @@
 -- Participants get the full cinematic: camera, screen stamps (Codex UI), flashes.
 --
 -- Config.Tuning.SceneMode picks how a round is shown:
+--   "Cctv"    Security-cam footage on a split monitor (LarpClient.Cctv): each larper walks
+--             a street on their own feed, clocks a ride and takes a selfie with it; the
+--             winner's selfie becomes a post. The larpers watch the monitor full-screen
+--             and everyone else on the stage's BigScreen. StreetRound plays the round
+--             with the scene's "<id>Street" module. Intro and verdict are live on stage,
+--             and the players on stage strike the same poses as their copies.
 --   "Screen"  Each round plays in its own 3D set (Larp.Assets.Sets, placed far from the
 --             map) with local copies of both avatars. Participants watch the set
 --             full-screen; everyone else near the stage watches it on the stage's
@@ -20,11 +26,14 @@ local Net = require(Larp.Shared.Net)
 local Kit = require(script.Parent.SceneKit)
 local Poses = require(script.Parent.Poses)
 local Crowd = require(script.Parent.Crowd)
+local Cctv = require(script.Parent.Cctv)
+local StreetRound = require(script.Parent.StreetRound)
 local ChallengePrompts = require(script.Parent.ChallengePrompts)
 
 local SceneDirector = {}
 
 local SCREEN_MODE = Tuning.SceneMode == "Screen"
+local CCTV_MODE = Tuning.SceneMode == "Cctv"
 local SET_POSITION = Tuning.Screen and Tuning.Screen.setOrigin or Vector3.new(0, 0, 3000)
 
 local player = Players.LocalPlayer
@@ -46,6 +55,11 @@ local function scene(id: string)
 		scenes[id] = if module then require(module) else false
 	end
 	return scenes[id] or nil
+end
+
+-- CCTV mode's module for a scene (Scenes.<id>Street), or nil.
+local function streetScene(id: string?)
+	return if id then scene(id .. "Street") else nil
 end
 
 -- The set model a scene plays in (Config.Scenes.<id>.setModel), or nil.
@@ -178,6 +192,37 @@ local function showScreen(screen, live: boolean)
 	end
 end
 
+-- A SurfaceGui in PlayerGui drawn on the stage's big screen, for the CCTV monitor.
+local function stageSurface(stage: Instance): SurfaceGui?
+	local model = stage:FindFirstChild("BigScreen")
+	local part = model and model:FindFirstChild("Screen")
+	local template = part and part:FindFirstChild("Surface")
+	if not template then
+		return nil
+	end
+	local playerGui = player:WaitForChild("PlayerGui")
+	local name = "LarpCctvScreen_" .. stage.Name
+	local gui = playerGui:FindFirstChild(name)
+	if not gui then
+		gui = Instance.new("SurfaceGui")
+		gui.Name = name
+		gui.ResetOnSpawn = false
+		gui.Adornee = part
+		gui.Face = template.Face
+		gui.SizingMode = template.SizingMode
+		gui.PixelsPerStud = template.PixelsPerStud
+		gui.LightInfluence = 0
+		gui.Brightness = template.Brightness
+		gui.ClipsDescendants = true
+		gui.ZOffset = 1
+		gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		gui.Parent = playerGui
+	end
+	gui:ClearAllChildren()
+	gui.Enabled = false
+	return gui
+end
+
 -- The idle card's hint line on a stage's big screen (shows "A VS B" during a match).
 local function idleHint(stage: Instance): TextLabel?
 	local model = stage:FindFirstChild("BigScreen")
@@ -200,7 +245,9 @@ local function buildContext(header, ui)
 	local stageFx = localFolder("LarpStageFx")
 	stageFx:ClearAllChildren()
 
-	local screenMode = SCREEN_MODE and setNameFor(Catalog.statsById[Catalog.statIds[1]].scene) ~= nil
+	local firstScene = Catalog.statsById[Catalog.statIds[1]].scene
+	local cctv = CCTV_MODE and streetScene(firstScene) ~= nil
+	local screenMode = SCREEN_MODE and setNameFor(firstScene) ~= nil
 	local screen = if screenMode and not participant then bigScreen(stage) else nil
 	local world: Instance = root
 	local camera = nil
@@ -273,6 +320,35 @@ local function buildContext(header, ui)
 		sides = { A = side(header.a, "L", -1), B = side(header.b, "R", 1) },
 	}
 	ctx.crowd = Crowd.new(kit, stage:FindFirstChild("Crowd"))
+	ctx.stage = stage
+	if cctv then
+		-- the monitor: full-screen for the two larpers, on the big screen for the audience
+		local config = require(Larp.Config.Scenes:FindFirstChild(firstScene))
+		local cams = config.street and config.street.cams or {}
+		local function camInfo(key: string, info)
+			local cam = cams[key] or {}
+			return { label = cam.label or ("CAM 0" .. (if key == "A" then "1" else "2")), place = cam.place or "", subject = info.name }
+		end
+		ctx.cctv = true
+		ctx.avatarCopy = avatarCopy
+		ctx.standHeight = standHeight
+		ctx.monitor = Cctv.new(kit, { A = camInfo("A", header.a), B = camInfo("B", header.b) })
+		if participant then
+			local gui = Instance.new("ScreenGui")
+			gui.Name = "LarpCctvFull"
+			gui.IgnoreGuiInset = true
+			gui.ResetOnSpawn = false
+			gui.DisplayOrder = 4
+			gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+			gui.Enabled = false
+			gui.Parent = player:WaitForChild("PlayerGui")
+			ctx.fullGui = gui
+			ctx.monitor:mount(gui)
+		else
+			ctx.surface = stageSurface(stage)
+			ctx.monitor:mount(ctx.surface)
+		end
+	end
 	local hint = idleHint(stage)
 	if hint then
 		ctx.hint, ctx.hintWas = hint, hint.Text
@@ -343,8 +419,17 @@ local function intro(ctx)
 			end
 		end
 	end
+	if ctx.cctv then
+		-- build both streets now so the first round starts without a hitch
+		local sc = streetScene(Catalog.statsById[Catalog.statIds[1]].scene)
+		for _, key in { "A", "B" } do
+			if sc and sc.build then
+				sc.build(ctx, key)
+			end
+		end
+	end
 	local f = ctx.focus
-	if ctx.screenMode and ctx.participant then
+	if (ctx.screenMode or ctx.cctv) and ctx.participant then
 		-- live on stage first, then the camera dives into the big screen
 		local sf = ctx.stageFocus
 		-- aim between the players and the screen so both are in frame
@@ -353,7 +438,13 @@ local function intro(ctx)
 		kit:lookShot(sf + Vector3.new(0, 9, 20), target, 50, header.introSeconds * 0.8)
 		kit:after(header.introSeconds - 0.25, function()
 			kit:flash(0.7, 0.3)
-			bothShot(ctx, 0)
+			if ctx.cctv then
+				-- into the screen: the monitor goes full-screen
+				ctx.fullGui.Enabled = true
+				ctx.monitor:connect(0.6)
+			else
+				bothShot(ctx, 0)
+			end
 		end)
 	else
 		kit:lookShot(f + Vector3.new(0, 16, 52), f + Vector3.new(0, 2, -12), 70, 0)
@@ -376,6 +467,23 @@ end
 
 local function playRound(ctx, pkg)
 	local kit = ctx.kit
+	if ctx.cctv then
+		local sc = streetScene(pkg.scene)
+		if not sc then
+			warn("[LarpScene] No CCTV scene module for " .. tostring(pkg.scene))
+			return
+		end
+		if ctx.fullGui then
+			ctx.fullGui.Enabled = true
+		end
+		if ctx.surface then
+			ctx.surface.Enabled = true
+		end
+		StreetRound.play(ctx, pkg, sc, function()
+			return current == ctx
+		end)
+		return
+	end
 	local stat = Catalog.statsById[pkg.statId]
 	local sc = scene(pkg.scene)
 	if not sc then
@@ -519,8 +627,20 @@ local function verdict(ctx, outcome)
 	local winner = outcome.winner
 	-- Screen mode: the verdict lands on the players standing on the real stage. The
 	-- participants' camera comes back to the stage; the big screen keeps showing the set.
-	local live = ctx.screenMode
+	local live = ctx.screenMode or ctx.cctv
 	local camOnStage = live and ctx.participant
+	if ctx.cctv and ctx.participant then
+		-- the monitor shrinks back into the big screen behind the players
+		local surface = stageSurface(ctx.stage)
+		if surface then
+			surface.Enabled = true
+			ctx.monitor:mount(surface)
+			ctx.surface = surface
+		end
+		if ctx.fullGui then
+			ctx.fullGui.Enabled = false
+		end
+	end
 	local function stagePos(s, height: number)
 		return s.stageMark.Position + Vector3.new(0, height, 0)
 	end
@@ -644,6 +764,15 @@ local function finish(ctx, aborted: boolean, reason: string?)
 	end
 	ctx.crowd:reset()
 	Poses.reset()
+	if ctx.monitor then
+		ctx.monitor:destroy()
+	end
+	if ctx.fullGui then
+		ctx.fullGui:Destroy()
+	end
+	if ctx.surface then
+		ctx.surface.Enabled = false
+	end
 	ctx.kit:Destroy()
 	if ctx.setFolder and ctx.setFolder.Parent then
 		ctx.setFolder:Destroy()

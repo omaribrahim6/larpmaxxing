@@ -27,6 +27,12 @@ Poses.Defs = {
 	Victory = { RightShoulder = A(170, 0, 25), LeftShoulder = A(170, 0, -25), Neck = A(14), Waist = A(6) },
 	Slump = { Waist = A(-24), Neck = A(-26), RightShoulder = A(-6, 0, 6), LeftShoulder = A(-6, 0, -6) },
 	Flex = { RightShoulder = A(0, 0, 95), LeftShoulder = A(0, 0, -95), RightElbow = A(0, 0, 0) * A(-100), LeftElbow = A(-100), Neck = A(10) },
+	-- CCTV street scene: a double take at a ride (ClockL looks left), and the glances
+	-- left and right before a sneaky selfie
+	ClockL = { Neck = A(6, 55), Waist = A(-4, 18) },
+	ClockR = { Neck = A(6, -55), Waist = A(-4, -18) },
+	SneakL = { Neck = A(-4, 50), Waist = A(0, 12), RightShoulder = A(0, 0, 10), LeftShoulder = A(0, 0, -10) },
+	SneakR = { Neck = A(-4, -50), Waist = A(0, -12), RightShoulder = A(0, 0, 10), LeftShoulder = A(0, 0, -10) },
 }
 
 -- A joint handle: the instance and the property that holds its parent-side frame.

@@ -10,6 +10,17 @@ return {
 		Draw = "NOBODY ATE",
 	},
 	LarpOff = "LARP-OFF",
+	-- the CCTV monitor and the winner's post (Scene mode "Cctv")
+	Cctv = {
+		rec = "● REC",
+		subject = "SUBJECT: @%s",
+		signalLost = "SIGNAL LOST",
+		connecting = "CONNECTING…",
+		enhance = "ENHANCE",
+		likes = "%s likes",
+		viral = "🔥 VIRAL",
+		app = "flexr",
+	},
 	PromptAction = "Larp-off",
 	Practice = {
 		name = "Practice Larper",
