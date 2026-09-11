@@ -1,0 +1,65 @@
+[
+  {
+    "studioPath": "ReplicatedStorage.CodexShared.Cleanup",
+    "repoPath": "src/shared/CodexShared/Cleanup.lua",
+    "class": "ModuleScript",
+    "owner": "Codex",
+    "sourceMatches": true
+  },
+  {
+    "studioPath": "ReplicatedStorage.CodexShared.RateLimiter",
+    "repoPath": "src/shared/CodexShared/RateLimiter.lua",
+    "class": "ModuleScript",
+    "owner": "Codex",
+    "sourceMatches": true
+  },
+  {
+    "studioPath": "StarterPlayer.StarterPlayerScripts.CodexUI.UIConfig",
+    "repoPath": "src/config/UIConfig.lua",
+    "class": "ModuleScript",
+    "owner": "Codex",
+    "sourceMatches": true
+  },
+  {
+    "studioPath": "StarterPlayer.StarterPlayerScripts.CodexUI.Model",
+    "repoPath": "src/client/CodexUI/Model.lua",
+    "class": "ModuleScript",
+    "owner": "Codex",
+    "sourceMatches": true
+  },
+  {
+    "studioPath": "StarterPlayer.StarterPlayerScripts.CodexUI.RemoteAdapter",
+    "repoPath": "src/client/CodexUI/RemoteAdapter.lua",
+    "class": "ModuleScript",
+    "owner": "Codex",
+    "sourceMatches": true
+  },
+  {
+    "studioPath": "StarterPlayer.StarterPlayerScripts.CodexUI.View",
+    "repoPath": "src/client/CodexUI/View.lua",
+    "class": "ModuleScript",
+    "owner": "Codex",
+    "sourceMatches": true
+  },
+  {
+    "studioPath": "StarterPlayer.StarterPlayerScripts.CodexUI.Controller",
+    "repoPath": "src/client/CodexUI/Controller.lua",
+    "class": "ModuleScript",
+    "owner": "Codex",
+    "sourceMatches": true
+  },
+  {
+    "studioPath": "StarterPlayer.StarterPlayerScripts.CodexUI.Bootstrap",
+    "repoPath": "src/client/CodexUI/Bootstrap.client.lua",
+    "class": "LocalScript",
+    "owner": "Codex",
+    "sourceMatches": true
+  },
+  {
+    "studioPath": "ServerStorage.CodexTests.UnitSuite",
+    "repoPath": "tests/UnitSuite.lua",
+    "class": "ModuleScript",
+    "owner": "Codex",
+    "sourceMatches": true
+  }
+]

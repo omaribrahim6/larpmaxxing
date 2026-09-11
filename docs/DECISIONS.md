@@ -8,3 +8,5 @@
 - Music/SFX/cosmetics remain client-session preferences until explicitly added to the existing server schema; Clip Mode/Reduce Effects are exposed to scene code without taking over its camera.
 - Current scope is the Bag-only vertical slice authorized after the broader spec. Events and monetization are deferred.
 
+
+- Final handoff: client deadline caps derive from Claude's Tuning. New SoundGroups are client-local and affect only sounds explicitly assigned by their owner. No production remotes/bootstrap or guessed match packet adapters were added. Temporary fixtures are removed and Studio playtest ownership is released.

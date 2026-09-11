@@ -37,6 +37,10 @@
       "passed": true
     },
     {
+      "name": "challenge and rematch timing follow injected trend configuration",
+      "passed": true
+    },
+    {
       "name": "invalid challenge cannot replace pending request",
       "passed": true
     },
@@ -93,7 +97,7 @@
       "passed": true
     }
   ],
-  "total": 23,
-  "passed": 23,
+  "total": 24,
+  "passed": 24,
   "failed": 0
 }
