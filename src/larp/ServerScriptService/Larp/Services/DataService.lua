@@ -22,7 +22,14 @@ local profiles: { [Player]: { data: any, persistent: boolean, key: string } } = 
 local store = nil -- SessionStore, or nil in memory mode
 local memoryReason: string? = nil
 
-local SETTINGS_DEFAULTS = { acceptLarpOffs = true, clipMode = false, reduceEffects = false }
+local SETTINGS_DEFAULTS = {
+	acceptLarpOffs = true,
+	clipMode = false,
+	reduceEffects = false,
+	showCosmetics = true,
+	musicVolume = 1,
+	sfxVolume = 1,
+}
 
 function DataService.defaults()
 	return {

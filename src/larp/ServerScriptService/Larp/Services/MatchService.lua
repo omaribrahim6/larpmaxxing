@@ -58,7 +58,9 @@ function MatchService:Start()
 	for _, model in root:GetChildren() do
 		local markers = model:FindFirstChild("Markers")
 		if markers and markers:FindFirstChild("MarkL") and markers:FindFirstChild("MarkR") then
-			table.insert(stages, { name = model.Name, model = model, markers = markers, busy = false })
+			-- "Stage1" reads as "Stage 1" unless the model sets a DisplayName attribute
+			local displayName = model:GetAttribute("DisplayName") or (model.Name:gsub("(%a)(%d)", "%1 %2"))
+			table.insert(stages, { name = model.Name, displayName = displayName, model = model, markers = markers, busy = false })
 		end
 	end
 	table.sort(stages, function(x, y)
@@ -376,7 +378,7 @@ function MatchService:_run(stage, A, B)
 		local outcome = self:_settle(match, result)
 		fire(viewers(stage, A, B), "MatchVerdict", outcome)
 		if outcome.upset then
-			Net.get("Announce"):FireAllClients(Text.UpsetBanner:format(stage.name))
+			Net.get("Announce"):FireAllClients(Text.UpsetBanner:format(stage.displayName))
 		end
 		if outcome.limited then
 			notice(if outcome.winner == "A" then A else B, Text.RewardsLimited)

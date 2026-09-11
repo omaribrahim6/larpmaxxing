@@ -1,10 +1,15 @@
 # Handoff
 ## LATEST: Claude, parallel session with Codex, 2026-09-11 afternoon (read this first)
-The user is away. Agent-to-agent messages go in [COMMS.md](COMMS.md).
-- **Done: first-larp-off balance** (in Studio, 40/40 unit tests in Edit). The rookie band applies until the first Win, 0-stat players are gated out of practice, and the floor is 1. See DECISIONS. The live gate wasn't playtested yet because the user's own playtest held Studio.
-- **Done: `src/larp` mirror**, 35 of 40 Claude scripts, all checksum-verified against Studio. Still to export, after the sound pass edits them: Config.Sounds and LarpClient's SoundKit, PickupFx, SceneDirector and Scenes/Bag.
-- **Done: spec** docs/SPEC-v1.1.html "Built for vertical" now matches the Clip Mode decision.
-- **In progress: sound pass.** Licensed ids were chosen, and edits are waiting for Studio Edit mode:
+The user is away. Agent-to-agent messages go in [COMMS.md](COMMS.md). **Codex ran out of usage mid-lease at about 12:25.** Claude stopped the leftover Codex Play session at the user's direction. Codex's installed CodexUI (12 modules) exactly matches its repo working copy. Codex's uncommitted View/UIConfig/ToastPolicy/tests changes are left on disk for Codex to commit.
+
+Everything below was playtested at 12:28–12:32 in one fresh play server: 41/41 unit tests, no script errors in the console.
+- **Done: first-larp-off balance.** A 0-Bag practice attempt shows the Car Lot notice and starts no match. With 5 Bag against the rookie NPC the player won (+25, Wins 1). The rookie band applies until the first Win, and the floor is 1. See DECISIONS.
+- **Done: settings persistence (server).** SettingsService.sanitize plus DataService defaults for `showCosmetics`, `musicVolume` and `sfxVolume`. Real remote round-trip: 0.33 was saved as 0.35, and wrong types and unknown keys were rejected. Codex may now flip `persisted = true` in UIConfig; I told it in COMMS.
+- **Done: `src/larp` mirror.** All **45** Claude-owned scripts are exported and checksum-verified against Studio (`tools/verify-larp-mirror.ps1`: 45/45 match).
+- **Done: spec.** docs/SPEC-v1.1.html "Built for vertical" now matches the Clip Mode decision.
+- **Done: small fixes.** The upset banner says "Stage 1" (a stage's DisplayName attribute overrides it). The Legendary notice uses `Config.Stats[].zoneName`. The Maxxed signature's barrier and pull-out camera are relative to the stage markers.
+- **Odd event:** one practice rematch started between my scripted calls. The code can't do that on its own (RequestRematch only runs from the button or a key), so it was probably a click in the Studio window.
+- **Done: sound pass** (licensed ids, all through CodexSFX; verified in play that the sounds fire):
   - `Pickup` 17208380755 (Roblox GUI Purchase)
   - `PickupRare` 17208327798 (Roblox GUI Aura)
   - `Ping` 17208361335 (Roblox GUI Notification High)
@@ -19,11 +24,8 @@ The user is away. Agent-to-agent messages go in [COMMS.md](COMMS.md).
   - Pickups use Pickup, or PickupRare for Epic and Legendary.
   - A Legendary spawn plays Ping.
 
-  CodexUI plays no sounds, so nothing doubles up.
-- **Queued small fixes (Claude, Studio Edit):**
-  - The upset banner should read "Stage 1", not "Stage1".
-  - The Legendary notice hard-codes "Car Lot"; move it to a `zoneName` in Config.Stats.
-  - Client Scenes/Bag has two hard-coded Stage 1 coordinates in the Maxxed signature (barrier z = -61, pull-out camera). Make them relative to the stage markers so later stages work.
+  CodexUI plays no sounds, so nothing doubles up. The NOBODY ATE draw now uses the APM Cartoon link. Still not in the licensed library: a sad trombone and an engine rev.
+- **Testing gotcha:** running unit tests from `execute_luau` in **Edit** reuses cached modules after a script edit, so the results can be stale. Run them in a fresh play server.
 - **Studio etiquette learned:** the user may be playing in Studio themselves. Check `Players` in the Server DataModel before assuming a Play session belongs to an agent.
 
 ## Claude, resumed session 2026-09-11 (morning)

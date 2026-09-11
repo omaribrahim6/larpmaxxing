@@ -10,6 +10,7 @@ return {
 		displayName = "Bag",
 		color = Color3.fromRGB(226, 176, 64),
 		zone = "CarLot",
+		zoneName = "Car Lot", -- what players call the zone
 		scene = "Bag",
 	},
 }

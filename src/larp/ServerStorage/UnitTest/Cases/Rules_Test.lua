@@ -87,7 +87,26 @@ return function(t)
 		expect.equal(data.wins, 3)
 		expect.equal(data.settings.clipMode, true)
 		expect.equal(data.settings.acceptLarpOffs, true)
+		expect.equal(data.settings.musicVolume, 1)
+		expect.equal(data.settings.showCosmetics, true)
 		expect.equal(DataService.reconcile(nil).stats.Bag, 0)
+		-- a wrong-typed stored setting falls back to its default
+		expect.equal(DataService.reconcile({ settings = { sfxVolume = "loud" } }).settings.sfxVolume, 1)
+	end)
+
+	-- Settings from the client are type-checked; volumes are clamped to 0..1 in 0.05 steps.
+	t.test("setting values are sanitized", function()
+		local Settings = require(game.ServerScriptService.Larp.Services.SettingsService)
+		expect.equal(Settings.sanitize("musicVolume", 0.75), 0.75)
+		expect.equal(Settings.sanitize("musicVolume", 0.33), 0.35)
+		expect.equal(Settings.sanitize("sfxVolume", 7), 1)
+		expect.equal(Settings.sanitize("sfxVolume", -2), 0)
+		expect.equal(Settings.sanitize("sfxVolume", 0 / 0), nil)
+		expect.equal(Settings.sanitize("sfxVolume", math.huge), nil)
+		expect.equal(Settings.sanitize("showCosmetics", false), false)
+		expect.equal(Settings.sanitize("showCosmetics", 1), nil)
+		expect.equal(Settings.sanitize("coins", 5), nil)
+		expect.equal(Settings.sanitize("acceptLarpOffs", true), true)
 	end)
 
 	-- Practice NPC stats stay within the configured band; 0 stays 0, anything else >= floor.

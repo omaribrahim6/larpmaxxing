@@ -12,21 +12,21 @@
 | Connect scene lifecycle and rematch outcome to UI | Claude | DONE | SceneDirector | SetMatchActive, SetRound, ShowStamp, ShowRematch, Notify, GetSetting, GetAudioGroup; real Rematch click verified |
 | Apply Clip Mode/cosmetics in their renderers | Claude | DEFERRED | scene/cosmetic owners | Clip Mode redesign decided 2026-09-11 (see DECISIONS); rank cosmetics not in slice |
 | Assign SoundGroups | Claude | DONE | LarpClient.SoundKit | all scene sounds use CodexSFX |
-| Persist additional settings (showCosmetics, musicVolume, sfxVolume) | Claude | IN PROGRESS (server side) | DataService/SettingsService schema | contract proposed in COMMS 12:40; Codex flips UIConfig `persisted` after Claude posts "settings persisted" |
+| Persist additional settings (showCosmetics, musicVolume, sfxVolume) | Claude | DONE (server side); Codex to flip UIConfig `persisted` | DataService/SettingsService schema | contract proposed in COMMS 12:40; Codex flips UIConfig `persisted` after Claude posts "settings persisted" |
 | Persistence lock takeover and non-finite stat guard | Claude | DONE | SessionStore, StatService | infinity guard added; takeover kept by decision (see DECISIONS) and unit-tested |
 | Multiplayer (2 real players) and physical device pass | Claude | TODO | challenge flow, spectators | needs Studio multi-client test or a live server |
 | New-player onboarding and mobile/gamepad UI controls | Codex | IN PROGRESS (claimed by Codex, 2026-09-11) | CodexUI only | Claude will not touch CodexUI/CodexShared |
-| First-larp-off balance for 0-stat players + "collect Bag first" gate | Claude | IN PROGRESS | Config.Tuning.Practice, PracticeNpcService, DataService defaults | server-only; sends existing Notice remote, no new UI |
-| Scene/pickup sound pass (pickup, record scratch, ping, sad trombone, engine) | Claude | IN PROGRESS | Config.Sounds, LarpClient.SoundKit/PickupFx/Scenes.Bag | licensed library audio only; all via CodexSFX group |
+| First-larp-off balance for 0-stat players + "collect Bag first" gate | Claude | DONE (playtested) | Config.Tuning.Practice, PracticeNpcService, DataService defaults | server-only; sends existing Notice remote, no new UI |
+| Scene/pickup sound pass (pickup, record scratch, ping, fail sting) | Claude | DONE (playtested; no licensed sad trombone/engine rev exists) | Config.Sounds, LarpClient.SoundKit/PickupFx/Scenes.Bag | licensed library audio only; all via CodexSFX group |
 | Mirror Claude-owned Studio scripts into repo (src/larp) | Claude | IN PROGRESS | src/larp/** (new, read-only export) | Studio stays authoritative; no sync tooling |
 Only claim a task after checking live state and ownership. Codex's DONE systems are not permission to overwrite their files.
 **Agent-to-agent messages: [COMMS.md](COMMS.md)** (the user is away; talk there, not through the user).
 **Parallel work (2026-09-11):** Codex and Claude are working at the same time. Edits to different scripts in Edit mode are fine. **Play mode is shared**: before starting a playtest, set the lease line below to your name, and set it back to released when you stop. Never stop a playtest you did not start.
-**Global Studio playtest lease: released**. (As of 12:25 Studio is in Play because **the user** is playtesting. Neither agent stops it; Codex gets the first Edit window, see COMMS.)
+**Global Studio playtest lease: released** by Claude at 12:32. Studio is in Edit.
 
 
 ## Codex concurrent-work claim (2026-09-11 11:56 Toronto)
-- **IN PROGRESS — owner: Codex:** new-player onboarding and mobile/keyboard/gamepad UI. Affected: src/client/CodexUI/**, src/config/UIConfig.lua, Codex-owned UI tests; corresponding Studio CodexUI namespace only. Dependencies: existing profile/pickup/match interfaces; a coordinated Studio lease for live testing. Scope and exclusions: [active Codex claim](claims/CODEX_PLAYER_EXPERIENCE.md).
+- **IN PROGRESS â€” owner: Codex:** new-player onboarding and mobile/keyboard/gamepad UI. Affected: src/client/CodexUI/**, src/config/UIConfig.lua, Codex-owned UI tests; corresponding Studio CodexUI namespace only. Dependencies: existing profile/pickup/match interfaces; a coordinated Studio lease for live testing. Scope and exclusions: [active Codex claim](claims/CODEX_PLAYER_EXPERIENCE.md).
 - Claude retains gameplay/balance, server services, LarpClient scenes/camera, map and assets. No Codex play/stop or debug calls while Claude uses Studio.
 
 ## Codex local UI test tooling (claimed September 11)

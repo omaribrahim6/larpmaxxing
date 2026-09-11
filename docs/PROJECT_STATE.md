@@ -27,7 +27,8 @@ Collect Bag props in the Car Lot, rank up, walk to the Practice Larper (or anoth
 
 ## Known gaps / risks
 - Not tested: two real players (challenge prompts, accept/decline, spectators), physical mobile/gamepad, real DataStore saving (Studio API access is off).
-- Sounds: only licensed-library ids were used; no record scratch, notification ping, sad trombone, engine or pickup sound found yet (captions cover them).
+- Sounds: only licensed-library ids are used. The record scratch, notification ping, pickup sounds and a fail sting were added in the afternoon session. A sad trombone and an engine rev still aren't in the licensed library (the fail sting and whoosh stand in).
+- Afternoon session (Claude): rookie practice band plus 0-stat gate, settings persistence (showCosmetics/musicVolume/sfxVolume), stamp sounds per the spec table, "Stage 1" banner, zoneName in Config.Stats, stage-relative Maxxed positions. src/larp mirrors all 45 Claude scripts (checksum-verified). 41/41 Larp unit tests in a fresh play server. See HANDOFF.
 - Other four stats, events, VIP/Elite areas, rebirth, monetization, global leaderboards, rank cosmetics and Clip Mode are intentionally not built.
 
 ## Coordination inspection — Codex, 2026-09-11 11:56 Toronto

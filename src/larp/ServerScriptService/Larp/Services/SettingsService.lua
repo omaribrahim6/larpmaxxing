@@ -9,7 +9,25 @@ local ALLOWED = {
 	acceptLarpOffs = "boolean",
 	clipMode = "boolean",
 	reduceEffects = "boolean",
+	showCosmetics = "boolean",
+	musicVolume = "number",
+	sfxVolume = "number",
 }
+
+-- Cleans a value that passed the type check. Returns nil to reject it.
+function SettingsService.sanitize(key: string, value: any): any
+	if type(key) ~= "string" or ALLOWED[key] == nil or type(value) ~= ALLOWED[key] then
+		return nil
+	end
+	if type(value) == "number" then
+		if value ~= value or math.abs(value) == math.huge then
+			return nil
+		end
+		-- volumes: 0..1 in steps of 0.05
+		return math.floor(math.clamp(value, 0, 1) * 20 + 0.5) / 20
+	end
+	return value
+end
 
 function SettingsService:Init(services)
 	self.Data = services.DataService
@@ -17,12 +35,13 @@ end
 
 function SettingsService:Start()
 	Net.get("UpdateSetting").OnServerEvent:Connect(function(player, key, value)
-		if type(key) ~= "string" or ALLOWED[key] == nil or type(value) ~= ALLOWED[key] then
+		local clean = SettingsService.sanitize(key, value)
+		if clean == nil then
 			return
 		end
 		local data = self.Data:Get(player)
 		if data then
-			data.settings[key] = value
+			data.settings[key] = clean
 		end
 	end)
 end
