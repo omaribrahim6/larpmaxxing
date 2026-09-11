@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-11",
+  "scope": "Codex morning Studio lease, before the resumed FocusPolicy/persistence/CCTV notification changes",
+  "nativeViewTests": {
+    "passed": 8,
+    "failed": 0,
+    "cases": ["create native view", "layout 360x640", "layout 640x320", "layout 1920x1080", "modal guide suppression", "dismissal and progress", "volume targets and scrolling", "long toast text fit"]
+  },
+  "interactiveChecks": {
+    "GOpensAndClosesSettings": true,
+    "DownSelectsCloseSettings": true,
+    "ReturnActivatesCloseSettings": true,
+    "musicDecreaseDisplays75Percent": true,
+    "musicSoundGroupVolume": 0.75,
+    "guideDismissalSurvivesRespawn": true,
+    "guiCountAfterRespawn": 1,
+    "helpReopensGuide": true
+  },
+  "limitations": [
+    "Roblox VirtualInput rejected Tab and ButtonB as reserved core actions; physical gamepad and touch remain unverified.",
+    "Claude later reported an invalid SelectedObject warning; the resumed FocusPolicy patch requires a fresh native regression pass.",
+    "Production DataStore saving was not tested. The Studio session used memory-only profiles."
+  ]
+}

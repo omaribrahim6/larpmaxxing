@@ -110,7 +110,7 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks)
 			table.insert(self.settingFocus,self.settingButtons[def.key])
 		end
 	end
-	self.label(self.settings,"SessionNote",config.Words.SessionPreferences,UDim2.new(0,18,1,-51),
+	self.sessionNote=self.label(self.settings,"SessionNote",config.Words.SessionPreferences,UDim2.new(0,18,1,-51),
 		UDim2.new(1,-36,0,40),12,c.Muted)
 	self.challenge = panel("Challenge",UDim2.fromScale(0.5,0.53),UDim2.new(0.9,0,0,250))
 	self.challenge.AnchorPoint=Vector2.new(0.5,0.5) self.challenge.Visible=false
@@ -151,6 +151,8 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks)
 end
 function View:Render(model)
 	local c=self.config.Colors
+	self:SetNotificationsPaused(model.inMatch,os.clock())
+	self.sessionNote.Text=if model.persistent==false then "Session only: saving is unavailable." elseif not model.loaded then "Settings load with your profile." else self.config.Words.SessionPreferences
 	local guide=model.onboarding
 	local size=self.root.AbsoluteSize
 	if size.X>=240 and size.Y>=250 then
@@ -210,6 +212,16 @@ function View:Render(model)
 	end
 end
 function View:SetSettings(open) self.settings.Visible=open end
+function View:SetNotificationsPaused(paused,now)
+	self.toastRoot.Visible=not paused
+	if paused and not self.toastPausedAt then self.toastPausedAt=now
+	elseif not paused and self.toastPausedAt then
+		for _,item in self.toasts do
+			item.deadline=ToastPolicy.resumedDeadline(item.deadline,item.createdAt,self.toastPausedAt,now)
+		end
+		self.toastPausedAt=nil
+	end
+end
 function View:FocusTargets()
 	if self.challenge.Visible then return {self.decline,self.accept} end
 	if self.settings.Visible then
@@ -251,11 +263,13 @@ function View:Toast(text,kind,now)
 	local label=self.label(frame,"Message",text,UDim2.fromOffset(14,8),UDim2.new(1,-28,1,-16),14,
 		if kind=="warning" or kind=="error" then c.Negative else c.Text)
 	label.Font=Enum.Font.GothamMedium
-	table.insert(self.toasts,ToastPolicy.insertionIndex(self.toasts,kind),{frame=frame,text=text,kind=kind,deadline=now+ToastPolicy.duration(text,self.config.ToastSeconds)})
+	table.insert(self.toasts,ToastPolicy.insertionIndex(self.toasts,kind),{frame=frame,text=text,kind=kind,createdAt=now,deadline=now+ToastPolicy.duration(text,self.config.ToastSeconds)})
 	self:Tick(now)
 end
 function View:Tick(now)
-	for i=#self.toasts,1,-1 do if now>=self.toasts[i].deadline then table.remove(self.toasts,i).frame:Destroy() end end
+	if not self.toastPausedAt then
+		for i=#self.toasts,1,-1 do if now>=self.toasts[i].deadline then table.remove(self.toasts,i).frame:Destroy() end end
+	end
 	local heights={}
 	local width=math.max(100,self.toastRoot.AbsoluteSize.X-28)
 	for i,item in self.toasts do

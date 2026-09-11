@@ -5,8 +5,9 @@ local function signal()
 		listeners[fn]=true return {Disconnect=function() listeners[fn]=nil end}
 	end,Fire=function() for fn in listeners do fn() end end,Count=function() local n=0 for _ in listeners do n+=1 end return n end}
 end
-local function node(parent)
-	local object={Parent=parent,Visible=true,Active=true,Selectable=true}
+local function node(parent,className)
+	local object={Parent=parent,Visible=true,Active=true,Selectable=true,Enabled=true,ClassName=className or "Frame"}
+	function object:IsA(name) return self.ClassName==name or (name=="GuiObject" and self.ClassName=="Frame") or (name=="LayerCollector" and self.ClassName=="ScreenGui") end
 	function object:IsDescendantOf(ancestor) local p=self.Parent while p do if p==ancestor then return true end p=p.Parent end return false end
 	return object
 end
@@ -25,8 +26,9 @@ local services={UserInputService=uis,ContextActionService=cas,GuiService=gui,Run
 local game={GetService=function(_,name) return services[name] end}
 local keys=setmetatable({},{__index=function(_,name) return {Name=name} end})
 local enums={KeyCode=keys,UserInputState={Begin="Begin",End="End"},ContextActionResult={Pass="Pass",Sink="Sink"}}
-local module=InputModuleFactory(game,enums,{Parent={InputPolicy={}}},function() return Policy end)
-local view={gui=node(nil)}
+local module=InputModuleFactory(game,enums,{Parent={InputPolicy="InputPolicy",FocusPolicy="FocusPolicy"}},function(name) return if name=="FocusPolicy" then Focus else Policy end)
+local root=node(nil,"PlayerGui")
+local view={gui=node(root,"ScreenGui")}
 view.settings=node(view.gui) view.settings.Visible=false
 view.challenge=node(view.gui) view.challenge.Visible=false
 view.settingsClose=node(view.settings) view.decline=node(view.challenge) view.accept=node(view.challenge)
@@ -51,6 +53,22 @@ test("keyboard Y responds exactly once",function() press("Y") press("Y","End") a
 test("gamepad B closes settings without gameplay response",function() press("ButtonY") heartbeat.Fire() assert(view.settings.Visible) press("ButtonB") heartbeat.Fire() assert(not view.settings.Visible and #controller.responses==1) end)
 test("active match passes input",function() controller.model.inMatch=true assert(press("G")=="Pass") controller.model.inMatch=false end)
 test("foreign focus is not activated",function() view.settings.Visible=true gui.SelectedObject=node(nil) assert(press("Return")=="Pass") view.settings.Visible=false end)
+test("hidden ancestor prevents invalid selection restoration",function()
+	uis.input="Gamepad1"
+	local panel=node(root) local button=node(panel) gui.SelectedObject=button
+	view.settings.Visible=true heartbeat.Fire() assert(gui.SelectedObject==view.settingsClose)
+	panel.Visible=false view.settings.Visible=false heartbeat.Fire() assert(gui.SelectedObject==nil)
+end)
+test("disabled screen cannot receive gamepad focus",function()
+	view.settings.Visible=true view.gui.Enabled=false heartbeat.Fire() assert(gui.SelectedObject==nil)
+	view.gui.Enabled=true heartbeat.Fire() assert(gui.SelectedObject==view.settingsClose)
+	view.settings.Visible=false heartbeat.Fire()
+end)
+test("detached or nonselectable targets are rejected",function()
+	local button=node(nil) assert(not Focus.canSelect(button,root))
+	button.Parent=root button.Selectable=false assert(not Focus.canSelect(button,root))
+	button.Selectable=true assert(Focus.canSelect(button,root))
+end)
 test("hybrid devices show hints for the active input",function() uis.TouchEnabled=true uis.input="Keyboard" heartbeat.Fire() assert(view.settingsOpen.Text=="Settings [G]") uis.input="Touch" heartbeat.Fire() assert(view.settingsOpen.Text=="Settings") end)
 test("destroy unbinds and disconnects",function() gui.SelectedObject=view.accept instance:Destroy() assert(cas.callback==nil and heartbeat.Count()==0 and selectionChanged.Count()==0 and gui.SelectedObject==nil) end)
 print(tostring(count).." input adapter tests passed")

@@ -1,5 +1,5 @@
 # Active Codex work claim
-Declared September 11, 2026, 11:56 Toronto. Status: IN PROGRESS (implemented locally; native Studio validation pending user playtest ending).
+Declared September 11, 2026, 11:56 Toronto. Status: IN PROGRESS (baseline installed and native-tested; resumed focus/persistence/CCTV patches await Claude's test lease).
 
 ## Work: new-player onboarding and input/accessibility UI
 Codex will build:
@@ -48,3 +48,11 @@ The Python test runner and pinned-checksum GitHub CI require no Studio or secret
 ## Notification follow-on
 ToastPolicy adds valid Unicode truncation, whitespace normalization, bounded reading duration and queue priority. Pickup notices cannot evict an all-warning/error queue. Important messages take the visible end of the stack; older excess cards hide rather than extend above the viewport. View measures text for card height. Notice/Notify signatures are unchanged.
 Local suite now has 36 pure tests and 11 input adapter tests (47 total); native text-fit tests are prepared but not yet executed. Settings persistence is agreed with Claude, but the three client flags remain false until he confirms server installation/testing.
+
+## Resumed checkpoint — 17:15 Toronto (supersedes pending-install notes above)
+- Installed the 12-source package during the morning Codex lease, comparing all six original live sources to the saved baseline first. Eight native View tests passed. Real G/Down/Return navigation, music minus -> 75% audio, guide dismiss/reopen and respawn (one GUI) passed. Evidence: tests/results/player-experience-native.json.
+- Tab/ButtonB could not be driven by Roblox VirtualInput; physical gamepad/touch remain unverified. Arrow keys provide a tested keyboard alternative.
+- Claude reported a later invalid SelectedObject warning. New FocusPolicy rejects hidden ancestor chains, disabled ScreenGuis and detached/nonselectable controls before assigning focus. This patch is repository-only until a fresh native regression pass.
+- Claude confirmed settings persisted at 12:32. UIConfig now flags the three extra preferences persisted; copy explicitly says session-only when model.persistent is false. A guarded memory-only SettingsRoundTrip test checks real server/client/audio reconciliation and restores the original preference.
+- Per Claude's 17:10 CCTV contract, notifications now defer while SetMatchActive(true), retaining their bounded queue and remaining reading time. Existing round chip and verdict stamp APIs remain unchanged; no world-space UI is added.
+- Current local checks: 40 pure + 14 adapter tests, all passed; owned sources compile. Claude currently holds the Studio lease for CCTV installation/testing. Do not interrupt it or install these resumed patches yet.

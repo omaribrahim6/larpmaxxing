@@ -3,12 +3,16 @@ local CAS=game:GetService("ContextActionService")
 local GuiService=game:GetService("GuiService")
 local RunService=game:GetService("RunService")
 local Policy=require(script.Parent.InputPolicy)
+local Focus=require(script.Parent.FocusPolicy)
 local InputController={}
 function InputController.new(controller)
 	local view=controller.view
 	local connections={}
 	local previousModal=nil
 	local previousSelection=nil
+	local function select(target)
+		GuiService.SelectedObject=if Focus.canSelect(target,view.gui.Parent) then target else nil
+	end
 	local function gamepad()
 		return UIS:GetLastInputType().Name:match("Gamepad")~=nil
 	end
@@ -21,11 +25,11 @@ function InputController.new(controller)
 		local action=Policy.route(input.KeyCode.Name,context())
 		if not action then return Enum.ContextActionResult.Pass end
 		if state==Enum.UserInputState.Begin then
-			if action=="focus" then
+			if action=="focus" or action=="focusNext" or action=="focusPrevious" then
 				local targets=view:FocusTargets()
 				local index=Policy.nextIndex(table.find(targets,GuiService.SelectedObject),#targets,
-					UIS:IsKeyDown(Enum.KeyCode.LeftShift) or UIS:IsKeyDown(Enum.KeyCode.RightShift))
-				if index then GuiService.SelectedObject=targets[index] view:RevealFocused(targets[index]) end
+					action=="focusPrevious" or (action=="focus" and (UIS:IsKeyDown(Enum.KeyCode.LeftShift) or UIS:IsKeyDown(Enum.KeyCode.RightShift))))
+				if index then select(targets[index]) view:RevealFocused(targets[index]) end
 			elseif action=="activate" then
 				if not view:ActivateFocused(GuiService.SelectedObject) then return Enum.ContextActionResult.Pass end
 			elseif action=="accept" then controller:Respond(true)
@@ -33,18 +37,18 @@ function InputController.new(controller)
 			else view:SetSettings(action=="settings") view:Render(controller.model) end
 		end
 		return Enum.ContextActionResult.Sink
-	end,false,Enum.KeyCode.G,Enum.KeyCode.Y,Enum.KeyCode.N,Enum.KeyCode.ButtonY,Enum.KeyCode.ButtonB,Enum.KeyCode.Tab,Enum.KeyCode.Return)
+	end,false,Enum.KeyCode.G,Enum.KeyCode.Y,Enum.KeyCode.N,Enum.KeyCode.ButtonY,Enum.KeyCode.ButtonB,Enum.KeyCode.Tab,Enum.KeyCode.Return,Enum.KeyCode.Up,Enum.KeyCode.Down)
 	local function refresh()
 		local modal=if view.challenge.Visible then view.challenge elseif view.settings.Visible then view.settings else nil
 		local ctx=context()
 		if modal~=previousModal then
 			if not previousModal then previousSelection=GuiService.SelectedObject end
 			if modal and gamepad() and not ctx.typing and not ctx.menu then
-				GuiService.SelectedObject=if modal==view.challenge then view.decline else view.settingsClose
+				select(if modal==view.challenge then view.decline else view.settingsClose)
 			elseif not modal then
 				local selected=GuiService.SelectedObject
 				if selected and previousModal and selected:IsDescendantOf(previousModal) then
-					GuiService.SelectedObject=if previousSelection and previousSelection.Parent and previousSelection.Visible then previousSelection else nil
+					select(previousSelection)
 				end
 				previousSelection=nil
 			end
@@ -52,8 +56,8 @@ function InputController.new(controller)
 		end
 		if modal and gamepad() and not ctx.typing and not ctx.menu then
 			local selected=GuiService.SelectedObject
-			if not selected or not selected:IsDescendantOf(modal) then
-				GuiService.SelectedObject=if modal==view.challenge then view.decline else view.settingsClose
+			if not Focus.canSelect(selected,view.gui) or not selected:IsDescendantOf(modal) then
+				select(if modal==view.challenge then view.decline else view.settingsClose)
 			end
 		end
 		local pad=gamepad()

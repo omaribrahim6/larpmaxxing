@@ -9,6 +9,8 @@ function InputPolicy.route(key, context)
 	if context.typing or context.menu or context.inMatch then return nil end
 	if context.challenge or context.settings then
 		if key=="Tab" then return "focus" end
+		if key=="Down" then return "focusNext" end
+		if key=="Up" then return "focusPrevious" end
 		if key=="Return" then return "activate" end
 	end
 	if context.challenge then

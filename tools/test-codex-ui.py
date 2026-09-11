@@ -17,19 +17,21 @@ def main():
     subprocess.run([str(executable), "tests/PlayerExperience.luau"], cwd=ROOT, check=True)
     source = ROOT / "src/client/CodexUI"
     policy = (source / "InputPolicy.lua").read_text(encoding="utf-8")
+    focus = (source / "FocusPolicy.lua").read_text(encoding="utf-8")
     controller = (source / "InputController.lua").read_text(encoding="utf-8")
     fixture = (ROOT / "tests/InputControllerFixture.luau").read_text(encoding="utf-8")
     generated = ROOT / ".local/codex-input-runtime.luau"
     generated.parent.mkdir(exist_ok=True)
     generated.write_text(
         "local Policy=(function()\n" + policy + "\nend)()\n"
+        + "local Focus=(function()\n" + focus + "\nend)()\n"
         + "local function InputModuleFactory(game,Enum,script,require)\n"
         + controller + "\nend\n" + fixture,
         encoding="utf-8",
     )
     subprocess.run([str(executable), str(generated)], cwd=ROOT, check=True)
     compiler = executable.with_name("luau-compile" + executable.suffix)
-    sources = sorted(source.glob("*.lua")) + [ROOT / "src/config/UIConfig.lua", ROOT / "tests/PlayerExperienceRuntime.client.lua"]
+    sources = sorted(source.glob("*.lua")) + [ROOT / "src/config/UIConfig.lua", ROOT / "tests/PlayerExperienceRuntime.client.lua", ROOT / "tests/SettingsRoundTrip.client.lua"]
     subprocess.run([str(compiler), "--null", *map(str, sources)], cwd=ROOT, check=True)
 
 

@@ -24,6 +24,9 @@ end
 function ToastPolicy.duration(text,base)
 	return math.clamp(math.max(base,(utf8.len(text) or #text)/24),base,10)
 end
+function ToastPolicy.resumedDeadline(deadline,createdAt,pausedAt,resumedAt)
+	return deadline+math.max(0,resumedAt-math.max(createdAt,pausedAt))
+end
 function ToastPolicy.stack(heights,budget,gap)
 	local result={} local used=0
 	for i=#heights,1,-1 do
