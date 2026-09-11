@@ -68,6 +68,17 @@ if view then
 		local relative=controls.plus.AbsolutePosition.Y-view.settings.Options.AbsolutePosition.Y
 		assert(relative>=-1 and relative+44<=view.settings.Options.AbsoluteSize.Y+1)
 	end)
+	check("long toast measures text without overflow",function()
+		view.root.Size=UDim2.fromOffset(360,640) task.wait()
+		view:Toast(string.rep("Readable notice ",16),"warning",0)
+		view:Tick(0) task.wait()
+		local item=view.toasts[1]
+		assert(item and item.frame.Message.TextFits)
+		assert(item.frame.AbsolutePosition.Y>=view.root.AbsolutePosition.Y)
+		view:Toast("Pickup one","success",0) view:Toast("Pickup two","success",0) view:Toast("Pickup three","success",0)
+		assert(#view.toasts==3 and view.toasts[3].kind=="warning")
+		view:Tick(11) assert(#view.toasts==0)
+	end)
 	view:Destroy()
 end
 gui:Destroy()

@@ -44,3 +44,7 @@ No game scripts or instances changed during declaration. Studio was observed in 
 ## Follow-on settings and test tooling
 Repository implementation now includes bounded volume minus/plus buttons (44px), focus scrolling, 28 pure tests plus 10 tests of actual InputController source against mocked services. Public ChangeSetting(key, direction) accepts optional +1/-1; booleans still toggle. Numeric settings clamp instead of wrapping to mute. Guide stat identity is configurable.
 The Python test runner and pinned-checksum GitHub CI require no Studio or secrets. The package tool emits a local review manifest without writing Studio. Native runtime tests include volume target bounds and focus scrolling; execution remains pending Edit availability. No new gameplay ownership is claimed.
+
+## Notification follow-on
+ToastPolicy adds valid Unicode truncation, whitespace normalization, bounded reading duration and queue priority. Pickup notices cannot evict an all-warning/error queue. Important messages take the visible end of the stack; older excess cards hide rather than extend above the viewport. View measures text for card height. Notice/Notify signatures are unchanged.
+Local suite now has 36 pure tests and 11 input adapter tests (47 total); native text-fit tests are prepared but not yet executed. Settings persistence is agreed with Claude, but the three client flags remain false until he confirms server installation/testing.

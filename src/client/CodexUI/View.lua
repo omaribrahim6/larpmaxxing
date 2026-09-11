@@ -1,6 +1,8 @@
 -- Native Roblox UI. All scene cameras, world effects and rewards belong elsewhere.
 local TweenService = game:GetService("TweenService")
 local Layout = require(script.Parent.Layout)
+local ToastPolicy = require(script.Parent.ToastPolicy)
+local TextService = game:GetService("TextService")
 local View = {}
 View.__index = View
 local function create(class, parent, props)
@@ -235,23 +237,41 @@ function View:ActivateFocused(selected)
 	return false
 end
 function View:Toast(text,kind,now)
-	if type(text)~="string" then return end
+	text=ToastPolicy.text(text,self.config.ToastMaxCharacters or 240)
+	if not text then return end
 	-- Dedupe repeated errors without extending them indefinitely.
 	for _,item in self.toasts do if item.text==text then return end end
-	if #self.toasts>=self.config.MaxToasts then table.remove(self.toasts,1).frame:Destroy() end
+	local accepted,victim=ToastPolicy.admit(self.toasts,kind,self.config.MaxToasts)
+	if not accepted then return end
+	if victim then table.remove(self.toasts,victim).frame:Destroy() end
 	local c=self.config.Colors
 	local frame=Instance.new("Frame")
-	frame.Name="Notice" frame.BackgroundColor3=c.Panel frame.BorderSizePixel=0 frame.Size=UDim2.new(1,0,0,52) frame.Parent=self.toastRoot
+	frame.Name="Notice" frame.BackgroundColor3=c.Panel frame.BorderSizePixel=0 frame.Size=UDim2.new(1,0,0,52) frame.AnchorPoint=Vector2.new(0,1) frame.Parent=self.toastRoot
 	create("UICorner",frame,{CornerRadius=UDim.new(0,9)})
-	local label=self.label(frame,"Message",text:sub(1,240),UDim2.fromOffset(14,4),UDim2.new(1,-28,1,-8),14,
+	local label=self.label(frame,"Message",text,UDim2.fromOffset(14,8),UDim2.new(1,-28,1,-16),14,
 		if kind=="warning" or kind=="error" then c.Negative else c.Text)
 	label.Font=Enum.Font.GothamMedium
-	table.insert(self.toasts,{frame=frame,text=text,deadline=now+self.config.ToastSeconds})
+	table.insert(self.toasts,ToastPolicy.insertionIndex(self.toasts,kind),{frame=frame,text=text,kind=kind,deadline=now+ToastPolicy.duration(text,self.config.ToastSeconds)})
 	self:Tick(now)
 end
 function View:Tick(now)
 	for i=#self.toasts,1,-1 do if now>=self.toasts[i].deadline then table.remove(self.toasts,i).frame:Destroy() end end
-	for i,item in self.toasts do item.frame.Position=UDim2.fromOffset(0,-(#self.toasts-i)*58) end
+	local heights={}
+	local width=math.max(100,self.toastRoot.AbsoluteSize.X-28)
+	for i,item in self.toasts do
+		if item.width~=width then
+			item.width=width
+			item.height=math.max(52,TextService:GetTextSize(item.text,14,Enum.Font.GothamMedium,Vector2.new(width,1000)).Y+20)
+			item.frame.Size=UDim2.new(1,0,0,item.height)
+		end
+		heights[i]=item.height
+	end
+	local budget=math.max(52,self.toastRoot.AbsolutePosition.Y-self.root.AbsolutePosition.Y-8)
+	local offsets=ToastPolicy.stack(heights,budget,6)
+	for i,item in self.toasts do
+		item.frame.Visible=offsets[i]~=false
+		if offsets[i]~=false then item.frame.Position=UDim2.fromOffset(0,offsets[i]) end
+	end
 	if self.stampDeadline and now>=self.stampDeadline then self.stamp.Visible=false self.stampDeadline=nil end
 end
 function View:Stamp(text,color,reduce,now,duration)

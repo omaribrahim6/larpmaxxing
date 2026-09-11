@@ -51,5 +51,6 @@ test("keyboard Y responds exactly once",function() press("Y") press("Y","End") a
 test("gamepad B closes settings without gameplay response",function() press("ButtonY") heartbeat.Fire() assert(view.settings.Visible) press("ButtonB") heartbeat.Fire() assert(not view.settings.Visible and #controller.responses==1) end)
 test("active match passes input",function() controller.model.inMatch=true assert(press("G")=="Pass") controller.model.inMatch=false end)
 test("foreign focus is not activated",function() view.settings.Visible=true gui.SelectedObject=node(nil) assert(press("Return")=="Pass") view.settings.Visible=false end)
+test("hybrid devices show hints for the active input",function() uis.TouchEnabled=true uis.input="Keyboard" heartbeat.Fire() assert(view.settingsOpen.Text=="Settings [G]") uis.input="Touch" heartbeat.Fire() assert(view.settingsOpen.Text=="Settings") end)
 test("destroy unbinds and disconnects",function() gui.SelectedObject=view.accept instance:Destroy() assert(cas.callback==nil and heartbeat.Count()==0 and selectionChanged.Count()==0 and gui.SelectedObject==nil) end)
 print(tostring(count).." input adapter tests passed")

@@ -2,6 +2,7 @@ local Guide=require("../src/client/CodexUI/Onboarding")
 local Input=require("../src/client/CodexUI/InputPolicy")
 local Layout=require("../src/client/CodexUI/Layout")
 local SettingValue=require("../src/client/CodexUI/SettingValue")
+local Toast=require("../src/client/CodexUI/ToastPolicy")
 local count=0
 local function test(name,fn) fn() count+=1 print("PASS "..name) end
 test("wait for profile",function() local g=Guide.new() assert(g:Step()=="Loading" and not g:Visible(false)) end)
@@ -26,6 +27,14 @@ test("volume steps in both directions",function() assert(SettingValue.next({step
 test("volume boundaries never wrap",function() assert(SettingValue.next({step=.25},1,1)==1) assert(SettingValue.next({step=.25},0,-1)==0) end)
 test("invalid volume arguments rejected",function() assert(SettingValue.next({step=.25},0/0,1)==nil) assert(SettingValue.next({step=.25},.5,100)==nil) end)
 test("boolean settings retain toggle API",function() assert(SettingValue.next({},true)==false) assert(SettingValue.next({},false)==true) end)
+test("toast truncation preserves Unicode",function() local s=Toast.text("é🐈你好hello",5) assert(utf8.len(s)==5 and s=="é🐈你好…") end)
+test("malformed and empty notices rejected",function() assert(Toast.text(string.char(255),240)==nil) assert(Toast.text("",240)==nil) assert(Toast.text(string.rep("a",17000),240)==nil) end)
+test("pickup bursts preserve warning notices",function() local accepted,index=Toast.admit({{kind="warning"},{kind="success"},{kind="error"}},"success",3) assert(accepted and index==2) end)
+test("full warning queue rejects incidental notices",function() assert(not Toast.admit({{kind="warning"},{kind="error"}},"success",2)) local accepted,index=Toast.admit({{kind="error"}},"warning",1) assert(accepted and index==1) end)
+test("long notices have bounded reading time",function() assert(Toast.duration("hello",4)==4) assert(Toast.duration(string.rep("a",240),4)==10) end)
+test("toast stacks stay inside viewport",function() local offsets=Toast.stack({100,100,100},220,6) assert(offsets[3]==0 and offsets[2]==-106 and offsets[1]==false) end)
+test("toast whitespace cannot create unbounded height",function() assert(Toast.text(" a\n\n\tb ",240)=="a b") assert(Toast.text("\n\t ",240)==nil) end)
+test("important notices retain visible stack priority",function() assert(Toast.insertionIndex({{kind="info"},{kind="warning"}},"success")==2) assert(Toast.insertionIndex({{kind="warning"}},"error")==2) end)
 for _,viewport in {{320,480},{360,640},{640,320},{844,350},{1024,768},{1920,1080}} do
 	test("viewport "..viewport[1].."x"..viewport[2],function()
 		local rects=Layout.compute(viewport[1],viewport[2])

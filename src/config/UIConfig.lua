@@ -24,7 +24,7 @@ return {
 		{key = "musicVolume", label = "Music volume", default = 1, persisted = false, step = 0.25},
 		{key = "sfxVolume", label = "SFX volume", default = 1, persisted = false, step = 0.25},
 	},
-	MaxToasts = 3, ToastSeconds = 4,
+	MaxToasts = 3, ToastSeconds = 4, ToastMaxCharacters = 240,
 	Words = {
 		Loading = "Waiting for profile", Settings = "Settings", Close = "Close",
 		Accept = "Accept", Decline = "Decline", Rematch = "Rematch",
