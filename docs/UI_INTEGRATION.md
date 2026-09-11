@@ -5,7 +5,7 @@ Codex owns these additions. Do not create a second HUD or change the baseline sn
 | Repository | Studio |
 |---|---|
 | src/client/CodexUI/Bootstrap.client.lua | StarterPlayer.StarterPlayerScripts.CodexUI.Bootstrap (LocalScript) |
-| src/client/CodexUI/{Controller,View,Model,RemoteAdapter}.lua | StarterPlayer.StarterPlayerScripts.CodexUI/<same name> (ModuleScripts) |
+| src/client/CodexUI/{Controller,View,Model,RemoteAdapter,Onboarding,InputController,InputPolicy,FocusPolicy,Layout,SettingValue,ToastPolicy,Wayfinder}.lua | StarterPlayer.StarterPlayerScripts.CodexUI/<same name> (ModuleScripts) |
 | src/config/UIConfig.lua | StarterPlayer.StarterPlayerScripts.CodexUI.UIConfig |
 | src/shared/CodexShared/{Cleanup,RateLimiter}.lua | ReplicatedStorage.CodexShared/<same name> |
 | tests/UnitSuite.lua | ServerStorage.CodexTests.UnitSuite (manual only) |
@@ -14,20 +14,22 @@ Codex owns these additions. Do not create a second HUD or change the baseline sn
 
 Bootstrap creates PlayerGui.LarpCodexUI (ResetOnSpawn=false). Nothing is installed in StarterGui or Claude's namespaces. Client-owned SoundService.CodexMusic and CodexSFX are created during play and cleaned up on teardown. New package source is mirrored in src; old Claude sources remain historical snapshots.
 
+The 14-source UI package is installed. Latest focus/persistence/CCTV/wayfinding native regression remains pending the next Codex test lease. Scatter maps to ReplicatedStorage.CodexShared.Scatter when pickup placement is installed; it is outside the UI-only manifest.
+
 ## Already connected remote contracts
 The adapter watches Larp.Remotes without blocking startup, including remotes added later.
 - ProfileSync(table) / StatsChanged(table): stats, total, wins; optional settings and persistent. Rank is derived using existing RankMath and Catalog.
 - ChallengeIncoming(id, fromUserId, fromName, fromRankIndex, seconds): replaces old popup, capped at ten seconds. Consumed ids remembered in a bounded 64-id replay cache. A replacement declines the previous request.
 - ChallengeClosed(id): only closes the matching request.
-- Notice(text,kind), Announce(text), RankUp(rankIndex), PickupCollected(itemId,points,statId,...): notices/pickup feedback.
+- Notice(text,kind), Announce(text), RankUp(rankIndex): notices. CodexUI no longer subscribes to PickupCollected: floating pickup text belongs to PickupFx.
 - RespondChallenge(id,accept): sent once per active request on click, expiry, preference opt-out, match entry or respawn.
-- UpdateSetting(key,value): current server schema only (acceptLarpOffs, clipMode, reduceEffects).
+- UpdateSetting(key,value): acceptLarpOffs, clipMode, reduceEffects, showCosmetics, musicVolume, sfxVolume. Claude installed/tested the extended schema; client flags now match it.
 - RequestChallenge(targetUserId,{rematch=true}) / RequestPractice({rematch=true}): sent once when rematch pressed.
 
 No server bootstrap, DataStore call or new production RemoteEvent was added. Missing remotes show a usable waiting HUD.
 **Server remains responsible for validating every request**, current challenge identity/participants, timeout, distance, rate limit, opt-out, match availability and cooldown. This UI cannot enforce security.
 
-## SceneDirector hooks (Claude to connect)
+## Current SceneDirector hooks
 From a normal client LocalScript / client ModuleScript:
 ```lua
 local Players = game:GetService("Players")
@@ -40,9 +42,9 @@ ui:SetMatchActive(false)
 ui:ShowRematch("Player", opponentUserId, 60) -- or ("Npc", 0, 60)
 ui:Notify("You earned bonus points", "success") -- only after server confirms reward
 ```
-MatchBegin/MatchRound/MatchVerdict payload shapes are not defined by existing source, so Codex did NOT guess adapters for them. The future scene director must call these hooks. Rematch eligibility and server rejection need to be resolved by that service; current UI permits one request per displayed offer.
+Claude's SceneDirector already calls these hooks. Match packets/cinematography and rematch eligibility remain with their owners. UI permits one request per displayed offer. During CCTV matches, SetMatchActive hides guide/HUD/settings and pauses notifications while preserving remaining reading time. The round chip and verdict stamps remain available.
 
-ProfileSync currently has no ready/request handshake in Net. Claude's bootstrap must ensure the client listener is ready (or add an explicit snapshot request/ready handshake) so an early one-shot profile is not lost. This race was not solved by adding an unauthorized competing server bootstrap.
+Claude's LarpClient starts CodexUI before sending ClientReady; StatService replies with ProfileSync. CodexUI does not create a competing bootstrap or new remotes.
 
 ## Settings / effects / sound
 ```lua
@@ -63,4 +65,3 @@ ui:SetEvent(label, workspace:GetServerTimeNow()+duration) displays a countdown; 
 ## Utilities
 Cleanup.new():Add(connection|instance|function|destroyable), :Destroy() is idempotent; returns errors while finishing remaining disposers.
 RateLimiter.new(capacity,refillPerSecond,maxKeys,clock?):Allow(player,cost?) -> allowed,retrySeconds; :Remove(player) on PlayerRemoving; :Destroy(). Bounded key count, no credit from negative/NaN/infinite costs; separate from existing PairLimiter rewards.
-

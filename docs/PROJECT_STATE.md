@@ -39,3 +39,11 @@ Live Studio inventory: 54 scripts and assembled map/stage/assets, matching Claud
 - Local verification: 28 pure tests plus 10 input-adapter tests; all UI sources compile. GitHub Actions run 34620889607 passed against commit 5c95ce4. These checks do not establish native rendering or physical device correctness.
 - Native isolated View tests are prepared in tests/PlayerExperienceRuntime.client.lua and remain pending. No production profiles, gameplay remotes, or Claude-owned scripts were mutated by Codex.
 - Exact ownership, interfaces and pending steps: docs/claims/CODEX_PLAYER_EXPERIENCE.md. Generated install manifest: run tools/package-codex-ui.py; it only writes .local JSON.
+
+## Latest Codex checkpoint — September 11, 17:27 Toronto
+- Current Studio lease belongs to Claude for CCTV scene work; query mode and read TASKS/COMMS before acting. Earlier released/Edit statements are historical.
+- All 14 current UI scripts were installed and source-compared during an explicitly granted Edit window. The +Bag card subscription is removed; floating text remains in PickupFx. Guide directions, guarded focus, persisted preference flags and CCTV notification deferral are installed, with native regression pending.
+- Morning baseline: 8 native checks and real G/Down/Return, volume/audio, guide dismissal/reopen and respawn passed. Evidence: tests/results/player-experience-native.json. Physical touch/gamepad not verified.
+- Codex personally implemented random PickupService placement after temporary ownership transfer. Commit 5e648cf is not installed yet because Claude is playtesting; Scatter is repository-only until installation. Reward validation, weights, rate limits, respawn delays and map Parts are unchanged.
+- Fresh positions stay within ZoneBounds, have an 8-stud default gap and exclude solid map obstacles. SpawnPoints determine population/floor height instead of grid coordinates. Crowded zones retry after the existing respawn minimum.
+- 67 local checks and GitHub run 34649348517 pass. Twenty read-only native geometry trials placed 40/40 items with zero failures; minimum observed gap 8.0019 studs. Actual collection/respawn checks remain pending.

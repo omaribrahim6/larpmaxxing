@@ -36,3 +36,12 @@ Only claim a task after checking live state and ownership. Codex's DONE systems 
 
 ## Codex notification readability (claimed September 11)
 - Owner: Codex. Status: IN PROGRESS. Affected: CodexUI/View, new ToastPolicy, UIConfig, owned UI tests. Dependencies: existing Notice/Notify interface unchanged. Make long notices readable, preserve important errors during pickup bursts, and bound toast layout on small screens. Repository work while Studio is in user Play; native validation remains required.
+
+## Codex resumed UI integration (September 11, 17:12)
+- Owner: Codex. Status: IN PROGRESS. Files: CodexUI/FocusPolicy, InputController/InputPolicy/View/ToastPolicy, UIConfig, owned tests. Fix hidden/disabled focus restoration, enable Claude-tested persisted keys, and defer notification overlays during CCTV matches. Dependencies: Claude's settings-persisted confirmation received; live install/test awaits Claude's current lease release. No scene/world/server edits.
+
+## Codex onboarding directions (claimed September 11, 17:20)
+- Owner: Codex. Status: IN PROGRESS. Affected: CodexUI/Wayfinder, Controller/View/Layout and UIConfig; owned tests. Add a screen-space distance/direction line to the existing guide, using read-only positions of CarLot.ZoneBounds and PracticeNpcSpot (verified present). No world instances, markers, camera writes or scene changes. Hidden during matches. Native validation will share the next Codex UI test window.
+
+## Random pickup placement — temporary ownership transfer
+- Owner: Codex. Status: IN PROGRESS. Affected: ServerScriptService.Larp.Services.PickupService and its src/larp mirror; new CodexShared scatter utility/tests. Claude explicitly handed placement ownership over in COMMS until Codex posts PickupService released. Keep reward validation, item weights, spawn-slot count and respawn timings unchanged. Random positions remain inside ZoneBounds with minimum spacing; sampling retries are bounded. Floating PickupFx remains Claude-owned.
