@@ -33,6 +33,9 @@ Poses.Defs = {
 	ClockR = { Neck = A(6, -55), Waist = A(-4, -18) },
 	SneakL = { Neck = A(-4, 50), Waist = A(0, 12), RightShoulder = A(0, 0, 10), LeftShoulder = A(0, 0, -10) },
 	SneakR = { Neck = A(-4, -50), Waist = A(0, -12), RightShoulder = A(0, 0, 10), LeftShoulder = A(0, 0, -10) },
+	-- the body under Poses.selfie (which aims the right arm and the head itself)
+	SelfieBase = { Waist = A(-2, -6), LeftShoulder = A(0, 0, -6) },
+	LeanBase = { Waist = A(10, -4, 8), LeftShoulder = A(-20, 0, -25) },
 }
 
 -- A joint handle: the instance and the property that holds its parent-side frame.
@@ -72,18 +75,93 @@ local function applyOne(kit, character: Model, def, duration: number?)
 	end
 end
 
--- Blends `character` into the named pose over `duration` seconds using the kit clock.
--- A linked real character (see link) strikes the same pose.
-function Poses.apply(kit, character: Model?, name: string, duration: number?)
+-- Blends `character` into a pose table (joint name -> offset, like Poses.Defs) over
+-- `duration` seconds using the kit clock. A linked real character (see link) strikes
+-- the same pose.
+function Poses.applyDef(kit, character: Model?, def, duration: number?)
 	if not character then
 		return
 	end
-	local def = Poses.Defs[name] or Poses.Defs.Idle
 	applyOne(kit, character, def, duration)
 	local mirror = links[character]
 	if mirror and mirror.Parent then
 		applyOne(kit, mirror, def, duration)
 	end
+end
+
+-- Blends `character` into the named pose.
+function Poses.apply(kit, character: Model?, name: string, duration: number?)
+	Poses.applyDef(kit, character, Poses.Defs[name] or Poses.Defs.Idle, duration)
+end
+
+-- The rotation that turns direction `a` into direction `b`.
+local function between(a: Vector3, b: Vector3): CFrame
+	local axis = a.Unit:Cross(b.Unit)
+	if axis.Magnitude < 1e-5 then
+		return CFrame.identity
+	end
+	return CFrame.fromAxisAngle(axis.Unit, math.acos(math.clamp(a.Unit:Dot(b.Unit), -1, 1)))
+end
+
+-- The part a joint's frame is expressed in: Part0 for a Motor6D, the attachment's part.
+local function frameParent(handle: Handle): BasePart?
+	local object = handle.object
+	if object:IsA("Motor6D") then
+		return object.Part0
+	end
+	return object.Parent :: BasePart?
+end
+
+-- A pose offset (relative to the joint's original frame, like Poses.Defs) that turns the
+-- joint so that a direction hanging off it, `from` (world), points along `to` (world).
+-- Measured from the joint's current frame; `maxDegrees` caps the turn.
+local function aimOffset(handle: Handle, from: Vector3, to: Vector3, maxDegrees: number?): CFrame?
+	local parent = frameParent(handle)
+	if not parent then
+		return nil
+	end
+	local object, prop = handle.object, handle.prop
+	local current: CFrame = (object :: any)[prop]
+	local turn = between(parent.CFrame:VectorToObjectSpace(from), parent.CFrame:VectorToObjectSpace(to))
+	if maxDegrees then
+		local axis, angle = turn:ToAxisAngle()
+		if angle > math.rad(maxDegrees) then
+			turn = CFrame.fromAxisAngle(axis, math.rad(maxDegrees))
+		end
+	end
+	local original = if originals[object] then originals[object].value else current
+	return original:Inverse() * (CFrame.new(current.Position) * turn * current.Rotation)
+end
+
+-- A selfie on any rig or avatar: the right arm reaches along `reach` (a world direction
+-- from the shoulder) and the head turns to look into the phone at the end of it. It is
+-- measured from the current pose, so blend the rest of the pose in first and pass it as
+-- `base` so it's kept. A linked real character strikes the same pose.
+function Poses.selfie(kit, character: Model?, reach: Vector3, base, duration: number?)
+	if not character then
+		return
+	end
+	local set = joints(character)
+	local shoulder, elbow = set.RightShoulder, set.RightElbow
+	local hand, head = Poses.hand(character), character:FindFirstChild("Head")
+	local def = table.clone(base or {})
+	local function pivotOf(handle: Handle): Vector3?
+		local parent = frameParent(handle)
+		return parent and (parent.CFrame * (handle.object :: any)[handle.prop]).Position
+	end
+	local shoulderAt = shoulder and pivotOf(shoulder)
+	local elbowAt = elbow and pivotOf(elbow)
+	if shoulderAt and elbowAt and hand and head then
+		-- arm straight (forearm along the upper arm), then the whole arm along the reach
+		local upper, lower = elbowAt - shoulderAt, hand.Position - elbowAt
+		def.RightElbow = aimOffset(elbow, lower, upper)
+		def.RightShoulder = aimOffset(shoulder, upper, reach)
+		local phone = shoulderAt + reach.Unit * (upper.Magnitude + lower.Magnitude + 0.5)
+		if set.Neck then
+			def.Neck = aimOffset(set.Neck, head.CFrame.LookVector, phone - head.Position, 55)
+		end
+	end
+	Poses.applyDef(kit, character, def, duration)
 end
 
 -- Big-screen mode: poses applied to the avatar copy in the scene set are mirrored

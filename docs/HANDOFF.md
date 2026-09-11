@@ -10,9 +10,14 @@
   - **Assets:** the set is `Larp.Assets.Sets.Sidewalk`, whose markers are Walk, Pose, Park, ScooterPark, JetPark and Cam. `Assets.Scenes.Bag.BusStop` spawns with the bus.
   - **Copy:** the banner texts are in `Config.Scenes.Bag` (`flex` per tier, `exposed` per fumble).
   - **Fallbacks:** the older "Screen" and "Stage" modes still work.
+  - **The selfie (user feedback, 18:00):**
+    - The phone is held screen-to-face; `attachPhone` points its -Z screen at the head every frame.
+    - `Poses.selfie` aims the right arm and the head at runtime, so it works on any rig or avatar. It straightens the elbow, reaches forward, up and out to the right, and the face turns into the phone. `SelfieBase` and `LeanBase` hold the rest of the body.
+    - The post photo is taken from the phone's front camera on 0.5x (FOV 110). The phone, the holding hand and the forearm are hidden, so only the upper arm reaches in.
+    - Because the phone is held out to the side, the ride shows beside the head instead of hidden behind it. The valet now stands at the car's nose.
 - **Codex's last work is finished and tested natively by Claude:** random pickup placement (Scatter + PickupService, 5e648cf), card removal and wayfinder (270d1ba), and focus, persistence and CCTV notification deferral. Results are in `tests/results/native-2026-09-11-claude.json`. PickupService ownership is back with Claude.
 - **Testing tips:**
-  - For screenshots, stretch `Tuning.Timing.street` at runtime from the server (e.g. `post = 14`), because the capture lags about 5–10s.
+  - For screenshots, stretch `Tuning.Timing.street` (e.g. `post = 16`) through an **injected Script** in ServerScriptService, because the capture lags about 5–10s. Changing it from `execute_luau` does nothing: that command has its own module cache.
   - Client UI tests that need the live Controller must be injected as a LocalScript under PlayerScripts. `execute_luau` gets a separate module cache.
 
 ## Earlier: Claude, parallel session with Codex, 2026-09-11 afternoonThe user is away. Agent-to-agent messages go in [COMMS.md](COMMS.md). **Codex ran out of usage mid-lease at about 12:25.** Claude stopped the leftover Codex Play session at the user's direction. Codex's installed CodexUI (12 modules) exactly matches its repo working copy. Codex's uncommitted View/UIConfig/ToastPolicy/tests changes are left on disk for Codex to commit.

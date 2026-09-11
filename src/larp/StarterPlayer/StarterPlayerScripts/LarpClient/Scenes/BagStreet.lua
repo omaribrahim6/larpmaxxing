@@ -18,6 +18,7 @@ local Cctv = require(script.Parent.Parent.Cctv)
 local ASSETS = Larp.Assets.Scenes.Bag
 local SETS = Larp.Assets.Sets
 local WALK_FALLBACK = "rbxassetid://507777826" -- Roblox's default R15 walk
+local SELFIE_FOV = 110 -- the post photo is shot on the phone's 0.5x ultra-wide
 
 local BagStreet = {}
 BagStreet.title = Data.title
@@ -103,16 +104,22 @@ local function attachPhone(kit, st)
 	if not hand or not phoneTemplate then
 		return
 	end
-	-- re-placed on the hand every frame
+	-- held just past the fingers with its screen (the model's -Z face) turned to their
+	-- face, like a selfie; re-placed every frame
 	local phone = phoneTemplate:Clone()
-	local grip = CFrame.new(0, -0.45, -0.1) * CFrame.Angles(math.rad(90), 0, 0)
-	phone:PivotTo(hand.CFrame * grip)
+	local tip = CFrame.new(0, -0.55, 0)
+	local function place()
+		local head = st.avatar:FindFirstChild("Head")
+		local at = (hand.CFrame * tip).Position
+		phone:PivotTo(if head then CFrame.lookAt(at, head.Position) else hand.CFrame * tip)
+	end
+	place()
 	phone.Parent = st.feed.props
 	st.phone = phone
 	st.phoneHeld = true
 	kit:loop(function()
 		if st.phone == phone and st.phoneHeld and phone.Parent and hand.Parent then
-			phone:PivotTo(hand.CFrame * grip)
+			place()
 		end
 	end)
 end
@@ -300,11 +307,18 @@ local function snapshot(st)
 	local head = headOf(st)
 	local facing = st.selfieCF or avatar:GetPivot()
 	local ride = if st.vehicle and st.vehicle.Parent then st.vehicle:GetBoundingBox().Position else head - facing.LookVector * 8
-	-- in front of their face, up and out towards the phone hand, looking back past them
-	-- at the ride (a bit further than arm's length so the ride fits behind them)
-	local camPos = head + facing.LookVector * 4.5 + facing.RightVector * 1.2 + Vector3.new(0, 1, 0)
-	local aim = head:Lerp(ride, 0.3)
+	-- the phone's front camera on 0.5x (ultra-wide, so their face and the ride both fit):
+	-- where the phone is (arm's length, up and in front of their face), looking back at
+	-- them with the ride behind. The phone itself isn't in the photo.
+	local phone = st.phone
+	local held = if phone and phone.Parent then phone:GetPivot().Position else head + facing.LookVector * 2.2 + Vector3.new(0, 0.5, 0)
+	local lens = held + (held - head).Unit * 0.3
+	local aim = head:Lerp(ride, 0.18)
 	local models = {}
+	local phoneParent = phone and phone.Parent
+	if phone then
+		phone.Parent = nil
+	end
 	for _, source in { st.set, st.feed.props, avatar } do
 		if source and source.Parent then
 			local ok, copy = pcall(source.Clone, source)
@@ -313,7 +327,17 @@ local function snapshot(st)
 			end
 		end
 	end
-	return { models = models, camCF = CFrame.lookAt(camPos, aim), fov = 60 }
+	if phone then
+		phone.Parent = phoneParent
+	end
+	-- the hand and forearm holding the phone run out of frame from the lens: only the
+	-- upper arm reaches into the shot
+	for _, d in models[#models] and models[#models]:GetDescendants() or {} do
+		if (d.Name == "RightHand" or d.Name == "RightLowerArm") and d:IsA("BasePart") then
+			d.Transparency = 1
+		end
+	end
+	return { models = models, camCF = CFrame.lookAt(lens, aim), fov = SELFIE_FOV }
 end
 
 -- The tier's signature moment around the selfie, on this side's feed.
@@ -400,7 +424,9 @@ local function signature(ctx, st, tier: number)
 		end
 		local valetT = template("Valet")
 		if valetT then
-			local pos = ground + base.RightVector * 3.5 - base.LookVector * 0.5
+			-- at the car's nose, out of the selfie's line of sight to the car
+			local nose = vehicle and vehicle:GetPivot() * CFrame.new(0, 0, -((vehicle:GetAttribute("Length") or 15) / 2 + 2))
+			local pos = if nose then nose.Position else ground + base.RightVector * 4.5
 			local valet = spawn(valetT, CFrame.lookAt(pos, Vector3.new(ground.X, pos.Y, ground.Z)), feed.props)
 			local upper = valet:FindFirstChild("Upper", true)
 			if upper and upper:IsA("Model") and upper.PrimaryPart then
@@ -472,10 +498,11 @@ function BagStreet.selfie(ctx, key: string, tier: number, duration: number, snap
 	end
 	local avatar, feed = st.avatar, st.feed
 	local pose = st.poseCF.Position
-	-- face away from the ride, turned a little towards the camera so it sees their face
+	-- face away from the ride (so it's right behind them in the selfie), turned a touch
+	-- towards the camera so it still sees their face
 	local away = flat(pose - st.parkCF.Position)
 	local toCam = flat(st.mount - pose)
-	local facing = flat(away * 0.55 + toCam * 0.45)
+	local facing = flat(away * 0.8 + toCam * 0.2)
 	st.selfieCF = standAt(st, pose, facing)
 	local from = avatar:GetPivot()
 	kit:animate(0.18, function(a)
@@ -489,11 +516,21 @@ function BagStreet.selfie(ctx, key: string, tier: number, duration: number, snap
 	kit:after(0.2 * u, function()
 		Poses.apply(kit, avatar, "SneakR", 0.1)
 	end)
-	kit:after(0.42 * u, function()
-		attachPhone(kit, st)
-		Poses.apply(kit, avatar, if tier == 3 then "Lean" else "Selfie", 0.12)
+	-- the body settles first, then the arm reaches out and the head looks into the phone
+	-- (Poses.selfie aims them from the pose the body is in)
+	local base = if tier == 3 then "LeanBase" else "SelfieBase"
+	kit:after(0.38 * u, function()
+		Poses.apply(kit, avatar, base, 0.06)
 	end)
-	kit:after(0.62 * u, function()
+	kit:after(0.47 * u, function()
+		local facing = st.selfieCF or avatar:GetPivot()
+		-- forward, up and out to their right: the ride shows beside their head in the
+		-- selfie (not hidden right behind it) and the arm enters the photo from its edge
+		local reach = facing.LookVector * 0.8 + Vector3.new(0, 0.62, 0) + facing.RightVector * 0.35
+		Poses.selfie(kit, avatar, reach, Poses.Defs[base], 0.1)
+		attachPhone(kit, st)
+	end)
+	kit:after(0.66 * u, function()
 		phoneFlash(st)
 		feed:flash(0.45, 0.2)
 		kit:sound("Shutter", { volume = 0.7 })
