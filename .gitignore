@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.rbxl
+*.rbxlx
+*.rbxm
+*.rbxmx
+*.log
+*.tmp
+*.local.*
+node_modules/
+.local/
+.DS_Store
+

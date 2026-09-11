@@ -1,0 +1,31 @@
+-- Player-facing words, kept together so a reskin can rewrite the voice.
+return {
+	Stamps = {
+		Ate = "ATE",
+		Fumbled = "FUMBLED",
+		Certified = "CERTIFIED",
+		Exposed = "EXPOSED",
+		Upset = "UPSET!",
+		Viral = "VIRAL MOMENT",
+		Draw = "NOBODY ATE",
+	},
+	LarpOff = "LARP-OFF",
+	PromptAction = "Larp-off",
+	Practice = { name = "Practice Larper", busy = "The Practice Larper is mid larp-off. Try again in a few seconds." },
+	Challenge = {
+		incoming = "%s wants to larp-off",
+		sent = "Larp-off sent to %s",
+		declined = "%s declined",
+		expired = "%s didn't answer",
+		notAccepting = "%s isn't taking larp-offs right now",
+		cooldown = "Wait %d seconds before challenging %s again",
+		tooFar = "Get closer to challenge %s",
+		busy = "%s is busy",
+		queued = "You're #%d in line for the stage",
+		youAreBusy = "Finish your current larp-off first",
+	},
+	UpsetBanner = "UPSET on %s!",
+	RewardsLimited = "No bonus: you've already larped-off each other twice in 10 minutes",
+	SavingDisabled = "Progress won't save this session",
+}
+

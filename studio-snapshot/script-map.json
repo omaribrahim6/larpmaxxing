@@ -1,0 +1,140 @@
+[
+  {
+    "studioPath": "ReplicatedStorage.Larp.Config.Scenes.Bag",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Config/Scenes/Bag.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ReplicatedStorage.Larp.Config.Game",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Config/Game.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ReplicatedStorage.Larp.Config.Stats",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Config/Stats.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ReplicatedStorage.Larp.Config.Rarities",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Config/Rarities.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ReplicatedStorage.Larp.Config.Items",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Config/Items.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ReplicatedStorage.Larp.Config.Ranks",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Config/Ranks.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ReplicatedStorage.Larp.Config.Tuning",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Config/Tuning.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ReplicatedStorage.Larp.Config.Text",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Config/Text.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ReplicatedStorage.Larp.Shared.Resolver",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/Resolver.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ReplicatedStorage.Larp.Shared.Tiers",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/Tiers.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ReplicatedStorage.Larp.Shared.RankMath",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/RankMath.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ReplicatedStorage.Larp.Shared.PairLimiter",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/PairLimiter.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ReplicatedStorage.Larp.Shared.Format",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/Format.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ReplicatedStorage.Larp.Shared.ClimbPlan",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/ClimbPlan.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ReplicatedStorage.Larp.Shared.Net",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/Net.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ReplicatedStorage.Larp.Shared.Signal",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/Signal.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ReplicatedStorage.Larp.Shared.Catalog",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/Catalog.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ReplicatedStorage.Larp.Shared.SceneRules",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ReplicatedStorage/Larp/Shared/SceneRules.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ServerScriptService.Larp.Services.DataService",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ServerScriptService/Larp/Services/DataService.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ServerScriptService.Larp.Services.SettingsService",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ServerScriptService/Larp/Services/SettingsService.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ServerScriptService.Larp.Services.StatService",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ServerScriptService/Larp/Services/StatService.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ServerScriptService.Larp.Lib.SessionStore",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ServerScriptService/Larp/Lib/SessionStore.lua",
+    "owner": "Claude"
+  },
+  {
+    "studioPath": "ServerScriptService.Larp.Lib.Combatant",
+    "class": "ModuleScript",
+    "repoPath": "studio-snapshot/scripts/ServerScriptService/Larp/Lib/Combatant.lua",
+    "owner": "Claude"
+  }
+]
