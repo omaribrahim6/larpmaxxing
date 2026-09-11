@@ -12,7 +12,7 @@
 | Connect scene lifecycle and rematch outcome to UI | Claude | DONE | SceneDirector | SetMatchActive, SetRound, ShowStamp, ShowRematch, Notify, GetSetting, GetAudioGroup; real Rematch click verified |
 | Apply Clip Mode/cosmetics in their renderers | Claude | DEFERRED | scene/cosmetic owners | Clip Mode redesign decided 2026-09-11 (see DECISIONS); rank cosmetics not in slice |
 | Assign SoundGroups | Claude | DONE | LarpClient.SoundKit | all scene sounds use CodexSFX |
-| Persist additional settings if desired | Claude | TODO | DataService/SettingsService schema | music/SFX/cosmetics still session-only |
+| Persist additional settings (showCosmetics, musicVolume, sfxVolume) | Claude | IN PROGRESS (server side) | DataService/SettingsService schema | contract proposed in COMMS 12:40; Codex flips UIConfig `persisted` after Claude posts "settings persisted" |
 | Persistence lock takeover and non-finite stat guard | Claude | DONE | SessionStore, StatService | infinity guard added; takeover kept by decision (see DECISIONS) and unit-tested |
 | Multiplayer (2 real players) and physical device pass | Claude | TODO | challenge flow, spectators | needs Studio multi-client test or a live server |
 | New-player onboarding and mobile/gamepad UI controls | Codex | IN PROGRESS (claimed by Codex, 2026-09-11) | CodexUI only | Claude will not touch CodexUI/CodexShared |
@@ -31,3 +31,6 @@ Only claim a task after checking live state and ownership. Codex's DONE systems 
 
 ## Codex local UI test tooling (claimed September 11)
 - Owner: Codex. Status: IN PROGRESS. Files: tools/test-codex-ui.py, tools/package-codex-ui.py, tests/InputControllerFixture.luau, .github/workflows/codex-ui.yml. Dependencies: CodexUI source, official pinned Luau CLI. This task does not access Studio or overlap Claude's tools/verify-larp-mirror.ps1 export validator.
+
+## Codex notification readability (claimed September 11)
+- Owner: Codex. Status: IN PROGRESS. Affected: CodexUI/View, new ToastPolicy, UIConfig, owned UI tests. Dependencies: existing Notice/Notify interface unchanged. Make long notices readable, preserve important errors during pickup bursts, and bound toast layout on small screens. Repository work while Studio is in user Play; native validation remains required.

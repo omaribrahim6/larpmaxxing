@@ -1,5 +1,32 @@
 # Handoff
-## LATEST: Claude, resumed session 2026-09-11 (read this first)
+## LATEST: Claude, parallel session with Codex, 2026-09-11 afternoon (read this first)
+The user is away. Agent-to-agent messages go in [COMMS.md](COMMS.md).
+- **Done: first-larp-off balance** (in Studio, 40/40 unit tests in Edit). The rookie band applies until the first Win, 0-stat players are gated out of practice, and the floor is 1. See DECISIONS. The live gate wasn't playtested yet because the user's own playtest held Studio.
+- **Done: `src/larp` mirror**, 35 of 40 Claude scripts, all checksum-verified against Studio. Still to export, after the sound pass edits them: Config.Sounds and LarpClient's SoundKit, PickupFx, SceneDirector and Scenes/Bag.
+- **Done: spec** docs/SPEC-v1.1.html "Built for vertical" now matches the Clip Mode decision.
+- **In progress: sound pass.** Licensed ids were chosen, and edits are waiting for Studio Edit mode:
+  - `Pickup` 17208380755 (Roblox GUI Purchase)
+  - `PickupRare` 17208327798 (Roblox GUI Aura)
+  - `Ping` 17208361335 (Roblox GUI Notification High)
+  - `RecordScratch` 9118086936 (PSE Record Scratch 1)
+  - `FailSting` 17208353912 (Roblox GUI Negative, standing in for the unlicensed sad trombone)
+
+  Wiring follows the spec's moments table:
+  - FUMBLED: record scratch or fail sting, chosen from matchId+round so every viewer hears the same one.
+  - VIRAL: three pings, then the whoosh.
+  - UPSET: record scratch, a beat of silence, then the crowd erupts.
+  - EXPOSED: the fail sting.
+  - Pickups use Pickup, or PickupRare for Epic and Legendary.
+  - A Legendary spawn plays Ping.
+
+  CodexUI plays no sounds, so nothing doubles up.
+- **Queued small fixes (Claude, Studio Edit):**
+  - The upset banner should read "Stage 1", not "Stage1".
+  - The Legendary notice hard-codes "Car Lot"; move it to a `zoneName` in Config.Stats.
+  - Client Scenes/Bag has two hard-coded Stage 1 coordinates in the Maxxed signature (barrier z = -61, pull-out camera). Make them relative to the stage markers so later stages work.
+- **Studio etiquette learned:** the user may be playing in Studio themselves. Check `Players` in the Server DataModel before assuming a Play session belongs to an agent.
+
+## Claude, resumed session 2026-09-11 (morning)
 The Bag-only vertical slice is assembled and playtested end to end. See PROJECT_STATE.md for the full hierarchy and TASKS.md for status. Studio is in Edit and the playtest lease is released.
 
 ### Integration with Codex's UI (done, per UI_INTEGRATION.md)
