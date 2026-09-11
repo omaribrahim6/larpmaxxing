@@ -1,6 +1,6 @@
 # Testing
 ## Current Codex UI checks
-Run `python tools/test-codex-ui.py --luau PATH_TO_LUAU` using the official Luau 0.737 CLI release (the compiler must be alongside it). This runs 40 pure state/input/layout/setting/notification tests, 14 tests of the actual InputController with mocked Roblox services, and compiles all owned UI source. The GitHub workflow runs the same checks with a checksum-verified Linux CLI.
+Run `python tools/test-codex-ui.py --luau PATH_TO_LUAU` using the official Luau 0.737 CLI release (the compiler must be alongside it). This runs 45 pure UI/wayfinding tests, 14 tests of the actual InputController with mocked Roblox services, 8 random-placement tests, and compiles the UI plus pickup-placement source. The GitHub workflow runs the same checks with a checksum-verified Linux CLI.
 
 Eight native tests and real keyboard/click/respawn checks passed for the morning installed baseline; see results/player-experience-native.json. The resumed focus/persistence/CCTV changes require a fresh native pass. After taking the Studio lease and installing the owned modules, inject `PlayerExperienceRuntime.client.lua` as a temporary LocalScript under PlayerScripts. It creates an isolated View and synthetic Model, performs native checks, destroys its fixture, and writes JSON to `CodexPlayerExperienceResults`. It never sends gameplay remotes or changes a real profile. Physical gamepad/touch behavior still requires a device test.
 

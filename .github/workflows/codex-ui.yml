@@ -1,9 +1,13 @@
-name: Codex UI isolated tests
+name: UI and pickup isolated tests
 on:
   push:
     paths:
       - 'src/client/CodexUI/**'
       - 'src/config/UIConfig.lua'
+      - 'src/shared/CodexShared/Scatter.lua'
+      - 'src/larp/ServerScriptService/Larp/Services/PickupService.lua'
+      - 'tests/Scatter.luau'
+      - 'tests/Pickup*'
       - 'tests/PlayerExperience*'
       - 'tests/InputControllerFixture.luau'
       - 'tests/SettingsRoundTrip.client.lua'
@@ -13,6 +17,10 @@ on:
     paths:
       - 'src/client/CodexUI/**'
       - 'src/config/UIConfig.lua'
+      - 'src/shared/CodexShared/Scatter.lua'
+      - 'src/larp/ServerScriptService/Larp/Services/PickupService.lua'
+      - 'tests/Scatter.luau'
+      - 'tests/Pickup*'
       - 'tests/PlayerExperience*'
       - 'tests/InputControllerFixture.luau'
       - 'tests/SettingsRoundTrip.client.lua'

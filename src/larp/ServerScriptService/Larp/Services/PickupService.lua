@@ -1,5 +1,5 @@
--- Spawns collectible props at each stat zone's spawn points and validates pickups.
--- Zones: Workspace.Larp.Map.<stat.zone>.SpawnPoints (parts). Props: Larp.Assets.Items.<itemId>.
+-- Spawns randomly spaced props inside stat-zone bounds and validates pickups.
+-- SpawnPoints are population slots; ZoneBounds controls placement. Item assets remain unchanged.
 local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -9,6 +9,7 @@ local Tuning = require(Larp.Config.Tuning)
 local Catalog = require(Larp.Shared.Catalog)
 local Net = require(Larp.Shared.Net)
 local RateLimiter = require(ReplicatedStorage:WaitForChild("CodexShared"):WaitForChild("RateLimiter"))
+local Scatter = require(ReplicatedStorage.CodexShared:WaitForChild("Scatter"))
 
 local PickupService = {}
 PickupService.TAG = "LarpPickup"
@@ -103,15 +104,61 @@ function PickupService:Init(services)
 	self.Matches = services.MatchService
 end
 
+-- Spawn Parts are population slots, not grid coordinates. Sample fresh positions
+-- inside the zone and reject nearby pickups and solid map obstacles.
+function PickupService:_placement(point: BasePart)
+	local zone = point.Parent and point.Parent.Parent
+	local bounds = zone and zone:FindFirstChild("ZoneBounds")
+	if not bounds or not bounds:IsA("BasePart") then
+		return point.CFrame * CFrame.new(0, Tuning.Pickup.hoverHeight, 0)
+	end
+	self._positions = self._positions or {}
+	self._positions[zone] = self._positions[zone] or {}
+	local occupied = self._positions[zone]
+	local diameter = Tuning.Pickup.hitboxDiameter
+	local spacing = math.max(diameter, Tuning.Pickup.minSpacing or diameter * 1.6)
+	local localY = bounds.CFrame:PointToObjectSpace(point.Position).Y
+	local overlap = OverlapParams.new()
+	overlap.FilterType = Enum.RaycastFilterType.Include
+	overlap.FilterDescendantsInstances = { zone }
+	overlap.RespectCanCollide = true
+	overlap.MaxParts = 1
+	local checkHeight = math.max(1, Tuning.Pickup.hoverHeight + diameter / 2 - 0.5)
+	local function ground(x, z)
+		return bounds.CFrame:PointToWorldSpace(Vector3.new(x, localY, z))
+	end
+	local position = Scatter.sample(bounds.Size.X, bounds.Size.Z, occupied,
+		function() return rng:NextNumber() end, spacing, diameter / 2,
+		Tuning.Pickup.placementAttempts or 64, function(x, z)
+			local checkCenter = ground(x, z) + Vector3.new(0, 0.5 + checkHeight / 2, 0)
+			return #workspace:GetPartBoundsInBox(CFrame.new(checkCenter), Vector3.new(diameter, checkHeight, diameter), overlap) == 0
+		end)
+	if not position then return nil end
+	occupied[point] = position
+	local center = ground(position.x, position.z) + Vector3.new(0, Tuning.Pickup.hoverHeight, 0)
+	return CFrame.new(center) * CFrame.Angles(0, rng:NextNumber(0, math.pi * 2), 0), occupied, position
+end
+
 function PickupService:_spawn(point: BasePart, homeStat: string)
+	if not point.Parent or not folder or not folder.Parent then return end
 	local item = PickupService.chooseItem(homeStat)
 	if not item then
 		return
 	end
+	local center, occupied, reservation = self:_placement(point)
+	if not center then
+		-- A crowded/blocked zone must not overlap props or loop indefinitely.
+		task.delay(Tuning.Pickup.respawnMin, function()
+			if point.Parent then self:_spawn(point, homeStat) end
+		end)
+		return
+	end
 	local rarity = Catalog.rarities[item.rarity]
 	local model = makeVisual(item)
-	local center = point.CFrame * CFrame.new(0, Tuning.Pickup.hoverHeight, 0)
 	model:PivotTo(center)
+	model.Destroying:Connect(function()
+		if occupied and occupied[point] == reservation then occupied[point] = nil end
+	end)
 
 	local hitbox = Instance.new("Part")
 	hitbox.Name = "Hitbox"
@@ -175,6 +222,7 @@ function PickupService:_canCollect(player: Player, position: Vector3): boolean
 end
 
 function PickupService:Start()
+	self._positions = {}
 	limiter = RateLimiter.new(Tuning.Pickup.maxPerSecond, Tuning.Pickup.maxPerSecond, 200)
 	Players.PlayerRemoving:Connect(function(player)
 		limiter:Remove(player)

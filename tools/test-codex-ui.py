@@ -15,6 +15,7 @@ def main():
     args = parser.parse_args()
     executable = args.luau.resolve()
     subprocess.run([str(executable), "tests/PlayerExperience.luau"], cwd=ROOT, check=True)
+    subprocess.run([str(executable), "tests/Scatter.luau"], cwd=ROOT, check=True)
     source = ROOT / "src/client/CodexUI"
     policy = (source / "InputPolicy.lua").read_text(encoding="utf-8")
     focus = (source / "FocusPolicy.lua").read_text(encoding="utf-8")
@@ -32,6 +33,8 @@ def main():
     subprocess.run([str(executable), str(generated)], cwd=ROOT, check=True)
     compiler = executable.with_name("luau-compile" + executable.suffix)
     sources = sorted(source.glob("*.lua")) + [ROOT / "src/config/UIConfig.lua", ROOT / "tests/PlayerExperienceRuntime.client.lua", ROOT / "tests/SettingsRoundTrip.client.lua"]
+    sources += [ROOT / "src/shared/CodexShared/Scatter.lua", ROOT / "src/larp/ServerScriptService/Larp/Services/PickupService.lua"]
+    sources += [ROOT / "tests/PickupLayout.server.lua", ROOT / "tests/PickupFeedback.client.lua"]
     subprocess.run([str(compiler), "--null", *map(str, sources)], cwd=ROOT, check=True)
 
 

@@ -1,0 +1,13 @@
+{
+  "date": "2026-09-11",
+  "scope": "Read-only native geometry queries against CarLot; no live pickup mutation",
+  "runs": 20,
+  "slots": 40,
+  "failures": 0,
+  "minSpacing": 8.0018892288208,
+  "notes": [
+    "Actual PickupService._placement method evaluated with isolated reservation tables and RNG.",
+    "Active pickups, profiles, map parts and Studio mode were not changed.",
+    "Live collection/respawn integration is still pending an Edit install and a test lease."
+  ]
+}
