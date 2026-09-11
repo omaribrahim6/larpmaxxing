@@ -1,5 +1,6 @@
 -- Native Roblox UI. All scene cameras, world effects and rewards belong elsewhere.
 local TweenService = game:GetService("TweenService")
+local Layout = require(script.Parent.Layout)
 local View = {}
 View.__index = View
 local function create(class, parent, props)
@@ -10,7 +11,7 @@ local function create(class, parent, props)
 end
 function View.new(playerGui, config, catalog, rankMath, format, callbacks)
 	local self = setmetatable({config = config, catalog = catalog, rankMath = rankMath,
-		format = format, callbacks = callbacks, rows = {}, settingButtons = {}, toasts = {},
+		format = format, callbacks = callbacks, rows = {}, settingButtons = {}, toasts = {}, focusActions = {},
 		tweens = {}, stampSequence = 0}, View)
 	local c = config.Colors
 	self.gui = create("ScreenGui", playerGui, {Name = "LarpCodexUI", ResetOnSpawn = false,
@@ -35,6 +36,7 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks)
 			TextColor3 = c.Text, BorderSizePixel = 0, AutoButtonColor = true, Selectable = true})
 		create("UICorner", b, {CornerRadius = UDim.new(0,9)})
 		b.Activated:Connect(callback)
+		self.focusActions[b]=callback
 		return b
 	end
 	self.hud = create("Frame", self.root, {Name = "HUD", BackgroundTransparency = 1, Size = UDim2.fromScale(1,1)})
@@ -62,13 +64,21 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks)
 	self.saveStatus = self.label(self.rankPanel,"SaveStatus","",UDim2.fromOffset(14,statY),
 		UDim2.new(1,-28,0,18),11,c.Muted)
 	self.actions = panel("Actions", UDim2.new(1,-12,0,12), UDim2.new(0.39,-12,0,104), self.hud)
+	self.actions.Size=UDim2.new(0.39,-12,0,156)
 	self.actions.AnchorPoint = Vector2.new(1,0)
-	create("UISizeConstraint", self.actions, {MaxSize = Vector2.new(158,104)})
+	create("UISizeConstraint", self.actions, {MaxSize = Vector2.new(158,156)})
 	self.wins = self.label(self.actions,"Wins","WINS  —",UDim2.fromOffset(12,8),UDim2.new(1,-24,0,28),18)
 	self.wins.TextWrapped=true self.wins.TextScaled=true
 	create("UITextSizeConstraint",self.wins,{MinTextSize=12,MaxTextSize=18})
 	self.settingsOpen = button(self.actions,"OpenSettings",config.Words.Settings,UDim2.fromOffset(8,48),
 		UDim2.new(1,-16,0,48),function() callbacks.settingsOpen() end)
+	self.helpOpen=button(self.actions,"Help","How to play",UDim2.fromOffset(8,100),UDim2.new(1,-16,0,48),function() callbacks.helpOpen() end)
+	self.guide=panel("Guide",UDim2.new(0.5,0,0,176),UDim2.new(0.94,0,0,112))
+	self.guide.AnchorPoint=Vector2.new(0.5,0) self.guide.Visible=false
+	create("UISizeConstraint",self.guide,{MaxSize=Vector2.new(440,112)})
+	self.guideTitle=self.label(self.guide,"Title","",UDim2.fromOffset(14,8),UDim2.new(1,-76,0,24),16,c.Accent)
+	self.guideBody=self.label(self.guide,"Body","",UDim2.fromOffset(14,36),UDim2.new(1,-28,0,68),14)
+	self.guideDismiss=button(self.guide,"Dismiss","×",UDim2.new(1,-52,0,4),UDim2.fromOffset(44,44),function() callbacks.helpDismiss() end)
 	self.event = self.label(self.hud,"Event","",UDim2.new(0.5,0,0,12),UDim2.new(0.4,0,0,40),16)
 	self.event.AnchorPoint = Vector2.new(0.5,0) self.event.Visible = false
 	-- Modal layers are ordered; a pending challenge closes Settings through the controller.
@@ -76,7 +86,7 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks)
 	self.settings.AnchorPoint = Vector2.new(0.5,0.5) self.settings.Visible = false
 	create("UISizeConstraint",self.settings,{MaxSize = Vector2.new(450,480)})
 	self.label(self.settings,"Title",config.Words.Settings,UDim2.fromOffset(18,8),UDim2.new(1,-132,0,44),24)
-	button(self.settings,"CloseSettings",config.Words.Close,UDim2.new(1,-106,0,8),UDim2.fromOffset(92,44),callbacks.settingsClose)
+	self.settingsClose=button(self.settings,"CloseSettings",config.Words.Close,UDim2.new(1,-106,0,8),UDim2.fromOffset(92,44),callbacks.settingsClose)
 	local list = create("ScrollingFrame",self.settings,{Name="Options",Position=UDim2.fromOffset(14,62),
 		Size=UDim2.new(1,-28,1,-120),BackgroundTransparency=1,BorderSizePixel=0,
 		CanvasSize=UDim2.fromOffset(0,#config.Settings*62),ScrollBarThickness=4,
@@ -114,10 +124,38 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks)
 	create("UISizeConstraint",self.toastRoot,{MaxSize=Vector2.new(420,180)})
 	self.round=self.label(self.root,"Round","",UDim2.fromScale(0.5,0.02),UDim2.new(0.65,0,0,38),20,c.Accent)
 	self.round.AnchorPoint=Vector2.new(0.5,0) self.round.Visible=false
+	self.settings.SelectionGroup=true
+	self.settings.SelectionBehaviorUp=Enum.SelectionBehavior.Stop
+	self.settings.SelectionBehaviorDown=Enum.SelectionBehavior.Stop
+	self.settings.SelectionBehaviorLeft=Enum.SelectionBehavior.Stop
+	self.settings.SelectionBehaviorRight=Enum.SelectionBehavior.Stop
+	self.challenge.SelectionGroup=true
+	self.decline.NextSelectionRight=self.accept self.accept.NextSelectionLeft=self.decline
+	self.decline.NextSelectionLeft=self.accept self.accept.NextSelectionRight=self.decline
+	self.decline.NextSelectionUp=self.decline self.decline.NextSelectionDown=self.decline
+	self.accept.NextSelectionUp=self.accept self.accept.NextSelectionDown=self.accept
 	return self
 end
 function View:Render(model)
 	local c=self.config.Colors
+	local guide=model.onboarding
+	local size=self.root.AbsoluteSize
+	if size.X>=240 and size.Y>=250 then
+		local rectangles=Layout.compute(size.X,size.Y)
+		for name,rect in rectangles do
+			local frame=self[name]
+			frame.AnchorPoint=Vector2.zero
+			frame.Position=UDim2.fromOffset(rect.x,rect.y)
+			frame.Size=UDim2.fromOffset(rect.w,rect.h)
+		end
+		self.guideBody.Size=UDim2.new(1,-28,1,-40)
+	end
+	self.guide.Visible=guide~=nil and guide:Visible(model.inMatch or model.incoming~=nil or self.settings.Visible or model.rematch~=nil)
+	if guide then
+		local step=guide:Step()
+		local copy=self.config.Guide[step]
+		if copy then self.guideTitle.Text=copy.title self.guideBody.Text=copy.body end
+	end
 	self.hud.Visible=not model.inMatch
 	if model.loaded then
 		local p=self.rankMath.progress(model.total,self.catalog.ranks)
@@ -152,6 +190,23 @@ function View:Render(model)
 	end
 end
 function View:SetSettings(open) self.settings.Visible=open end
+function View:FocusTargets()
+	if self.challenge.Visible then return {self.decline,self.accept} end
+	if self.settings.Visible then
+		local targets={self.settingsClose}
+		for _,def in self.config.Settings do table.insert(targets,self.settingButtons[def.key]) end
+		return targets
+	end
+	return {}
+end
+function View:ActivateFocused(selected)
+	for _,target in self:FocusTargets() do
+		if target==selected and target.Active and target.Selectable then
+			self.focusActions[target]() return true
+		end
+	end
+	return false
+end
 function View:Toast(text,kind,now)
 	if type(text)~="string" then return end
 	-- Dedupe repeated errors without extending them indefinitely.

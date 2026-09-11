@@ -8,6 +8,8 @@ local Model=require(script.Parent.Model)
 local View=require(script.Parent.View)
 local Adapter=require(script.Parent.RemoteAdapter)
 local Config=require(script.Parent.UIConfig)
+local Onboarding=require(script.Parent.Onboarding)
+local InputController=require(script.Parent.InputController)
 local Controller={}
 local active
 function Controller.start()
@@ -19,6 +21,7 @@ function Controller.start()
 	local text=require(larp.Config.Text)
 	local tuning=require(larp.Config.Tuning)
 	local self={model=Model.new(Config),cleanup=Cleanup.new(),destroyed=false,settingsListeners={}}
+	self.model.onboarding=Onboarding.new(Config.GuideStatId)
 	active=self
 	local function notice(message,kind) self.view:Toast(message,kind,os.clock()) end
 	function self:GetSetting(key) return self.model.settings[key] end
@@ -76,9 +79,12 @@ function Controller.start()
 			settingsClose=function() self.view:SetSettings(false) self.view:Render(self.model) end,
 			setting=function(key) self:ChangeSetting(key) end,
 			respond=function(accept) self:Respond(accept) end,
+			helpOpen=function() self.model.onboarding:Reopen() self.view:Render(self.model) end,
+			helpDismiss=function() self.model.onboarding:Dismiss() self.view:Render(self.model) end,
 			rematch=function() self:RequestRematch() end,
 		})
 	self.cleanup:Add(self.view)
+	self.cleanup:Add(InputController.new(self))
 	-- Client-owned groups: assign scene Sound.SoundGroup to these; no existing sounds are changed.
 	self.audioGroups={}
 	for key,name in {musicVolume="CodexMusic",sfxVolume="CodexSFX"} do
@@ -104,6 +110,7 @@ function Controller.start()
 	function self:SetMatchActive(isActive)
 		self.model.inMatch=isActive==true
 		if isActive then
+			self.model.onboarding:MatchStarted()
 			self:Respond(false) self.model.rematch=nil self.view:SetSettings(false)
 		else self.view.round.Visible=false end
 		self.view:Render(self.model)
@@ -117,6 +124,7 @@ function Controller.start()
 	end
 	function self:ShowRematch(kind,userId,seconds)
 		local ok=self.model:SetRematch(kind,userId,seconds or tuning.Challenge.rematchWindowSeconds)
+		if ok then self.model.onboarding:MatchFinished() end
 		self.view:Render(self.model) return ok
 	end
 	-- Event infrastructure only. No event is scheduled or fabricated by this package.
@@ -129,6 +137,7 @@ function Controller.start()
 	local function profile(packet)
 		local before=table.clone(self.model.settings)
 		if self.model:SetProfile(packet) then
+			self.model.onboarding:Profile(self.model.stats,self.model.wins)
 			for key,value in self.model.settings do if before[key]~=value then settingChanged(key) end end
 			if not self.model.settings.acceptLarpOffs then self:Respond(false) end
 			self.view:Render(self.model)
@@ -145,6 +154,7 @@ function Controller.start()
 			else self.view:Render(self.model) end
 		end,
 		ChallengeClosed=function(id) self.model:Close(id) self.view:Render(self.model) end,
+		MatchAborted=function() self.model.onboarding:ResetTransient() end,
 		Notice=notice, Announce=function(message) notice(message,"info") end,
 		RankUp=function(index)
 			local rank=catalog.ranks[index]
@@ -172,6 +182,7 @@ function Controller.start()
 		self.view:Tick(now) self.view:Render(self.model)
 	end))
 	self.cleanup:Add(player.CharacterAdded:Connect(function()
+		self.model.onboarding:ResetTransient()
 		-- ScreenGui survives respawn. Clear only transient interaction state.
 		self:Respond(false) self.model.rematch=nil self:SetMatchActive(false) self.view:SetSettings(false)
 	end))

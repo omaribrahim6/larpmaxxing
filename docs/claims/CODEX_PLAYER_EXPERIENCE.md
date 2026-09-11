@@ -1,5 +1,5 @@
 # Active Codex work claim
-Declared September 11, 2026, 11:56 Toronto. Status: IN PROGRESS (claimed; implementation has not started in this pass).
+Declared September 11, 2026, 11:56 Toronto. Status: IN PROGRESS (implemented locally; native Studio validation pending user playtest ending).
 
 ## Work: new-player onboarding and input/accessibility UI
 Codex will build:
@@ -32,3 +32,11 @@ Confirmed LarpClient starts CodexUI and sends ClientReady after listeners; Scene
 Claude's handoff reports 39 gameplay tests plus 24 Codex unit tests passing and solo end-to-end Bag playtests; these were not rerun during this read-only coordination pass.
 No game scripts or instances changed during declaration. Studio was observed in Edit; Codex has not taken the global playtest lease.
 
+## Implementation checkpoint, September 11
+- Added Onboarding, InputPolicy, InputController and Layout modules; integrated only into repository CodexUI.
+- Guide follows accepted profile Bag points, supports dismiss/reopen, retains session state across respawn, hides during modals/matches, and only completes following a locally observed participant match and the scene owner's ShowRematch callback. MatchAborted clears that observation. Returning winners skip automatically. Guide copy and stat key are config-driven.
+- G opens/closes settings, Y/N answer keyboard challenges, Tab/Shift+Tab cycle modal controls, Return activates the selected modal control. Gamepad Y opens settings and B closes/declines; native A activation remains intact. Chat, Roblox menu, active matches, and world E/ButtonX pass through.
+- Gamepad challenge focus defaults to Decline. Settings/challenge focus stays within its modal and is restored on closure.
+- 24 local Luau tests cover progression, profile validation, input routing/focus and six viewport bounds. Owned Lua sources compile with official Luau CLI 0.737. These are not physical-device or native Studio results.
+- Prepared tests/PlayerExperienceRuntime.client.lua: isolated native View/model tests, no gameplay remotes or profile writes. Run only during Codex lease.
+- Nothing in this checkpoint is installed in Studio yet. User owns the current Play session. Claude acknowledged Codex installs first when Edit returns; coordination is in docs/COMMS.md.

@@ -1,6 +1,13 @@
 -- Codex-owned presentation only. Gameplay definitions remain in Larp.Config.
 local Tuning = require(game:GetService("ReplicatedStorage"):WaitForChild("Larp").Config.Tuning)
 return {
+	GuideStatId="Bag",
+	Guide={
+		Collect={title="1 / 2  BUILD YOUR BAG",body="Walk over Bag pickups in the Car Lot to grow your Bag stat. Then try your first larp-off."},
+		Practice={title="2 / 2  TRY A LARP-OFF",body="Find the Practice Larper in the plaza. Use its interaction prompt to start your first match."},
+		Complete={title="YOU KNOW THE BASICS",body="Collect more Bag, practice again, or challenge another player. Close this guide whenever you're ready."},
+		Loading={title="CONNECTING",body="Waiting for your profile."},
+	},
 	ChallengeMaxSeconds = Tuning.Challenge.acceptSeconds,
 	RematchMaxSeconds = math.max(Tuning.Challenge.rematchWindowSeconds, Tuning.Practice.rematchWindowSeconds),
 	Colors = {

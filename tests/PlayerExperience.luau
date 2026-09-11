@@ -1,0 +1,32 @@
+local Guide=require("../src/client/CodexUI/Onboarding")
+local Input=require("../src/client/CodexUI/InputPolicy")
+local Layout=require("../src/client/CodexUI/Layout")
+local count=0
+local function test(name,fn) fn() count+=1 print("PASS "..name) end
+test("wait for profile",function() local g=Guide.new() assert(g:Step()=="Loading" and not g:Visible(false)) end)
+test("new player collect then practice",function() local g=Guide.new() g:Profile({Bag=0},0) assert(g:Step()=="Collect") g:Profile({Bag=1},0) assert(g:Step()=="Practice") end)
+test("invalid profile cannot progress",function() local g=Guide.new() assert(not g:Profile({Bag=0/0},0)) assert(not g:Profile({Bag=math.huge},0)) assert(not g.loaded) end)
+test("other stats do not fake Bag",function() local g=Guide.new() g:Profile({Bag=0,Aura=900},0) assert(g:Step()=="Collect") end)
+test("reskins can select the guide stat",function() local g=Guide.new("Aura") g:Profile({Bag=0,Aura=1},0) assert(g:Step()=="Practice") end)
+test("existing winners skip automatically",function() local g=Guide.new() g:Profile({Bag=900},1) assert(not g:Visible(false)) g:Reopen() assert(g:Step()=="Complete" and g:Visible(false)) end)
+test("dismiss survives updates and respawn",function() local g=Guide.new() g:Profile({Bag=0},0) g:Dismiss() g:Profile({Bag=1},0) g:ResetTransient() assert(not g:Visible(false)) g:Reopen() assert(g:Step()=="Practice") end)
+test("spectator rematch cannot complete",function() local g=Guide.new() assert(not g:MatchFinished()) assert(not g.completed) end)
+test("aborted match does not complete",function() local g=Guide.new() g:MatchStarted() g:ResetTransient() assert(not g:MatchFinished()) end)
+test("completed match advances without win requirement",function() local g=Guide.new() g:Profile({Bag=1},0) g:MatchStarted() assert(g:MatchFinished()) assert(g:Step()=="Complete") end)
+test("modal hides guide without dismissal",function() local g=Guide.new() g:Profile({Bag=1},0) assert(not g:Visible(true)) assert(g:Visible(false)) end)
+test("world controls pass through",function() for _,key in {"E","ButtonX","ButtonA","Space"} do assert(Input.route(key,{})==nil) end end)
+test("typing menu and matches never captured",function() for _,ctx in {{typing=true},{menu=true},{inMatch=true}} do for _,key in {"G","Y","N","ButtonY","ButtonB"} do assert(Input.route(key,ctx)==nil) end end end)
+test("keyboard challenge routing",function() assert(Input.route("Y",{challenge=true})=="accept") assert(Input.route("N",{challenge=true})=="decline") assert(Input.route("G",{challenge=true})==nil) end)
+test("gamepad B dismisses modal only",function() assert(Input.route("ButtonB",{})==nil) assert(Input.route("ButtonB",{settings=true})=="close") assert(Input.route("ButtonB",{challenge=true})=="decline") end)
+test("gamepad Y cannot accidentally accept",function() assert(Input.route("ButtonY",{})=="settings") assert(Input.route("ButtonY",{challenge=true})==nil) end)
+test("keyboard focus is scoped to modals",function() assert(Input.route("Tab",{})==nil) assert(Input.route("Tab",{settings=true})=="focus") assert(Input.route("Return",{challenge=true})=="activate") assert(Input.route("Return",{typing=true,challenge=true})==nil) end)
+test("focus wraps and starts correctly in both directions",function() assert(Input.nextIndex(nil,7,false)==1) assert(Input.nextIndex(nil,7,true)==7) assert(Input.nextIndex(1,7,true)==7) assert(Input.nextIndex(7,7,false)==1) assert(Input.nextIndex(nil,0,false)==nil) end)
+for _,viewport in {{320,480},{360,640},{640,320},{844,350},{1024,768},{1920,1080}} do
+	test("viewport "..viewport[1].."x"..viewport[2],function()
+		local rects=Layout.compute(viewport[1],viewport[2])
+		for _,r in rects do assert(r.x>=0 and r.y>=0 and r.x+r.w<=viewport[1]+.01 and r.y+r.h<=viewport[2]+.01) end
+		assert(rects.rematch.h>=44)
+		assert(rects.settings.h-120>=100,"usable scrolling region")
+	end)
+end
+print(tostring(count).." player experience tests passed")
