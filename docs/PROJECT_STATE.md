@@ -32,3 +32,9 @@ Collect Bag props in the Car Lot, rank up, walk to the Practice Larper (or anoth
 
 ## Coordination inspection — Codex, 2026-09-11 11:56 Toronto
 Live Studio inventory: 54 scripts and assembled map/stage/assets, matching Claude's latest handoff. ClientReady and SceneDirector integration confirmed by reading current source. No gameplay mutation or test rerun in this pass. Codex's next isolated work is [onboarding and input UI](claims/CODEX_PLAYER_EXPERIENCE.md); Studio session controls remain available to Claude.
+
+## Codex UI implementation checkpoint (September 11, repository only)
+- New session onboarding, keyboard/gamepad modal controls, responsive rectangles, bounded volume controls, and focus scrolling are in CodexUI source. No new Studio instances have been installed during this concurrent session because the user's Play session remains active.
+- Local verification: 28 pure tests plus 10 input-adapter tests; all UI sources compile. GitHub Actions run 34620889607 passed against commit 5c95ce4. These checks do not establish native rendering or physical device correctness.
+- Native isolated View tests are prepared in tests/PlayerExperienceRuntime.client.lua and remain pending. No production profiles, gameplay remotes, or Claude-owned scripts were mutated by Codex.
+- Exact ownership, interfaces and pending steps: docs/claims/CODEX_PLAYER_EXPERIENCE.md. Generated install manifest: run tools/package-codex-ui.py; it only writes .local JSON.

@@ -4,3 +4,4 @@ Only one agent may mutate a Studio subsystem at a time. Claude owns the existing
 The repo is a snapshot plus additive source, NOT authoritative live sync. No Rojo or bulk replacement. Compare live Source before editing; add only owned instances. Tests and temporary fixtures must not write production profiles.
 Test before DONE. Commit meaningful work frequently. Update PROJECT_STATE.md and HANDOFF.md at the end of every meaningful session and push commits. Preserve data-driven trend definitions, server authority, and the Bag-only vertical slice. Never commit tokens, credentials, raw session logs, or unrelated private files.
 
+Concurrent Git rule: use git commit --only -- <explicit owned paths> (with a message); never rely on a shared staged index, git commit -a, or git add -A. Preserve other agents staged changes. See docs/COMMS.md.

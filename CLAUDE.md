@@ -4,3 +4,4 @@ Read AGENTS.md and docs/ARCHITECTURE.md as well. Claim ownership before edits. O
 Claude retains ownership of the pre-existing ReplicatedStorage.Larp, ServerScriptService.Larp, Workspace.Larp, Workspace.LarpStaging and future Bag SceneDirector. Codex owns separate CodexUI/CodexShared instances and sources explicitly mapped in docs.
 Keep content in config, math and rewards on the server. No destructive sync, mass replace, or asset cleanup without checking live state. Run tests before marking DONE; update state and handoff, commit often and push. Source snapshots are historical; compare against Studio before use.
 
+Concurrent Git rule: commit explicit owned paths with git commit --only; the shared index can change between checking and committing. Never sweep all staged paths into a commit. Preserve other agents staged changes.
