@@ -627,6 +627,8 @@ local function verdict(ctx, outcome)
 	local winner = outcome.winner
 	-- Screen mode: the verdict lands on the players standing on the real stage. The
 	-- participants' camera comes back to the stage; the big screen keeps showing the set.
+	-- One stamp per result (CERTIFIED, EXPOSED, UPSET!), in the world, in the stamp font;
+	-- the UI's full-screen stamp isn't used here so nothing shows twice.
 	local live = ctx.screenMode or ctx.cctv
 	local camOnStage = live and ctx.participant
 	if ctx.cctv and ctx.participant then
@@ -702,9 +704,6 @@ local function verdict(ctx, outcome)
 			kit:sound("CrowdErupt", { volume = 0.6 })
 			ctx.crowd:react("erupt", 1.5)
 		end)
-		if ctx.participant then
-			ctx.ui:ShowStamp("Upset", 0.7)
-		end
 	end
 	kit:after(delay, function()
 		Poses.apply(kit, w.character, "Victory", 0.2)
@@ -713,9 +712,6 @@ local function verdict(ctx, outcome)
 		confetti(w, 50)
 		ctx.crowd:react("cheer", 1.2)
 		kit:orbit(camPos(w) + Vector3.new(0, 2.5, 0), 12, 3.5, -35, 25, 1.6, 55)
-		if ctx.participant then
-			ctx.ui:ShowStamp("Certified", 1.1)
-		end
 	end)
 	kit:after(delay + 1.5, function()
 		Poses.apply(kit, l.character, "Slump", 0.2)
@@ -724,7 +720,8 @@ local function verdict(ctx, outcome)
 			light.Enabled = true
 			ctx.spotOn = light
 		end
-		stamp(l, 8, Text.Stamps.Exposed, COLORS.Exposed, 1.8, 6)
+		-- just above their head, so it stays in the close-up below
+		stamp(l, 6.4, Text.Stamps.Exposed, COLORS.Exposed, 1.8, 6)
 		kit:sound("Shutter", { volume = 0.8 })
 		kit:sound("FailSting", { volume = 0.5 })
 		kit:sound("CrowdMixed", { volume = 0.35 })
@@ -736,10 +733,7 @@ local function verdict(ctx, outcome)
 		ctx.crowd:react("wince", 1)
 		ctx.crowd:look(l.stageMark.Position)
 		local p = camPos(l)
-		kit:lookShot(p + Vector3.new(-l.outward * 1.2, 4.4, 7), p + Vector3.new(0, 4.2, 0), 42, 0.5)
-		if ctx.participant then
-			ctx.ui:ShowStamp("Exposed", 1.1)
-		end
+		kit:lookShot(p + Vector3.new(-l.outward * 1.2, 5, 7.5), p + Vector3.new(0, 4.8, 0), 44, 0.5)
 	end)
 	if ctx.participant and ctx.mySide == winner and (outcome.bonus or 0) > 0 then
 		kit:after(delay + 0.4, function()

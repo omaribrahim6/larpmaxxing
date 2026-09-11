@@ -610,13 +610,17 @@ function BagStreet.fumble(ctx, key: string, variant: string?)
 					return
 				end
 				local carFrom = v:GetPivot()
-				local tilted = carFrom * CFrame.new(0, 0, -length / 2) * CFrame.Angles(math.rad(-14), 0, 0) * CFrame.new(0, 0, length / 2)
+				-- the hook lifts the nose: the car tips up around its rear wheels (which stay
+				-- on the road), then both drive off level along the street
+				local lifted = carFrom * CFrame.new(0, 0, length / 2) * CFrame.Angles(math.rad(8), 0, 0) * CFrame.new(0, 0, -length / 2)
+				local forward = carFrom.LookVector
 				kit:animate(0.7, function(a)
+					local drag = forward * (40 * a * a)
 					if v.Parent then
-						v:PivotTo((carFrom:Lerp(tilted, math.min(1, a * 4))) * CFrame.new(0, 0, -40 * a * a))
+						v:PivotTo(carFrom:Lerp(lifted, math.min(1, a * 4)) + drag)
 					end
 					if truck.Parent then
-						truck:PivotTo(hitch * CFrame.new(0, 0, -40 * a * a))
+						truck:PivotTo(hitch + drag)
 					end
 				end, kit.Ease.linear)
 			end)
