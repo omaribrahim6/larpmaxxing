@@ -142,7 +142,9 @@ local function hidden(): { [string]: any }
 	return { Transparency = 1, CanCollide = false, CanTouch = false, CanQuery = false }
 end
 
--- Moves the hand-built Car Lot so its west edge sits on its plot (a no-op once it has).
+-- Moves the hand-built Car Lot so its west edge sits on its plot (a no-op once it has),
+-- and tops its SpawnPoints up to Layout.carLotSpawns (they're population slots; the
+-- pickup positions are scattered inside ZoneBounds).
 local function placeCarLot(map: Instance)
 	local lot = map:FindFirstChild("CarLot")
 	local bounds = lot and lot:FindFirstChild("ZoneBounds")
@@ -150,6 +152,13 @@ local function placeCarLot(map: Instance)
 		local shift = Layout.plots.CarLot[1] - (bounds.Position.X - bounds.Size.X / 2)
 		if math.abs(shift) > 1 then
 			lot:PivotTo(lot:GetPivot() + Vector3.new(shift, 0, 0))
+		end
+	end
+	local points = lot and lot:FindFirstChild("SpawnPoints")
+	local sample = points and points:FindFirstChildWhichIsA("BasePart")
+	if sample then
+		for _ = #points:GetChildren() + 1, Layout.carLotSpawns do
+			sample:Clone().Parent = points
 		end
 	end
 end

@@ -153,6 +153,9 @@ function PickupService:_placement(point: BasePart)
 	return CFrame.new(center) * CFrame.Angles(0, rng:NextNumber(0, math.pi * 2), 0), occupied, position
 end
 
+-- The pickups on the map that can still be collected: model -> what collecting it needs.
+local live: { [Model]: { item: any, points: number, position: Vector3, respawn: () -> () } } = {}
+
 function PickupService:_spawn(point: BasePart, homeStat: string?)
 	if not point.Parent or not folder or not folder.Parent then return end
 	local item = PickupService.chooseItem(homeStat)
@@ -171,20 +174,9 @@ function PickupService:_spawn(point: BasePart, homeStat: string?)
 	local model = makeVisual(item)
 	model:PivotTo(center)
 	model.Destroying:Connect(function()
+		live[model] = nil
 		if occupied and occupied[point] == reservation then occupied[point] = nil end
 	end)
-
-	local hitbox = Instance.new("Part")
-	hitbox.Name = "Hitbox"
-	hitbox.Shape = Enum.PartType.Ball
-	hitbox.Size = Vector3.one * Tuning.Pickup.hitboxDiameter
-	hitbox.CFrame = center
-	hitbox.Transparency = 1
-	hitbox.Anchored = true
-	hitbox.CanCollide = false
-	hitbox.CanQuery = false
-	hitbox.CanTouch = true
-	hitbox.Parent = model
 
 	model:SetAttribute("ItemId", item.id)
 	model:SetAttribute("StatId", item.stat)
@@ -192,47 +184,75 @@ function PickupService:_spawn(point: BasePart, homeStat: string?)
 	model:SetAttribute("Points", rarity.points)
 	CollectionService:AddTag(model, PickupService.TAG)
 	model.Parent = folder
-
-	local collected = false
-	hitbox.Touched:Connect(function(part)
-		if collected then
-			return
-		end
-		local character = part:FindFirstAncestorOfClass("Model")
-		local player = character and Players:GetPlayerFromCharacter(character)
-		if not player or not self:_canCollect(player, center.Position) then
-			return
-		end
-		collected = true
-		model:Destroy()
-		self.Stats:AddPoints(player, item.stat, rarity.points, "pickup")
-		Net.get("PickupCollected"):FireClient(player, item.id, rarity.points, item.stat, item.rarity, center.Position)
-		task.delay(rng:NextNumber(Tuning.Pickup.respawnMin, Tuning.Pickup.respawnMax), function()
-			if point.Parent then
-				self:_spawn(point, homeStat)
-			end
-		end)
-	end)
+	live[model] = {
+		item = item,
+		points = rarity.points,
+		position = center.Position,
+		respawn = function()
+			task.delay(rng:NextNumber(Tuning.Pickup.respawnMin, Tuning.Pickup.respawnMax), function()
+				if point.Parent then
+					self:_spawn(point, homeStat)
+				end
+			end)
+		end,
+	}
 
 	if rarity.announce then
-		Net.get("LegendarySpawned"):FireAllClients(item.id, center.Position)
+		-- where it dropped: the location's name, or the streets (which spawn every stat)
+		local home = homeStat and Catalog.statsById[homeStat]
+		Net.get("LegendarySpawned"):FireAllClients(item.id, center.Position, if home then "in the " .. home.zoneName else "on the streets")
 	end
 end
 
-function PickupService:_canCollect(player: Player, position: Vector3): boolean
+-- Collects `model` for `player`: the points land now, every client flies the model into
+-- them (the CollectedBy attribute, see PickupFx), then it's removed and its slot respawns.
+function PickupService:_collect(model: Model, player: Player)
+	local entry = live[model]
+	live[model] = nil
+	self.Stats:AddPoints(player, entry.item.stat, entry.points, "pickup")
+	Net.get("PickupCollected"):FireClient(player, entry.item.id, entry.points, entry.item.stat, entry.item.rarity, entry.position)
+	model:SetAttribute("CollectedBy", player.UserId)
+	task.delay(Tuning.Pickup.flySeconds, function()
+		model:Destroy()
+	end)
+	entry.respawn()
+end
+
+function PickupService:_canCollect(player: Player): boolean
 	if not self.Data:IsLoaded(player) or self.Matches:IsBusy("u" .. player.UserId) then
 		return false
 	end
-	local character = player.Character
-	local root = character and character:FindFirstChild("HumanoidRootPart")
-	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	if not root or not humanoid or humanoid.Health <= 0 then
-		return false
+	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+	return humanoid ~= nil and humanoid.Health > 0
+end
+
+-- A player's magnet radius: Tuning.Pickup.magnetRadius times their MagnetMultiplier
+-- attribute. Only the server sets it (e.g. when a 2x magnet pass is owned).
+PickupService.MAGNET_ATTRIBUTE = "MagnetMultiplier"
+function PickupService.magnetRadius(player: Player): number
+	local boost = player:GetAttribute(PickupService.MAGNET_ATTRIBUTE)
+	boost = if type(boost) == "number" then math.clamp(boost, 1, Tuning.Pickup.maxMagnetMultiplier) else 1
+	return Tuning.Pickup.magnetRadius * boost
+end
+
+-- Each player pulls in the pickups inside their magnet radius (server-side distances,
+-- so nothing the client says can widen it).
+function PickupService:_magnetTick()
+	for _, player in Players:GetPlayers() do
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		if root and self:_canCollect(player) then
+			local reach = PickupService.magnetRadius(player)
+			local at = root.Position
+			for model, entry in live do
+				if (entry.position - at).Magnitude <= reach then
+					if not limiter:Allow(player, 1) then
+						break
+					end
+					self:_collect(model, player)
+				end
+			end
+		end
 	end
-	if (root.Position - position).Magnitude > Tuning.Pickup.maxCollectDistance then
-		return false
-	end
-	return (limiter:Allow(player, 1))
 end
 
 function PickupService:Start()
@@ -278,6 +298,14 @@ function PickupService:Start()
 			end
 		end
 	end
+
+	-- the magnet (see _magnetTick)
+	task.spawn(function()
+		while true do
+			task.wait(Tuning.Pickup.magnetTick)
+			self:_magnetTick()
+		end
+	end)
 end
 
 return PickupService

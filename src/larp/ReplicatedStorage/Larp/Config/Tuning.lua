@@ -48,12 +48,19 @@ return {
 		-- Share of a location's spawns that are its home stat. 1 = a location only spawns its
 		-- own stat (user direction 2026-09-12); the streets spawn every stat.
 		homeZoneShare = 1,
-		respawnMin = 8,
-		respawnMax = 15,
+		respawnMin = 3, -- seconds after a pickup is taken (quick: many players share a zone)
+		respawnMax = 6,
+		minSpacing = 6, -- studs between pickups (lets dense zones fill)
 		hoverHeight = 3,
-		hitboxDiameter = 5,
-		maxCollectDistance = 12,
-		maxPerSecond = 6,
+		hitboxDiameter = 5, -- a pickup's footprint, for spacing and obstacle checks
+		-- The magnet: pickups within magnetRadius of a player fly into them and count. The
+		-- radius is multiplied by the player's MagnetMultiplier attribute (server-set, e.g. a
+		-- 2x magnet pass), at most maxMagnetMultiplier. Checked every magnetTick seconds.
+		magnetRadius = 9,
+		maxMagnetMultiplier = 4,
+		magnetTick = 0.1,
+		flySeconds = 0.3, -- how long a collected pickup takes to fly into the player
+		maxPerSecond = 12,
 	},
 
 	Spectate = { radius = 90 },

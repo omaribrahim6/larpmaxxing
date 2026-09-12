@@ -12,11 +12,50 @@ local Net = require(Larp.Shared.Net)
 local SoundKit = require(script.Parent.SoundKit)
 
 local TAG = "LarpPickup"
+local ANIMATE_RANGE = 160 -- studs from the camera within which pickups spin and bob
 local PickupFx = {}
 
 local active: { [Model]: { base: CFrame, phase: number } } = {}
 
+-- A collected pickup (the server set CollectedBy) flies into the player who took it: it
+-- arcs toward their torso, following them, spinning up and shrinking, then hides until
+-- the server removes it.
+local function fly(model: Model)
+	active[model] = nil
+	local player = game:GetService("Players"):GetPlayerByUserId(model:GetAttribute("CollectedBy") or 0)
+	local character = player and player.Character
+	local body = character and (character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso") or character:FindFirstChild("HumanoidRootPart"))
+	if not body then
+		return
+	end
+	local start = model:GetPivot()
+	local seconds = require(Larp.Config.Tuning).Pickup.flySeconds
+	local began = os.clock()
+	local connection
+	connection = RunService.RenderStepped:Connect(function()
+		local a = math.min(1, (os.clock() - began) / seconds)
+		if not model.Parent or not body.Parent or a >= 1 then
+			connection:Disconnect()
+			for _, d in model:GetDescendants() do
+				if d:IsA("BasePart") then
+					d.LocalTransparencyModifier = 1
+				elseif d:IsA("ParticleEmitter") or d:IsA("PointLight") then
+					d.Enabled = false
+				end
+			end
+			return
+		end
+		local eased = a * a -- speeds up into the player, like a magnet
+		local position = start.Position:Lerp(body.Position, eased) + Vector3.new(0, math.sin(a * math.pi) * 1.2, 0)
+		model:PivotTo(CFrame.new(position) * start.Rotation * CFrame.Angles(0, a * 8, 0))
+		model:ScaleTo(math.max(0.1, 1 - eased * 0.8))
+	end)
+end
+
 local function decorate(model: Model)
+	model:GetAttributeChangedSignal("CollectedBy"):Connect(function()
+		fly(model)
+	end)
 	local root = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
 	if not root then
 		return
@@ -120,12 +159,16 @@ function PickupFx.start(ui)
 		end
 	end
 
+	-- only pickups near the camera spin and bob; with hundreds on the map, far ones hold still
 	RunService.RenderStepped:Connect(function()
 		local t = os.clock()
+		local eye = workspace.CurrentCamera.CFrame.Position
 		for model, info in active do
 			if model.Parent then
-				local y = math.sin(t * 2 + info.phase) * 0.35
-				model:PivotTo(info.base * CFrame.new(0, y, 0) * CFrame.Angles(0, t * 1.4 + info.phase, 0))
+				if (info.base.Position - eye).Magnitude < ANIMATE_RANGE then
+					local y = math.sin(t * 2 + info.phase) * 0.35
+					model:PivotTo(info.base * CFrame.new(0, y, 0) * CFrame.Angles(0, t * 1.4 + info.phase, 0))
+				end
 			else
 				active[model] = nil
 			end
@@ -138,16 +181,22 @@ function PickupFx.start(ui)
 		if not stat or typeof(position) ~= "Vector3" or type(points) ~= "number" then
 			return
 		end
-		floatText(position, ("+%d %s"):format(points, stat.displayName), if rarity then rarity.color else stat.color)
-		local big = rarityName == "Epic" or rarityName == "Legendary"
-		SoundKit.play(if big then "PickupRare" else "Pickup", { volume = if rarityName == "Legendary" then 0.7 else 0.4 })
+		-- the item flies into you first (see fly), then its points pop off your body
+		task.delay(require(Larp.Config.Tuning).Pickup.flySeconds, function()
+			local character = game:GetService("Players").LocalPlayer.Character
+			local body = character and (character:FindFirstChild("UpperTorso") or character:FindFirstChild("HumanoidRootPart"))
+			floatText(if body then body.Position + Vector3.new(0, 2, 0) else position, ("+%d %s"):format(points, stat.displayName), if rarity then rarity.color else stat.color)
+			local big = rarityName == "Epic" or rarityName == "Legendary"
+			SoundKit.play(if big then "PickupRare" else "Pickup", { volume = if rarityName == "Legendary" then 0.7 else 0.4 })
+		end)
 	end)
 
-	Net.get("LegendarySpawned").OnClientEvent:Connect(function(itemId)
+	Net.get("LegendarySpawned").OnClientEvent:Connect(function(itemId, _position, place)
 		local item = Catalog.itemsById[itemId]
 		local stat = item and Catalog.statsById[item.stat]
 		if item then
-			ui:Notify(("A %s just dropped in the %s!"):format(item.name, stat and stat.zoneName or "map"), "info")
+			local where = if type(place) == "string" then place else "in the " .. (stat and stat.zoneName or "map")
+			ui:Notify(("A %s just dropped %s!"):format(item.name, where), "info")
 			SoundKit.play("Ping", { volume = 0.5 })
 		end
 	end)

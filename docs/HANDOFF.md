@@ -1,5 +1,19 @@
 # Handoff
-## LATEST: Claude, 2026-09-12 (five stats, sprint)
+## LATEST: Claude, 2026-09-12 (denser pickups, tripod fix)
+- **Pickup counts are doubled** (user request):
+  - Streets hold 208 slots (`Layout.streets[].spawns`).
+  - Each location holds 80 (`Locations.<X>.config.spawns`; for the Car Lot, City tops it up to `Layout.carLotSpawns`).
+  - Respawn is 3–6 s (was 8–15), and `minSpacing` is 6 so the dense zones fill.
+- **Magnet pickups** (user request):
+  - The server checks every 0.1 s and collects any pickup within `Tuning.Pickup.magnetRadius` (9 studs) of a player. The touch hitboxes are gone.
+  - The points land at once. The model gets a `CollectedBy` attribute and every client flies it into that player's torso over `flySeconds` (0.3), shrinking as it goes, before the server removes it. The +points text pops off the collector's body.
+  - **For monetizing:** the radius is multiplied by the player's `MagnetMultiplier` attribute, which is server-set and clamped to `maxMagnetMultiplier` (4). A 2x magnet pass only needs `player:SetAttribute("MagnetMultiplier", 2)` on join.
+  - The per-player cap is 12 pickups/s.
+- **PickupFx only animates pickups within 160 studs of the camera.** With about 600 on the map, the far ones hold still.
+- **Legendary announcements say where the item dropped:** "in the Café Strip", or "on the streets".
+- **The ring light's tripod legs now point in**: feet splay out on the ground and the tops meet under the pole. The fix is in the `Assets.Scenes.Bag.RingLight` model in the place file, so save the place to keep it.
+
+## Claude, 2026-09-12 (five stats, sprint)
 - **All five stats are in** (`Config.Stats`): Bag, Aesthetic, Drip, Gains, Big Brain, using the spec's colors and home zones. Big Brain's id is `BigBrain`.
 - **All 25 items are in** (`Config.Items`, as in the spec table). The 20 new models are built from parts by `ServerStorage.LarpBuild.Items`. Edit a builder there and rebuild; the hand-built Bag five are left alone.
 - **Larp-offs still play only Bag.** A round plays only for stats with a `scene` (`Catalog.roundStatIds`). The other four count toward pickups, the HUD and rank, but sit out larp-offs until their scenes exist. To add one:

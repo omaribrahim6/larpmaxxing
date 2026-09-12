@@ -10,16 +10,19 @@ return {
 	road = { half = 12, walk = 8, roadTop = 0.2, walkTop = SIDEWALK },
 
 	streets = {
-		{ name = "RingSouth", axis = "X", at = 76, from = -92, to = 92, spawns = 8 },
-		{ name = "RingNorth", axis = "X", at = -140, from = -92, to = 92, spawns = 8 },
-		{ name = "RingEast", axis = "Z", at = 80, from = -152, to = 88, spawns = 10 },
-		{ name = "RingWest", axis = "Z", at = -80, from = -152, to = 88, spawns = 10 },
-		{ name = "EastAvenue", axis = "X", at = 0, from = 80, to = 332, spawns = 14 }, -- to the Car Lot
-		{ name = "WestAvenue", axis = "X", at = 0, from = -332, to = -80, spawns = 14 }, -- to the Café Strip
-		{ name = "SouthAvenue", axis = "Z", at = 0, from = 76, to = 332, spawns = 14 }, -- to the Mall
-		{ name = "NorthAvenue", axis = "Z", at = 0, from = -312, to = -140, spawns = 10 },
-		{ name = "ScholarStreet", axis = "X", at = -312, from = -212, to = 212, spawns = 16 }, -- Gym and Library
+		{ name = "RingSouth", axis = "X", at = 76, from = -92, to = 92, spawns = 16 },
+		{ name = "RingNorth", axis = "X", at = -140, from = -92, to = 92, spawns = 16 },
+		{ name = "RingEast", axis = "Z", at = 80, from = -152, to = 88, spawns = 20 },
+		{ name = "RingWest", axis = "Z", at = -80, from = -152, to = 88, spawns = 20 },
+		{ name = "EastAvenue", axis = "X", at = 0, from = 80, to = 332, spawns = 28 }, -- to the Car Lot
+		{ name = "WestAvenue", axis = "X", at = 0, from = -332, to = -80, spawns = 28 }, -- to the Café Strip
+		{ name = "SouthAvenue", axis = "Z", at = 0, from = 76, to = 332, spawns = 28 }, -- to the Mall
+		{ name = "NorthAvenue", axis = "Z", at = 0, from = -312, to = -140, spawns = 20 },
+		{ name = "ScholarStreet", axis = "X", at = -312, from = -212, to = 212, spawns = 32 }, -- Gym and Library
 	},
+
+	-- Pickup slots in the hand-built Car Lot (City tops its SpawnPoints up to this).
+	carLotSpawns = 80,
 
 	-- Plots the streets leave alone (minX, minZ, maxX, maxZ). Each location is built on its
 	-- plot by LarpBuild.Locations.<name>, and its map model is Workspace.Larp.Map.<name>.
