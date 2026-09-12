@@ -1,11 +1,12 @@
 # Handoff
 ## LATEST: Claude, 2026-09-12 (Drip scene)
 - **The Drip larp-off scene is in** (CCTV mode). Larp-offs now play three rounds: Bag, Aesthetic, then Drip (8.9 s each, about 34 s with intro and verdict). A low security cam at the end of the mall promenade: each larper walks out of the sliding doors straight at the lens like a catwalk, heel-turns, poses, and the feed freeze-frames.
-  - **Tiers (the fit is worn pieces sized to each avatar):**
-    - T1: plain tee; a shopper glances up, then looks away.
-    - T2: jorts; two hypebeasts nod.
-    - T3: jorts and a silver chain; a strut, and the runway tiles light up under each step (a wave when the pose lands).
-    - T4: adds designer shades; slow-mo, flashes down the route, the wind machine kicks on with an impact hit.
+  - **The outfit is all they wear (owner request):** the scene's avatar copy loses the player's own shirt, pants, t-shirt decal, layered clothing and accessories (hair stays), and each tier colours its body parts in an outfit (`outfit` in Config.Scenes.Drip; skin shows under short sleeves or legs). Worn pieces sized to the avatar go on top. The real character on stage keeps its clothes.
+  - **Tiers:**
+    - T1: white tee and joggers; a shopper glances up, then looks away.
+    - T2: grey hoodie and jorts; two hypebeasts nod.
+    - T3: mustard thrift tee, jorts and a silver chain; a strut, and the runway tiles light up under each step (a wave when the pose lands).
+    - T4: a designer fit (black top, cream trousers), chain and shades; slow-mo, flashes down the route, the wind machine kicks on with an impact hit.
     - T5: adds the limited sneakers; dusk, a red carpet unrolling a step ahead, six photographers, a "LOOK 01" easel.
     - Maxxed: a runway blazer; the catwalk rises under them, spark fountains, fireworks, an audience of eight, and the mall's giant screen lights up with a turning sneaker and "@NAME".
   - **Fumbles:** Trip, ShadesDrop (T4+, then blinded by the flashes), SneakerFly, WrongWayBin.

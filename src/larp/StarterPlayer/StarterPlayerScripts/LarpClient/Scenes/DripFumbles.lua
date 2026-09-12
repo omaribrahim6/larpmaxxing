@@ -98,6 +98,10 @@ function DripFumbles.fumble(ctx, key: string, variant: string?)
 		end
 		Poses.apply(kit, avatar, "Flail", 0.1)
 		kit:sound("Squeak", { volume = 0.6, speed = 1.2, duration = 0.5 })
+		local sock = avatar:FindFirstChild("RightFoot")
+		if sock and sock:IsA("BasePart") then
+			sock.Color, sock.Material = Color3.fromRGB(240, 240, 236), Enum.Material.Fabric -- just a sock now
+		end
 		if shoe then
 			local from = shoe:GetPivot()
 			local v = look * 9 + across * 3 + Vector3.new(0, 16, 0)

@@ -36,6 +36,71 @@ end
 
 ------------------------------------------------------------------ the fit
 
+-- What covers each body part (R15, then R6 names): the outfit colours them by region.
+local REGION = {
+	UpperTorso = "top", LeftUpperArm = "sleeve", RightUpperArm = "sleeve", LeftLowerArm = "forearm", RightLowerArm = "forearm",
+	LowerTorso = "hips", LeftUpperLeg = "hips", RightUpperLeg = "hips", LeftLowerLeg = "shin", RightLowerLeg = "shin",
+	LeftFoot = "shoe", RightFoot = "shoe",
+	Torso = "top", ["Left Arm"] = "sleeve", ["Right Arm"] = "sleeve", ["Left Leg"] = "hips", ["Right Leg"] = "hips",
+}
+-- accessories that stay on (the rest are clothes or extras the outfit replaces)
+local KEEP = { Hair = true, Eyebrow = true, Eyelash = true }
+
+-- Their own clothes come off the avatar copy (shirt, pants, the t-shirt decal, layered
+-- clothing and every accessory but hair), so the tier's outfit is all they wear. Only
+-- this scene's copy: the real character on stage keeps its clothes.
+local function undress(st)
+	local avatar = st.avatar
+	local head = avatar:FindFirstChild("Head")
+	st.skin = if head and head:IsA("BasePart") then head.Color else Color3.fromRGB(234, 192, 160)
+	for _, d in avatar:GetDescendants() do
+		if d:IsA("Clothing") or d:IsA("ShirtGraphic") or d:IsA("BodyColors") then
+			d:Destroy()
+		elseif d:IsA("Accessory") then
+			local ok, kind = pcall(function()
+				return d.AccessoryType.Name
+			end)
+			if not (ok and KEEP[kind]) or d:FindFirstChildWhichIsA("WrapLayer", true) then
+				d:Destroy()
+			end
+		elseif d:IsA("SurfaceAppearance") and d.Parent and REGION[d.Parent.Name] then
+			d:Destroy()
+		end
+	end
+	for _, p in avatar:GetChildren() do
+		if p:IsA("MeshPart") and REGION[p.Name] then
+			pcall(function()
+				p.TextureID = ""
+			end)
+		end
+	end
+end
+
+-- Dresses the avatar copy in a tier's outfit: each body part takes the colour of what
+-- covers it, skin where the sleeves or legs are short.
+local function dress(st, outfit)
+	if not outfit or not st.avatar then
+		return
+	end
+	local skin = st.skin or Color3.fromRGB(234, 192, 160)
+	local colors = {
+		top = outfit.top,
+		sleeve = outfit.top,
+		forearm = if outfit.sleeves == "long" then outfit.top else skin,
+		hips = outfit.bottom,
+		shin = if outfit.legs == "long" then outfit.bottom else skin,
+		shoe = outfit.shoes,
+	}
+	for _, p in st.avatar:GetChildren() do
+		local region = p:IsA("BasePart") and REGION[p.Name]
+		if region then
+			local c = colors[region]
+			p.Color = c
+			p.Material = if c == skin then Enum.Material.SmoothPlastic else Enum.Material.Fabric
+		end
+	end
+end
+
 -- What each fit item puts on the avatar: pieces that follow a body part at an offset
 -- (given the part's size), scaled so their width (or length, axis Z) is `fit` times the
 -- part's, so the fit sits right on any avatar.
@@ -221,6 +286,7 @@ function DripStreet.build(ctx, key: string)
 	if st.avatar then
 		Poses.link(st.avatar, side.stageCharacter)
 		st.height = ctx.standHeight(st.avatar)
+		undress(st)
 	end
 	return st
 end
@@ -265,6 +331,7 @@ function DripStreet.prepare(ctx, key: string, tier: number)
 	-- them, in the fit
 	Poses.apply(kit, st.avatar, "Idle", 0)
 	st.avatar:PivotTo(standAt(st, st.startCF.Position, st.startCF.LookVector))
+	dress(st, def.outfit)
 	for _, name in def.wear or {} do
 		local list = {}
 		for _, piece in WORN[name] or {} do
