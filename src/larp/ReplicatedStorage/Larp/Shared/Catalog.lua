@@ -8,6 +8,8 @@ local Ranks = require(Config:WaitForChild("Ranks"))
 
 local Catalog = {
 	statIds = {} :: { string },
+	-- the stats a larp-off plays a round for: those with a scene (see Config.Stats)
+	roundStatIds = {} :: { string },
 	statsById = {} :: { [string]: any },
 	itemsById = {} :: { [string]: any },
 	itemsByStat = {} :: { [string]: { any } },
@@ -19,9 +21,13 @@ for _, stat in Stats do
 	assert(type(stat.id) == "string", "Config.Stats entry is missing an id")
 	assert(not Catalog.statsById[stat.id], "Duplicate stat id " .. stat.id)
 	table.insert(Catalog.statIds, stat.id)
+	if stat.scene then
+		table.insert(Catalog.roundStatIds, stat.id)
+	end
 	Catalog.statsById[stat.id] = stat
 	Catalog.itemsByStat[stat.id] = {}
 end
+assert(Catalog.statsById[Catalog.statIds[1]].scene, "Config.Stats: the first stat needs a scene")
 
 for _, item in Items do
 	assert(Catalog.statsById[item.stat], ("Item %s uses unknown stat %s"):format(item.id, tostring(item.stat)))

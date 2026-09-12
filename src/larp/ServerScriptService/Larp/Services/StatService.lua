@@ -35,15 +35,13 @@ local function buildLeaderstats(player: Player)
 	end
 	folder = Instance.new("Folder")
 	folder.Name = "leaderstats"
+	-- The player list shows only a few columns, so it gets the total; each stat is on the HUD.
 	local rank = Instance.new("StringValue")
 	rank.Name = "Rank"
 	rank.Parent = folder
-	for _, id in Catalog.statIds do
-		local value = Instance.new("IntValue")
-		value.Name = Catalog.statsById[id].displayName
-		value:SetAttribute("StatId", id)
-		value.Parent = folder
-	end
+	local points = Instance.new("IntValue")
+	points.Name = "Points"
+	points.Parent = folder
 	local wins = Instance.new("IntValue")
 	wins.Name = "Wins"
 	wins.Parent = folder
@@ -55,12 +53,7 @@ function StatService:_refresh(player: Player, data)
 	local folder = player:FindFirstChild("leaderstats")
 	if folder then
 		folder.Rank.Value = Catalog.ranks[snap.rankIndex].name
-		for _, id in Catalog.statIds do
-			local value = folder:FindFirstChild(Catalog.statsById[id].displayName)
-			if value then
-				value.Value = snap.stats[id]
-			end
-		end
+		folder.Points.Value = Catalog.total(snap.stats)
 		folder.Wins.Value = snap.wins
 	end
 

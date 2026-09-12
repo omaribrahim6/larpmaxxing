@@ -134,7 +134,7 @@ return function(t)
 			local wins = 0
 			for _ = 1, 4000 do
 				local npc = Practice.statsFor({ Bag = bag }, rng, rookie)
-				local m = Resolver.resolveMatch({ Bag = bag }, npc, Catalog.statIds, rng, Tuning.Upset)
+				local m = Resolver.resolveMatch({ Bag = bag }, npc, Catalog.roundStatIds, rng, Tuning.Upset)
 				if m.winner == "A" then
 					wins += 1
 				end
@@ -167,6 +167,20 @@ return function(t)
 		for _ = 1, 200 do
 			local item = Pickup.chooseItem(nil)
 			expect.truthy(item ~= nil and #Catalog.itemsByStat[item.stat] > 0)
+		end
+	end)
+
+	-- Every stat ships one item per rarity (the spec's 25-item table).
+	t.test("every stat has one item per rarity", function()
+		local Catalog = require(game.ReplicatedStorage.Larp.Shared.Catalog)
+		for _, id in Catalog.statIds do
+			local seen = {}
+			for _, item in Catalog.itemsByStat[id] do
+				seen[item.rarity] = (seen[item.rarity] or 0) + 1
+			end
+			for _, rarity in Catalog.rarities.Order do
+				expect.equal(seen[rarity], 1)
+			end
 		end
 	end)
 end

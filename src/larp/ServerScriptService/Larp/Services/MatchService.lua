@@ -48,7 +48,7 @@ local function now()
 end
 
 local sceneData = {}
-for _, id in Catalog.statIds do
+for _, id in Catalog.roundStatIds do
 	local scene = Catalog.statsById[id].scene
 	sceneData[scene] = require(Larp.Config.Scenes:WaitForChild(scene))
 end
@@ -352,7 +352,8 @@ function MatchService:_run(stage, A, B)
 	local returnA = place(A, stage.markers.MarkL)
 	local returnB = place(B, stage.markers.MarkR)
 
-	local result = Resolver.resolveMatch(A.stats, B.stats, Catalog.statIds, rng, Tuning.Upset)
+	-- one round per stat that has a scene; the others sit out until theirs is built
+	local result = Resolver.resolveMatch(A.stats, B.stats, Catalog.roundStatIds, rng, Tuning.Upset)
 	local header = {
 		matchId = match.id,
 		stageName = stage.name,

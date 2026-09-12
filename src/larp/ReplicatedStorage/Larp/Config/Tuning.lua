@@ -58,6 +58,10 @@ return {
 
 	Spectate = { radius = 90 },
 
+	-- Sprint toggle (LarpClient.SprintKit): Left Shift, gamepad left-stick click, or the
+	-- on-screen button. walkSpeed must match StarterPlayer.CharacterWalkSpeed.
+	Movement = { walkSpeed = 16, sprintSpeed = 28, fov = 70, sprintFov = 8, fovSeconds = 0.3 },
+
 	-- The practice NPC's stats are the challenger's own, scaled by a random factor.
 	-- Until a player's first Win it uses the weaker rookie band, so a new player's first
 	-- larp-off is very likely (not certain: upsets stay real) a win. A stat the player

@@ -1,5 +1,20 @@
 # Handoff
-## LATEST: Claude, 2026-09-12 (city map)
+## LATEST: Claude, 2026-09-12 (five stats, sprint)
+- **All five stats are in** (`Config.Stats`): Bag, Aesthetic, Drip, Gains, Big Brain, using the spec's colors and home zones. Big Brain's id is `BigBrain`.
+- **All 25 items are in** (`Config.Items`, as in the spec table). The 20 new models are built from parts by `ServerStorage.LarpBuild.Items`. Edit a builder there and rebuild; the hand-built Bag five are left alone.
+- **Larp-offs still play only Bag.** A round plays only for stats with a `scene` (`Catalog.roundStatIds`). The other four count toward pickups, the HUD and rank, but sit out larp-offs until their scenes exist. To add one:
+  - `scene = "<Name>"` in Config.Stats
+  - `Config.Scenes.<Name>`
+  - a LarpClient scene module
+- **Pickups:** each location spawns only its own stat and the streets mix all five. Playtested: 297 pickups. The Café placed 33 of its 40, because its terraces crowd the promenade and PickupService retries the rest.
+- **Leaderboard:** now Rank, Points (the total) and Wins. The player list only has a few columns; each stat is on the HUD.
+- **Sprint toggle** (`LarpClient.SprintKit`, `Tuning.Movement`):
+  - Left Shift, the gamepad left-stick click, or a touch button; sprint is 28 speed with +8 FOV.
+  - It sinks Shift, so the Shift Lock key no longer toggles.
+  - Playtested: 16 → 28 → 16.
+- **Tests:** 50/50 pass, including the new "every stat has one item per rarity" test.
+
+## Claude, 2026-09-12 (city map)
 - **The city (user direction):** the Plaza and Stage 1 stay in the middle. A ring road circles them, and avenues lined with solid (non-enterable) buildings lead out to each location:
   - east: Money Mile → **Car Lot** (moved to x 332..424)
   - west: Latte Lane → **Café Strip**
