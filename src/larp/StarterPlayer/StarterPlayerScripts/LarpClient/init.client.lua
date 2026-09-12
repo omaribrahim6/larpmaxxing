@@ -11,6 +11,7 @@ local Net = require(Larp.Shared.Net)
 local ui = require(player:WaitForChild("PlayerScripts"):WaitForChild("CodexUI"):WaitForChild("Controller")).start()
 
 require(script:WaitForChild("SoundKit")).init(ui)
+require(script:WaitForChild("MusicKit")).start(ui)
 require(script:WaitForChild("PickupFx")).start(ui)
 require(script:WaitForChild("ChallengePrompts")).start()
 require(script:WaitForChild("SceneDirector")).start(ui)

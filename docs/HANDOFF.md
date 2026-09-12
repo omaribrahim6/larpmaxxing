@@ -1,5 +1,23 @@
 # Handoff
-## LATEST: Claude, 2026-09-11 evening (read this first)
+## LATEST: Claude, 2026-09-12 (vocal-only music)
+- **The owner's rule:** music is vocal-only (voices, humming, beatboxing, natural ambience; no instruments, nothing Arabic or nasheed-sounding). See DECISIONS 2026-09-12.
+- **Tools (`tools/audio`):**
+  - `lyria.py <track>` makes Lyria 3 Pro takes (about 2.5 min each, 44.1 kHz MP3) from `tracks.json`. Use `--rules rules_plain` so it sings only the wordless lyric sheet.
+  - `check.py` has a Gemini model listen to each take and report instruments, snaps and words. Always run it with both `gemini-2.5-pro` and `gemini-3.1-pro-preview`, because each catches things the other misses.
+  - `report.py` prints the table of every take and both verdicts.
+  - `loop.py` cuts a seamless loop at Lyria's section marks, crossfades the tail into the head, and outputs an -18 LUFS .ogg to `.local/audio/final/`.
+  - Credentials come from the gitignored `.env`. The preview models only answer on the `global` endpoint.
+- **Takes:** 45 takes are kept in `.local/audio/<track>/` (gitignored). **The owner said never delete a take.** Findings so far:
+  - Lyria keeps adding finger snaps.
+  - The long "no piano, no snaps…" rules list sometimes primes instruments.
+  - Quoted sound words ("pff", "lip kick") get sung as lyrics. The plain prompt plus a wordless lyric sheet fixes that.
+- **Game:** `Config.Music` (ids are 0 until the owner uploads the tracks) and `LarpClient.MusicKit`.
+  - One track plays at a time in the CodexMusic group and crossfades on `Map.<zone>.ZoneBounds`. Anywhere else plays the Street main theme.
+  - Music ducks while a larp-off plays: SceneDirector calls `MusicKit.duck` in intro/finish.
+  - Playtested with stand-in crowd SFX: Street 0.3 → CarLot crossfade → back, and 0.105 during a practice larp-off, restored after.
+- **Next:** the owner listens to the candidate loops and uploads the chosen .ogg files. Then put the ids in `Config.Music`. Cafe, Gym and Mall need their zones built (`ZoneBounds`).
+
+## Earlier: Claude, 2026-09-11 evening
 **Codex is out of usage until 2026-09-15.** Claude is the only agent until then, and the user lets Claude start and stop Studio sessions. Studio is in Edit and the lease is released.
 - **The CCTV larp-off scene is now the default** (`Tuning.SceneMode = "Cctv"`, user direction).
   - **What happens:** both larpers are on a split security-cam monitor. Each walks down a sidewalk, double-takes at a parked ride (their tier), glances around and takes a selfie with it.

@@ -1,0 +1,31 @@
+{
+  "rules": "STRICT RULES: This is a pure a cappella, vocal-only track. Every sound is made by a human voice or mouth (humming, soft wordless 'ooh' and 'mm' vocals, vocal bass, beatboxing), plus gentle natural ambience where described. Absolutely no musical instruments of any kind: no piano, no keys, no guitar, no bass guitar, no synthesizer, no pads, no strings, no brass, no organ, no bells, no drum kit, no drum machine, no electronic beats, no claps, no snaps. Wordless: no lyrics and no sung words. Western harmony only (no Middle Eastern or Arabic scales, no chanting). Keep one steady mood and tempo from start to finish so it loops as game background music.",
+  "rules_positive": "Performed entirely by human voices, a true a cappella recording. The complete list of sounds: voices humming and singing wordless syllables ('mm', 'ooh', 'doo', 'bah'), a bass singer's low vocal bass, and a human beatboxer making every beat with their mouth (lip kicks, 'pff' snares, 'ts' hi-hats, breaths), plus the soft natural ambience described. Wordless vocals only. Western pop and jazz harmony. One steady mood and tempo from start to finish so it loops as game background music.",
+  "rules_plain": "A true a cappella recording performed only by human voices: a humming choir, a bass singer, and a human beatboxer who makes every beat with their mouth, plus the soft natural ambience described. The voices sing only the wordless vocables in the lyric sheet below, never any real words. Western pop and jazz harmony. One steady mood and tempo from start to finish so it loops as game background music.",
+  "tracks": {
+    "street": {
+      "use": "Main theme: walking the streets, the Plaza and the Road",
+      "prompt": "Chill lo-fi hip hop main theme, sung by a small hum choir with a solo beatboxer, 78 BPM. The beatboxer is the only rhythm: a dusty, laid-back mouth beat with soft lip-kick 'b' sounds, a gentle 'k' rimshot and quiet 'ts' hi-hats, with a slight swing. Warm, layered humming voices ('mm', 'hmm') hold mellow, dreamy chords, and a deep hummed vocal bass sings slow long notes underneath. A soft, breathy hummed melody floats on top, nostalgic and sunny. Quiet rustling leaves in a light breeze sit underneath the whole track. Calm, warm, content, like strolling through a city on a nice afternoon.",
+      "prompt_plain": "Chill lo-fi hip hop main theme at 78 BPM, sung by a small humming choir over a laid-back, dusty, slightly swung beatbox groove. Warm layered humming holds mellow, dreamy chords; a deep hummed bass voice sings slow long notes underneath; a soft, breathy hummed melody floats on top, nostalgic and sunny. Quiet rustling leaves in a light breeze underneath the whole track. Calm, warm and content, like strolling through a city on a nice afternoon.",
+      "lyrics": "[Intro]\n(mm... hmm...)\n[Verse]\n(mm-mm... hmm-mm...)\n(ooh... mm...)\n[Chorus]\n(ooh-ooh... mm-hmm...)\n(hmm... ooh...)\n[Verse]\n(mm-mm... hmm-mm...)\n(ooh... mm...)\n[Chorus]\n(ooh-ooh... mm-hmm...)\n(hmm... ooh...)"
+    },
+    "cafe": {
+      "use": "Cafe (future Aesthetic zone)",
+      "prompt": "Smooth, stylish acid-jazz cafe music in the spirit of a cool JRPG hideout cafe theme, fully a cappella, 92 BPM. A vocal jazz ensemble sings sophisticated, lush jazz harmonies with soft 'doo', 'bah' and 'mm' syllables; a silky lead voice hums a cool, slightly mysterious melody; a round vocal bass plays a gentle walking line; a light, crisp beatboxed groove with brushed-sounding mouth hi-hats. Relaxed, cool, calm and classy, like sitting in a cozy coffee shop on a rainy evening. Faint coffee shop room ambience in the background."
+    },
+    "gym": {
+      "use": "Gym (future Gains zone)",
+      "prompt": "Energetic workout music performed by a live a cappella group with a champion human beatboxer, 104 BPM. The beatboxer's mouth is clearly audible: breathy lip-kick 'b' sounds, 'pff' and 'k' snares, 'ts' hi-hats and inward-breath snares, raw and human like a beatbox battle, never a drum kit. A singer growls a gritty 'dum-dum' vocal bass riff in their throat. Layered voices shout short wordless hype hits ('hey!', 'hup!', 'huh!') on the beat, and deep humming voices hold a determined, heroic chord progression. Intense, focused, pumped-up but not aggressive, like a training montage."
+    },
+    "carlot": {
+      "use": "Parking lot / Car Lot zone",
+      "prompt": "Bright, happy, everyday a cappella pop, 112 BPM. A solo beatboxer makes the whole beat with their mouth: bouncy lip kicks, 'pff' snares and 'ts' hi-hats. A cheerful 'bum bum' vocal bass line, and a friendly group of voices singing sunny major-key harmonies on 'doo', 'bah' and 'mm' syllables. A light, catchy hummed melody on top, carefree and optimistic, like a sunny Saturday morning running errands. Soft outdoor ambience with a light breeze through trees.",
+      "prompt_plain": "Bright, happy, everyday a cappella pop at 112 BPM over a bouncy beatbox groove. A cheerful bass voice bounces a simple line, and a friendly group of voices sings sunny major-key harmonies; a light, catchy melody on top, carefree and optimistic, like a sunny Saturday morning running errands. Soft outdoor ambience with a light breeze through trees.",
+      "lyrics": "[Intro]\n(bum, bum, ba-dum)\n[Verse]\n(doo-doo, bah-doo, doo-bah)\n(mm-mm, doo-doo-bah)\n[Chorus]\n(bah-bah, doo-bah-doo)\n(ooh-ooh, bah-doo)\n[Verse]\n(doo-doo, bah-doo, doo-bah)\n(mm-mm, doo-doo-bah)\n[Chorus]\n(bah-bah, doo-bah-doo)\n(ooh-ooh, bah-doo)"
+    },
+    "mall": {
+      "use": "Mall (future Drip zone)",
+      "prompt": "Playful, catchy video-game town theme, like a cheerful Nintendo-style shopping town or Pokemon city, performed fully a cappella, 124 BPM. Bright voices sing a bouncy, memorable melody on 'bah', 'dah' and 'doo' syllables in the style of retro game music, answered by a staccato vocal bass. A bouncy, tight beatboxed beat with the mouth. Whimsical, upbeat, adventurous and fun, with call-and-response phrases between high and low voices."
+    }
+  }
+}

@@ -29,6 +29,7 @@ local Crowd = require(script.Parent.Crowd)
 local Cctv = require(script.Parent.Cctv)
 local StreetRound = require(script.Parent.StreetRound)
 local ChallengePrompts = require(script.Parent.ChallengePrompts)
+local MusicKit = require(script.Parent.MusicKit)
 
 local SceneDirector = {}
 
@@ -459,6 +460,8 @@ local function intro(ctx)
 	for _, key in { "A", "B" } do
 		Poses.apply(kit, ctx.sides[key].character, "Proud", 0.3)
 	end
+	MusicKit.duck(true)
+	ctx.ducked = true
 	if ctx.participant then
 		ctx.ui:SetMatchActive(true)
 		ChallengePrompts.setEnabled(false)
@@ -775,6 +778,10 @@ local function finish(ctx, aborted: boolean, reason: string?)
 	localFolder("LarpStageFx"):ClearAllChildren()
 	if ctx.hint and ctx.hint.Parent then
 		ctx.hint.Text = ctx.hintWas
+	end
+	if ctx.ducked then
+		ctx.ducked = false
+		MusicKit.duck(false)
 	end
 	if ctx.participant then
 		ChallengePrompts.setEnabled(true)

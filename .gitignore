@@ -11,6 +11,7 @@
 *.tmp
 *.local.*
 node_modules/
+__pycache__/
 .local/
 .DS_Store
 
