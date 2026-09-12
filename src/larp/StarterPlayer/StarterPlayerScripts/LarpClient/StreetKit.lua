@@ -49,18 +49,58 @@ function StreetKit.mirrorCF(cf: CFrame): CFrame
 	return CFrame.new(-x, y, z, r00, -r01, -r02, -r10, r11, r12, -r20, r21, r22)
 end
 
--- Mirrors a model across X = 0 in place (every part and model pivot).
-function StreetKit.mirror(model: Instance)
+-- The same across the Z = 0 plane (a mirror wall facing +Z).
+function StreetKit.mirrorZCF(cf: CFrame): CFrame
+	local x, y, z, r00, r01, r02, r10, r11, r12, r20, r21, r22 = cf:GetComponents()
+	return CFrame.new(x, y, -z, r00, r01, -r02, r10, r11, -r12, -r20, -r21, r22)
+end
+
+local function mirrorWith(model: Instance, fn: (CFrame) -> CFrame)
 	for _, d in model:GetDescendants() do
 		if d:IsA("BasePart") then
-			d.CFrame = StreetKit.mirrorCF(d.CFrame)
+			d.CFrame = fn(d.CFrame)
 		elseif d:IsA("Model") and not d.PrimaryPart then
-			d.WorldPivot = StreetKit.mirrorCF(d.WorldPivot)
+			d.WorldPivot = fn(d.WorldPivot)
 		end
 	end
 	if model:IsA("Model") and not model.PrimaryPart then
-		model.WorldPivot = StreetKit.mirrorCF(model.WorldPivot)
+		model.WorldPivot = fn(model.WorldPivot)
 	end
+end
+
+-- Mirrors a model across X = 0 in place (every part and model pivot).
+function StreetKit.mirror(model: Instance)
+	mirrorWith(model, StreetKit.mirrorCF)
+end
+
+-- Mirrors a model across Z = 0 in place (a reflection behind a mirror wall).
+function StreetKit.mirrorZ(model: Instance)
+	mirrorWith(model, StreetKit.mirrorZCF)
+end
+
+-- Topples a character (stand height `height`) over towards `dir`, landing on `ground`:
+-- face down if `dir` is roughly where it faces, else onto its side. The landing thuds and
+-- shakes `feed`; onDone runs then.
+function StreetKit.fall(ctx, feed, model: Model, height: number, ground: Vector3, dir: Vector3, seconds: number, onDone: (() -> ())?)
+	local kit = ctx.kit
+	local from = model:GetPivot()
+	local look, right = StreetKit.flat(from.LookVector), StreetKit.flat(from.RightVector)
+	dir = StreetKit.flat(dir)
+	local tip = if dir:Dot(look) > 0.7 then CFrame.Angles(math.rad(-90), 0, 0)
+		elseif dir:Dot(right) > 0 then CFrame.Angles(0, 0, math.rad(-90))
+		else CFrame.Angles(0, 0, math.rad(90))
+	local to = CFrame.new(ground + dir * height * 0.9 + Vector3.new(0, 0.55, 0)) * from.Rotation * tip
+	kit:animate(seconds, function(a)
+		if model.Parent then
+			model:PivotTo(from:Lerp(to, a))
+		end
+	end, kit.Ease.inQuad, function()
+		kit:sound("BodyFall", { volume = 0.7 })
+		feed:shake(0.3, 0.3)
+		if onDone then
+			onDone()
+		end
+	end)
 end
 
 -- Starts a walk animation on `model` (a rig with an Animator): `source`'s own walk (a

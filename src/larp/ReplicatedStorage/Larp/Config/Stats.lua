@@ -37,6 +37,7 @@ return {
 		color = Color3.fromRGB(242, 140, 78),
 		zone = "Gym",
 		zoneName = "Gym",
+		scene = "Gains",
 	},
 	{
 		id = "BigBrain",

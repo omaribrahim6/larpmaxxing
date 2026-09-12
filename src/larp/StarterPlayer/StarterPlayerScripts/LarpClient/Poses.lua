@@ -58,6 +58,19 @@ Poses.Defs = {
 	Splat = { RightShoulder = A(170, 0, 30), LeftShoulder = A(170, 0, -30), Neck = A(20) },
 	Flail = { RightShoulder = A(20, 0, 110), LeftShoulder = A(20, 0, -110), RightElbow = A(40), LeftElbow = A(40), Neck = A(12), Waist = A(4) },
 	HipBump = { Waist = A(0, -20, 22), RightShoulder = A(0, 0, 50), LeftShoulder = A(40, 0, -20), LeftElbow = A(70), Neck = A(8, 30) },
+	-- Gains (gym) scene
+	Grab = { Waist = A(-38), Neck = A(22), RightShoulder = A(62, 0, -8), LeftShoulder = A(62, 0, 8), RightElbow = A(6), LeftElbow = A(6) },
+	Rack = { RightShoulder = A(80, 0, -22), LeftShoulder = A(80, 0, 22), RightElbow = A(105), LeftElbow = A(105), Neck = A(6) },
+	Press = { RightShoulder = A(165, 0, 30), LeftShoulder = A(165, 0, -30), RightElbow = A(12), LeftElbow = A(12), Neck = A(12), Waist = A(4) },
+	PressLow = { RightShoulder = A(150, 0, 36), LeftShoulder = A(150, 0, -36), RightElbow = A(34), LeftElbow = A(34), Neck = A(8), Waist = A(2) },
+	BottleUp = { RightShoulder = A(160, 0, 12), RightElbow = A(20), LeftShoulder = A(0, 0, -14), Neck = A(14), Waist = A(0, 0, -6) },
+	BottleShake = { RightShoulder = A(148, 0, 20), RightElbow = A(40), LeftShoulder = A(0, 0, -10), Neck = A(10), Waist = A(0, 0, -4) },
+	CurlDown = { RightShoulder = A(8, 0, -4), RightElbow = A(8), LeftShoulder = A(0, 0, -8) },
+	CurlUp = { RightShoulder = A(18, 0, -4), RightElbow = A(145), LeftShoulder = A(0, 0, -8), Neck = A(-8, -12) },
+	Spot = { RightShoulder = A(105, 0, -14), LeftShoulder = A(105, 0, 14), RightElbow = A(28), LeftElbow = A(28), Waist = A(-6), Neck = A(-6) },
+	Strain = { Waist = A(-40), Neck = A(26), RightShoulder = A(58, 0, -6), LeftShoulder = A(58, 0, 6), RightElbow = A(0), LeftElbow = A(0) },
+	Noodle = { Waist = A(-18, 0, 16), Neck = A(-28, 0, 22), RightShoulder = A(0, 0, 38), LeftShoulder = A(0, 0, -64), RightElbow = A(-10), LeftElbow = A(20) },
+	Pump = { RightShoulder = A(170, 0, 12), RightElbow = A(40), LeftShoulder = A(0, 0, -12), Neck = A(10) },
 }
 
 -- A joint handle: the instance and the property that holds its parent-side frame.

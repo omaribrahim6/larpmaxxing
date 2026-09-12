@@ -19,31 +19,6 @@ local function fumbleData(variant: string?)
 	return nil
 end
 
--- Topples `model` (stand height `height`) over towards `dir`, landing on `ground`: face
--- down if `dir` is roughly where they face, else onto their side. The landing thuds and
--- shakes the feed; onDone runs then.
-local function fall(ctx, st, model: Model, height: number, ground: Vector3, dir: Vector3, seconds: number, onDone: (() -> ())?)
-	local kit = ctx.kit
-	local from = model:GetPivot()
-	local look, right = SK.flat(from.LookVector), SK.flat(from.RightVector)
-	dir = SK.flat(dir)
-	local tip = if dir:Dot(look) > 0.7 then CFrame.Angles(math.rad(-90), 0, 0)
-		elseif dir:Dot(right) > 0 then CFrame.Angles(0, 0, math.rad(-90))
-		else CFrame.Angles(0, 0, math.rad(90))
-	local to = CFrame.new(ground + dir * height * 0.9 + Vector3.new(0, 0.55, 0)) * from.Rotation * tip
-	kit:animate(seconds, function(a)
-		if model.Parent then
-			model:PivotTo(from:Lerp(to, a))
-		end
-	end, kit.Ease.inQuad, function()
-		kit:sound("BodyFall", { volume = 0.7 })
-		st.feed:shake(0.3, 0.3)
-		if onDone then
-			onDone()
-		end
-	end)
-end
-
 -- The loser's fumble on their feed.
 function DripFumbles.fumble(ctx, key: string, variant: string?)
 	local kit, side = ctx.kit, ctx.sides[key]
@@ -168,7 +143,7 @@ function DripFumbles.fumble(ctx, key: string, variant: string?)
 				avatar:PivotTo(from + look * 0.8 * a)
 			end
 		end, kit.Ease.outQuad, function()
-			fall(ctx, st, avatar, st.height, ground + look * 0.8, look, 0.28, function()
+			SK.fall(ctx, feed, avatar, st.height, ground + look * 0.8, look, 0.28, function()
 				Poses.apply(kit, avatar, "Splat", 0.1)
 				feed:caption(ground + look * 2.5 + Vector3.new(0, 2, 0), say("TRIPPED"), Color3.fromRGB(255, 140, 140), 1)
 			end)
@@ -231,7 +206,7 @@ function DripFumbles.takeover(ctx, winKey: string, loseKey: string): number
 		if at.UpVector.Y > 0.7 then
 			-- standing: they topple off the side
 			Poses.apply(kit, loser, "Flail", 0.08)
-			fall(ctx, lose, loser, lose.height, offSide, across, 0.3)
+			SK.fall(ctx, feed, loser, lose.height, offSide, across, 0.3)
 		else
 			-- already down: shoved along the floor off the runway
 			kit:animate(0.3, function(a)

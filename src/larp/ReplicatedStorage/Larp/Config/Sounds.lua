@@ -31,5 +31,9 @@ return {
 	BodyFall = 9113480917, -- PSE: Body Fall Thud 1
 	ClothFlap = 9114369924, -- PSE: Falcon Wing Flaps 3 (heavy cloth rustle: the carpet, the wind machine)
 	Sparks = 9116278351, -- PSE: Lightning Flashes Quick Electrical Bursts 38 (spark fountains)
+	-- Gains (gym) scene
+	Clank = 9125670743, -- PSE: Metal Impact Sledge Hammer Hits On 5 Ft I-Beam 3 (plates, bars)
+	Rumble = 9113215872, -- PSE: Avalanche Crashing 1 (the floor shaking, dust falling)
+	Creak = 9118296784, -- PSE: Robot Movement 7 (metal squeaks: the bar bending)
 	-- Not yet sourced from the licensed library: SadTrombone, EngineRev. Add ids here when found.
 }

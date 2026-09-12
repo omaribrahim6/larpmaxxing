@@ -22,8 +22,8 @@ end
 -- The larp-off scene assets built from data: sets (Larp.Assets.Sets) and each scene's
 -- props (Larp.Assets.Scenes.<scene>). The Bag scene's are hand-built and not listed.
 --   require(game.ServerStorage.LarpBuild.Build).scenes()
-Build.sets = { "CafeFront", "MallWalk" }
-Build.sceneProps = { "Aesthetic", "Drip" }
+Build.sets = { "CafeFront", "MallWalk", "GymMirror" }
+Build.sceneProps = { "Aesthetic", "Drip", "Gains" }
 
 function Build.scenes(): string
 	local out = {}

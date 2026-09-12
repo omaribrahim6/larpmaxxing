@@ -1,4 +1,25 @@
 # Handoff
+## LATEST: Claude, 2026-09-12 (Gains scene)
+- **The Gains larp-off scene is in** (CCTV mode). Larp-offs now play four rounds: Bag, Aesthetic, Drip, Gains (8.9 s each). A low security cam on the gym's free-weights floor looks up at the lifting platform with the mirror wall behind it.
+  - **The mirror:** ViewportFrames don't render reflections, so `GainsFx` builds one: the set's `Room` is mirrored across the mirror plane (z = 0) behind the glass once per feed, and the avatar, the weight, the NPCs and the rack's dumbbells each get an inert copy that follows them mirrored every frame (`GainsFx.reflect`).
+  - **Tiers:**
+    - T1: a water bottle, pressed on shaking arms.
+    - T2: dumbbell curls, and a stranger walks up to spot them.
+    - T3: a barbell (clean and press), chalk, a "PR ATTEMPT" tag and an on-screen grunt.
+    - T4: a heavy bar that bends as it goes up; the mirror cracks, the floor shakes, the gym chants their name.
+    - T5: deadlifts the Bag scene's sports car overhead; its alarm goes off and four regulars gasp.
+    - Maxxed: lifts a shrunk copy of the real stage (from `ctx.stage`), crowd included, with dust falling.
+    - The lift ends on a slow zoom (the spec's hero shot).
+  - **Fumbles:** WontBudge, ShakeExplode, NoodleFlop, RollAway (T1–4).
+  - **Takeover:** the winner flexes on their own feed; a shockwave rolls across the loser's gym from the winner's side of the monitor, knocks the rack's dumbbells off like dominoes and blows the loser over.
+  - **No music (owner's rule):** the spec's T3 pump-up track is chalk and the PR tag. No licensed grunt, glass-crack or chant clip exists, so the grunt is on screen, the crack is the Glass Boom, and the chant is the wrestling-crowd clips with their name popping up.
+- **Code:**
+  - `Config.Scenes.Gains`; `LarpClient.Scenes.GainsStreet`, `GainsFx`, `GainsFumbles`.
+  - New shared helpers: `StreetKit.mirrorZCF`/`mirrorZ` (mirror across a wall) and `StreetKit.fall` (DripFumbles now uses it too).
+  - New poses in `Poses`, and three Pro Sound Effects ids in `Config.Sounds` (Clank, Rumble, Creak).
+- **Assets:** `LarpBuild.Sets.GymMirror` (108 parts) and `LarpBuild.Scenes.Gains` (5 props) are in `Build.scenes()`; the barbells are drawn at runtime. **Save the place (Ctrl+S).**
+- **Tested:** 51/51 unit tests; every new and changed script compiles; mirror 83/83. A forced T6-vs-T4 round (WontBudge) played end to end with no client errors: a client probe saw the shrunk stage, the heavy bar, the regulars, the mirror reflections, the chant, the fumble, the shockwave takeover and the post. Studio's DataStore is off, so a fresh playtest starts at 0 stats and the Practice Larper refuses; add points with `LarpDebug:Invoke("addPoints", userId, stat, n)` first.
+
 ## Claude, 2026-09-12 (legendary drop banner)
 - **Legendary drops are a big banner now, not a notification card** (owner request). New `LarpClient.Announcer`: "✦ LEGENDARY DROP ✦", the item name in LuckiestGuy with a shimmer, and where it dropped, near the top of the screen (60% wide, 820 px max). It slams in, holds 3.4 s and floats off. Drops queue (3 at most) and wait while a larp-off is on screen (SceneDirector calls `Announcer.setBusy`). Copy is in `Config.Text.Legendary`.
 - **The owner owns every system, CodexUI included**: when they ask to replace something, replace it.
