@@ -22,6 +22,7 @@ local SELFIE_FOV = 110 -- the post photo is shot on the phone's 0.5x ultra-wide
 
 local BagStreet = {}
 BagStreet.title = Data.title
+BagStreet.cams = Data.street.cams
 
 local function template(name: string): Instance?
 	return ASSETS:FindFirstChild(name)
@@ -166,15 +167,17 @@ function BagStreet.build(ctx, key: string)
 	local feed = ctx.monitor.feeds[key]
 	local st = { feed = feed, flip = key == "B", height = 3 }
 	side.street = st
+	-- the street and avatar copy live in the feed's Bag folder (shown on Bag rounds)
+	local folder = feed:sceneFolder(Data.id)
 	local setTemplate = SETS:FindFirstChild(Data.street.set)
 	if setTemplate then
 		local set = setTemplate:Clone()
 		set:PivotTo(CFrame.identity)
-		set.Parent = feed.world
+		set.Parent = folder
 		st.markers = set:FindFirstChild("Markers")
 		st.set = set
 	end
-	st.avatar = ctx.avatarCopy(side.stageCharacter, CFrame.new(0, -60, 0), feed.world)
+	st.avatar = ctx.avatarCopy(side.stageCharacter, CFrame.new(0, -60, 0), folder)
 	if st.avatar then
 		Poses.link(st.avatar, side.stageCharacter)
 		st.height = ctx.standHeight(st.avatar)

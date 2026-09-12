@@ -29,6 +29,14 @@ local HUD = Color3.fromRGB(232, 238, 228)
 local REC = Color3.fromRGB(255, 64, 56)
 local SKY = Color3.fromRGB(150, 168, 186)
 local TINT = Color3.fromRGB(222, 234, 226) -- CCTV's washed-out green cast
+-- The plain daylight a feed starts with (see Feed:look).
+local PLAIN = {
+	sky = SKY,
+	ambient = Color3.fromRGB(150, 150, 158),
+	light = Color3.fromRGB(255, 238, 214),
+	direction = Vector3.new(-0.4, -1, -0.55),
+	tint = TINT,
+}
 
 local function make(className: string, props: { [string]: any }, children: { Instance }?)
 	local inst = Instance.new(className)
@@ -98,6 +106,35 @@ function Cctv.fit(mount: Vector3, points: { Vector3 }, aspect: number, margin: n
 	return cf, math.clamp(math.deg(2 * math.atan(tanY)), 8, 85)
 end
 
+-- Where a world point lands in a view from `camCF` (vertical `fov`, width / height
+-- `aspect`), 0..1 on each axis, or nil if it's behind the camera.
+local function projectFrom(camCF: CFrame, fov: number, aspect: number, position: Vector3): Vector2?
+	local rel = camCF:PointToObjectSpace(position)
+	if rel.Z > -0.5 then
+		return nil
+	end
+	local t = math.tan(math.rad(fov) / 2)
+	return Vector2.new(0.5 + (rel.X / -rel.Z) / (t * aspect) / 2, 0.5 - (rel.Y / -rel.Z) / t / 2)
+end
+
+-- Lays a label over the front (-Z) face of a box (`cf`, `size`) as seen from a camera, so
+-- world text shows in a ViewportFrame (which doesn't render SurfaceGuis). Hidden when the
+-- face is behind the camera or turned away from it.
+local function placeOnFace(l: GuiObject, camCF: CFrame, fov: number, aspect: number, cf: CFrame, size: Vector3)
+	local center = cf * Vector3.new(0, 0, -size.Z / 2)
+	local right, up = cf.RightVector * size.X / 2, cf.UpVector * size.Y / 2
+	local c = projectFrom(camCF, fov, aspect, center)
+	local l0, r0 = projectFrom(camCF, fov, aspect, center - right), projectFrom(camCF, fov, aspect, center + right)
+	local t0, b0 = projectFrom(camCF, fov, aspect, center + up), projectFrom(camCF, fov, aspect, center - up)
+	if not (c and l0 and r0 and t0 and b0) or (camCF.Position - center):Dot(cf.LookVector) <= 0 then
+		l.Visible = false
+		return
+	end
+	l.Visible = true
+	l.Position = UDim2.fromScale(c.X, c.Y)
+	l.Size = UDim2.fromScale(math.abs(r0.X - l0.X), math.abs(b0.Y - t0.Y))
+end
+
 ------------------------------------------------------------------ feed
 
 local function buildHud(feed, info)
@@ -141,10 +178,12 @@ local function buildHud(feed, info)
 		})
 	end
 	-- text: camera label + REC top-left, clock top-right, place under it, subject bottom-left
-	label({ Name = "Cam", Text = info.label, Position = UDim2.fromScale(0.04, 0.035), Size = UDim2.fromScale(0.3, 0.05), ZIndex = 5, Parent = hud })
+	feed.camLabel = label({ Name = "Cam", Text = info.label, Position = UDim2.fromScale(0.04, 0.035), Size = UDim2.fromScale(0.3, 0.05), ZIndex = 5, Parent = hud })
 	feed.recLabel = label({ Name = "Rec", Text = Text.Cctv.rec, TextColor3 = REC, Position = UDim2.fromScale(0.04, 0.09), Size = UDim2.fromScale(0.2, 0.045), ZIndex = 5, Parent = hud })
+	-- the tag sits under the place, top right, clear of the match UI's round chip
+	feed.tagLabel = label({ Name = "Tag", Text = "", TextColor3 = Color3.fromRGB(255, 214, 90), TextXAlignment = Enum.TextXAlignment.Right, Position = UDim2.fromScale(0.46, 0.13), Size = UDim2.fromScale(0.5, 0.04), ZIndex = 5, Parent = hud })
 	feed.clock = label({ Name = "Clock", Text = "", TextXAlignment = Enum.TextXAlignment.Right, Position = UDim2.fromScale(0.46, 0.035), Size = UDim2.fromScale(0.5, 0.045), ZIndex = 5, Parent = hud })
-	label({ Name = "Place", Text = info.place, TextXAlignment = Enum.TextXAlignment.Right, Position = UDim2.fromScale(0.46, 0.085), Size = UDim2.fromScale(0.5, 0.04), ZIndex = 5, Parent = hud })
+	feed.placeLabel = label({ Name = "Place", Text = info.place, TextXAlignment = Enum.TextXAlignment.Right, Position = UDim2.fromScale(0.46, 0.085), Size = UDim2.fromScale(0.5, 0.04), ZIndex = 5, Parent = hud })
 	local subject = label({ Name = "Subject", Text = Text.Cctv.subject:format(info.subject), Position = UDim2.fromScale(0.04, 0.9), Size = UDim2.fromScale(0.7, 0.05), ZIndex = 5, Parent = hud })
 	stroke(subject, 1.5)
 	-- corner brackets
@@ -176,12 +215,12 @@ function Feed.new(monitor, key: string, info, position: UDim2, size: UDim2)
 	local viewport = make("ViewportFrame", {
 		Name = "View",
 		Size = UDim2.fromScale(1, 1),
-		BackgroundColor3 = SKY,
+		BackgroundColor3 = PLAIN.sky,
 		BorderSizePixel = 0,
-		Ambient = Color3.fromRGB(150, 150, 158),
-		LightColor = Color3.fromRGB(255, 238, 214),
-		LightDirection = Vector3.new(-0.4, -1, -0.55),
-		ImageColor3 = TINT,
+		Ambient = PLAIN.ambient,
+		LightColor = PLAIN.light,
+		LightDirection = PLAIN.direction,
+		ImageColor3 = PLAIN.tint,
 		ZIndex = 2,
 		Parent = panel,
 	})
@@ -280,12 +319,37 @@ end
 
 -- Where a world point lands in the feed (0..1 each axis), or nil behind the camera.
 function Feed:project(position: Vector3): Vector2?
-	local rel = self.camera.CFrame:PointToObjectSpace(position)
-	if rel.Z > -0.5 then
-		return nil
+	return projectFrom(self.camera.CFrame, self.fov, self:aspect(), position)
+end
+
+-- World text on a part's front (-Z) face, drawn over the feed and re-placed every frame
+-- (so it follows a moving part or camera). style: font, color, stroke. Returns the label;
+-- set its Text to change it. Cleared by reset().
+function Feed:pin(part: BasePart, text: string, style: { [string]: any }?)
+	style = style or {}
+	local l = label({
+		Text = text,
+		Font = style.font or Enum.Font.FredokaOne,
+		TextColor3 = style.color or HUD,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		ZIndex = 3,
+	})
+	if style.stroke then
+		stroke(l, style.stroke, style.strokeColor)
 	end
-	local t = math.tan(math.rad(self.fov) / 2)
-	return Vector2.new(0.5 + (rel.X / -rel.Z) / (t * self:aspect()) / 2, 0.5 - (rel.Y / -rel.Z) / t / 2)
+	local function place()
+		if part.Parent then
+			placeOnFace(l, self.camera.CFrame, self.fov, self:aspect(), part.CFrame, part.Size)
+		else
+			l.Visible = false
+		end
+	end
+	place()
+	l.Parent = self.layer
+	local stop = self.kit:loop(place)
+	l.Destroying:Connect(stop)
+	return l
 end
 
 -- Pop-in caption that follows a world point ("*coo*", "BEEP BEEP BEEP").
@@ -385,7 +449,7 @@ function Feed:signalLost(sub: string?)
 	self.staticSub.Text = sub or ""
 end
 
--- Clears props and state between rounds (the set and avatar copies stay).
+-- Clears props and state between rounds (the sets and avatar copies stay).
 function Feed:reset()
 	self.props:ClearAllChildren()
 	self.layer:ClearAllChildren()
@@ -396,6 +460,128 @@ function Feed:reset()
 		self.follow()
 		self.follow = nil
 	end
+	self:look(nil, 0)
+	self:tag(nil)
+end
+
+-- A feed keeps one folder per scene (its set and avatar copy) so a larp-off can switch
+-- scenes between rounds without rebuilding them. Returns scene `id`'s folder.
+function Feed:sceneFolder(id: string): Folder
+	self.scenes = self.scenes or {}
+	local folder = self.scenes[id]
+	if not folder then
+		folder = make("Folder", { Name = id, Parent = self.world })
+		self.scenes[id] = folder
+	end
+	return folder
+end
+
+-- Shows only scene `id`'s folder; the others are kept (unparented) for later rounds.
+function Feed:showScene(id: string)
+	for name, folder in self.scenes or {} do
+		folder.Parent = if name == id then self.world else nil
+	end
+end
+
+-- The camera's name and place in the corner of the feed.
+function Feed:setCam(labelText: string, place: string)
+	self.camLabel.Text = labelText
+	self.placeLabel.Text = place
+end
+
+-- A small line under REC ("▶ 0.5x"), or nil to clear it.
+function Feed:tag(text: string?)
+	self.tagLabel.Text = text or ""
+end
+
+-- Relights the feed. look = { sky, ambient, light, direction, tint }; missing keys use
+-- the plain daylight the feed starts with, nil is plain daylight. A ViewportFrame has one
+-- light, so this is the whole lighting rig. duration 0 = at once.
+function Feed:look(look, duration: number?)
+	local v = self.viewport
+	local from = { sky = v.BackgroundColor3, ambient = v.Ambient, light = v.LightColor, direction = v.LightDirection, tint = v.ImageColor3 }
+	local to = {}
+	for key, plain in PLAIN do
+		to[key] = if look and look[key] ~= nil then look[key] else plain
+	end
+	self.currentLook = to
+	if self.lookAnim then
+		self.lookAnim.cancelled = true
+		self.lookAnim = nil
+	end
+	local function set(a)
+		v.BackgroundColor3 = from.sky:Lerp(to.sky, a)
+		v.Ambient = from.ambient:Lerp(to.ambient, a)
+		v.LightColor = from.light:Lerp(to.light, a)
+		v.LightDirection = from.direction:Lerp(to.direction, a)
+		v.ImageColor3 = from.tint:Lerp(to.tint, a)
+	end
+	if not duration or duration <= 0 then
+		set(1)
+		return
+	end
+	self.lookAnim = self.kit:animate(duration, set, self.kit.Ease.inOutQuad)
+end
+
+local function disc(parent: Instance, x: number, y: number, size: number, color: Color3, transparency: number, ring: boolean?)
+	local f = make("Frame", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(x, y),
+		Size = UDim2.fromScale(size, size),
+		SizeConstraint = Enum.SizeConstraint.RelativeYY,
+		BackgroundColor3 = color,
+		BackgroundTransparency = if ring then 1 else transparency,
+		BorderSizePixel = 0,
+		Parent = parent,
+	})
+	make("UICorner", { CornerRadius = UDim.new(0.5, 0), Parent = f })
+	if ring then
+		make("UIStroke", { Thickness = 2, Color = color, Transparency = transparency, Parent = f })
+	end
+	return f
+end
+
+-- Portrait mode: a soft glow creeps in from the feed's edges, like the background going
+-- out of focus. Cleared by reset().
+function Feed:haze(strength: number, duration: number?)
+	local group = make("CanvasGroup", { Name = "Haze", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, GroupTransparency = 1, ZIndex = 3, Parent = self.layer })
+	local glow = Color3.fromRGB(255, 244, 240)
+	for _, edge in {
+		{ UDim2.fromScale(1, 0.34), UDim2.fromScale(0, 0), 90 },
+		{ UDim2.fromScale(1, 0.34), UDim2.fromScale(0, 0.66), -90 },
+		{ UDim2.fromScale(0.3, 1), UDim2.fromScale(0, 0), 0 },
+		{ UDim2.fromScale(0.3, 1), UDim2.fromScale(0.7, 0), 180 },
+	} do
+		local f = make("Frame", { Size = edge[1], Position = edge[2], BackgroundColor3 = glow, BorderSizePixel = 0, Parent = group })
+		make("UIGradient", {
+			Rotation = edge[3],
+			Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1 - strength), NumberSequenceKeypoint.new(1, 1) }),
+			Parent = f,
+		})
+	end
+	tween(group, duration or 0.4, { GroupTransparency = 0 })
+	return group
+end
+
+-- A soft lens flare: a warm glow in the top corner (where the low sun is) and a few
+-- rings across the frame, drifting a little. Cleared by reset().
+function Feed:flare(duration: number?)
+	local group = make("CanvasGroup", { Name = "Flare", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, GroupTransparency = 1, ZIndex = 3, Parent = self.layer })
+	local warm = Color3.fromRGB(255, 206, 140)
+	local x, y = 0.93, 0.05
+	disc(group, x, y, 0.95, warm, 0.9)
+	disc(group, x, y, 0.55, warm, 0.78)
+	disc(group, x, y, 0.22, Color3.fromRGB(255, 244, 220), 0.35)
+	for i, ring in { { 0.5, 0.14, true }, { 0.66, 0.22, false }, { 0.82, 0.09, true } } do
+		local t = ring[1]
+		disc(group, x + (0.3 - x) * t, y + (0.8 - y) * t, ring[2], if i == 2 then Color3.fromRGB(255, 180, 200) else warm, if ring[3] then 0.45 else 0.85, ring[3])
+	end
+	tween(group, duration or 0.5, { GroupTransparency = 0 })
+	local stop = self.kit:loop(function(t)
+		group.Position = UDim2.fromScale(math.sin(t * 0.9) * 0.012, math.cos(t * 0.7) * 0.01)
+	end)
+	group.Destroying:Connect(stop)
+	return group
 end
 
 ------------------------------------------------------------------ monitor
@@ -580,13 +766,22 @@ function Cctv:showPost(post)
 	})
 	make("UIAspectRatioConstraint", { AspectRatio = 1, DominantAxis = Enum.DominantAxis.Width, Parent = photo })
 	if post.photo then
-		local cam = make("Camera", { CFrame = post.photo.camCF, FieldOfView = post.photo.fov or 70, Parent = photo })
+		local shot = post.photo
+		local cam = make("Camera", { CFrame = shot.camCF, FieldOfView = shot.fov or 70, Parent = photo })
 		photo.CurrentCamera = cam
-		for _, model in post.photo.models do
+		for _, model in shot.models do
 			model.Parent = photo
 		end
+		-- the light the moment was shot in (see Feed:look), and any world text in it
+		if shot.look then
+			photo.BackgroundColor3, photo.Ambient, photo.LightColor, photo.LightDirection = shot.look.sky, shot.look.ambient, shot.look.light, shot.look.direction
+		end
+		for _, pin in shot.pins or {} do
+			local l = label({ Text = pin.text, Font = pin.font or UI_FONT, TextColor3 = pin.color or HUD, TextXAlignment = Enum.TextXAlignment.Center, AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 15, Parent = photo })
+			placeOnFace(l, shot.camCF, shot.fov or 70, 1, pin.cf, pin.size)
+		end
 	end
-	local photoFlash = make("Frame", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, ZIndex = 15, Parent = photo })
+	local photoFlash = make("Frame", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, ZIndex = 17, Parent = photo })
 	tween(photoFlash, 0.5, { BackgroundTransparency = 1 })
 	if post.viral then
 		local tag = label({ Text = Text.Cctv.viral, Font = UI_FONT, TextColor3 = Color3.new(1, 1, 1), TextXAlignment = Enum.TextXAlignment.Center, AnchorPoint = Vector2.new(1, 0), Position = UDim2.fromScale(0.96, 0.04), Size = UDim2.fromScale(0.34, 0.09), BackgroundTransparency = 0, BackgroundColor3 = Color3.fromRGB(176, 132, 255), ZIndex = 16, Parent = photo })

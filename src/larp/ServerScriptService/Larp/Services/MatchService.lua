@@ -32,6 +32,11 @@ local Combatant = require(script.Parent.Parent.Lib.Combatant)
 
 local MatchService = {}
 
+-- Studio-only playtest override, set through ServerStorage.LarpDebug "force" (never on a
+-- live server): { stats = { statId }, a = tier, b = tier, winner = "A"|"B"|"Draw",
+-- fumble = id, timing = Tuning.Timing.street-shaped }. Every field is optional.
+MatchService.force = nil
+
 -- CCTV scene mode has its own round timeline (see Config.Tuning.SceneMode).
 local CCTV = Tuning.SceneMode == "Cctv"
 
@@ -253,10 +258,19 @@ function MatchService._package(header, index: number, count: number, round)
 		b = rollPacket(round.b),
 		fumble = nil,
 	}
-	if round.winner ~= "Draw" then
-		local loserTier = if round.winner == "A" then pkg.b.tier else pkg.a.tier
+	local force = MatchService.force
+	if force then
+		pkg.winner = force.winner or pkg.winner
+		for key, side in { a = pkg.a, b = pkg.b } do
+			if force[key] then
+				side.tier, side.preTier, side.viral = force[key], force[key], false
+			end
+		end
+	end
+	if pkg.winner ~= "Draw" then
+		local loserTier = if pkg.winner == "A" then pkg.b.tier else pkg.a.tier
 		local data = sceneData[stat.scene]
-		pkg.fumble = data and SceneRules.pickFumble(data.fumbles, loserTier, rng)
+		pkg.fumble = (force and force.fumble) or (data and SceneRules.pickFumble(data.fumbles, loserTier, rng))
 	end
 	return pkg
 end
@@ -353,7 +367,10 @@ function MatchService:_run(stage, A, B)
 	local returnB = place(B, stage.markers.MarkR)
 
 	-- one round per stat that has a scene; the others sit out until theirs is built
-	local result = Resolver.resolveMatch(A.stats, B.stats, Catalog.roundStatIds, rng, Tuning.Upset)
+	local force = MatchService.force
+	local statIds = if force and force.stats then force.stats else Catalog.roundStatIds
+	local result = Resolver.resolveMatch(A.stats, B.stats, statIds, rng, Tuning.Upset)
+	local timing = (force and force.timing) or (if CCTV then Tuning.Timing.street else Tuning.Timing.round)
 	local header = {
 		matchId = match.id,
 		stageName = stage.name,
@@ -362,9 +379,9 @@ function MatchService:_run(stage, A, B)
 		b = Combatant.header(B),
 		rounds = #result.rounds,
 		introSeconds = Tuning.Timing.introSeconds,
-		roundSeconds = if CCTV then StreetPlan.duration(Tuning.Timing.street) else ClimbPlan.duration(Tuning.Timing.round),
+		roundSeconds = if CCTV then StreetPlan.duration(timing) else ClimbPlan.duration(timing),
 		verdictSeconds = Tuning.Timing.verdictSeconds,
-		timing = if CCTV then Tuning.Timing.street else Tuning.Timing.round,
+		timing = timing,
 	}
 
 	local finished = false

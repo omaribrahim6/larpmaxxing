@@ -29,8 +29,17 @@ function StreetRound.play(ctx, pkg, sc, live: () -> boolean)
 	ctx.post = nil
 	ctx.crowd:look(nil)
 	ctx.crowd:setPhones(false)
+	ctx.takeoverDelay = nil
 	for _, key in { "A", "B" } do
 		sc.prepare(ctx, key, roll[key].tier)
+	end
+	-- each feed shows this round's scene set and names its camera
+	for key, feed in monitor.feeds do
+		feed:showScene(pkg.scene)
+		local cam = sc.cams and sc.cams[key]
+		if cam then
+			feed:setCam(cam.label, cam.place)
+		end
 	end
 	monitor:connect(0.2)
 	if ctx.participant then
@@ -83,23 +92,36 @@ function StreetRound.play(ctx, pkg, sc, live: () -> boolean)
 		kit:sound(if (ctx.id + pkg.index) % 2 == 0 then "RecordScratch" else "FailSting", { volume = 0.55, duration = 1.4 })
 	end
 	function handlers.takeover(b)
-		local lose = monitor.feeds[loser]
-		lose:signalLost(("@%s  ·  %s"):format(ctx.sides[loser].name, Text.Cctv.likes:format(Format.int(roll[loser].rolled))))
-		kit:after(0.12, function()
-			monitor:takeover(b.side, loser, 0.35)
-			-- keep the winner left of centre, clear of the phone that slides up on the right
-			local target = sc.faceTarget and sc.faceTarget(ctx, b.side)
-			local size = monitor.root.AbsoluteSize
-			if target and size.Y > 0 then
-				monitor.feeds[b.side]:frameAt(target - Vector3.new(0, 1.5, 0), 0.36, size.X / size.Y, 0.35)
+		-- a scene can play its own takeover on the feeds first (the café's shutters come
+		-- down); it returns how long that takes, and the cut to static waits for it
+		local delay = if sc.takeover then sc.takeover(ctx, b.side, loser) or 0 else 0
+		ctx.takeoverDelay = delay
+		kit:after(delay, function()
+			if not live() then
+				return
 			end
+			local lose = monitor.feeds[loser]
+			lose:signalLost(("@%s  ·  %s"):format(ctx.sides[loser].name, Text.Cctv.likes:format(Format.int(roll[loser].rolled))))
+			kit:after(0.12, function()
+				monitor:takeover(b.side, loser, 0.35)
+				-- keep the winner left of centre, clear of the phone that slides up on the right
+				local target = sc.faceTarget and sc.faceTarget(ctx, b.side)
+				local size = monitor.root.AbsoluteSize
+				if target and size.Y > 0 then
+					monitor.feeds[b.side]:frameAt(target - Vector3.new(0, 1.5, 0), 0.36, size.X / size.Y, 0.35)
+				end
+			end)
+			kit:sound("Whoosh", { volume = 0.5 })
+			ctx.crowd:react("cheer", 0.8)
 		end)
-		kit:sound("Whoosh", { volume = 0.5 })
-		ctx.crowd:react("cheer", 0.8)
 	end
 	function handlers.post(b)
-		local loserName = loser and ctx.sides[loser].name
-		ctx.post = monitor:showPost(sc.post(ctx, b.side, roll[b.side], loserName))
+		kit:after(ctx.takeoverDelay or 0, function()
+			if live() then
+				local loserName = loser and ctx.sides[loser].name
+				ctx.post = monitor:showPost(sc.post(ctx, b.side, roll[b.side], loserName))
+			end
+		end)
 	end
 	function handlers.draw()
 		monitor:stamp(Text.Stamps.Draw, COLORS.Fumbled, 1.6, 0)

@@ -36,6 +36,17 @@ Poses.Defs = {
 	-- the body under Poses.selfie (which aims the right arm and the head itself)
 	SelfieBase = { Waist = A(-2, -6), LeftShoulder = A(0, 0, -6) },
 	LeanBase = { Waist = A(10, -4, 8), LeftShoulder = A(-20, 0, -25) },
+	-- Aesthetic (café) scene; the drink is in the right hand
+	Blank = { Waist = A(-6), Neck = A(-6), RightShoulder = A(28, 0, -6), RightElbow = A(62), LeftShoulder = A(0, 0, -4) },
+	HoldCup = { RightShoulder = A(30, 0, -8), RightElbow = A(70) },
+	Sip = { RightShoulder = A(62, 0, -26), RightElbow = A(118), Neck = A(8), Waist = A(3) },
+	SoftLook = { RightShoulder = A(34, 0, -10), RightElbow = A(78), LeftShoulder = A(-6, 0, -10), Waist = A(0, -14, 3), Neck = A(12, 40) },
+	HairCheckL = { RightShoulder = A(150, 0, -20), RightElbow = A(105), Neck = A(0, 58), Waist = A(0, 14) },
+	HairCheckR = { RightShoulder = A(150, 0, -20), RightElbow = A(105), Neck = A(0, -58), Waist = A(0, -14) },
+	Filming = { RightShoulder = A(92, 0, -14), LeftShoulder = A(92, 0, 14), RightElbow = A(38), LeftElbow = A(38), Neck = A(-4) },
+	Bonk = { Neck = A(24), Waist = A(14), RightShoulder = A(40, 0, 24), LeftShoulder = A(40, 0, -24), RightElbow = A(30), LeftElbow = A(30) },
+	OopsDown = { Neck = A(-34), Waist = A(-14), RightShoulder = A(40, 0, 26), LeftShoulder = A(40, 0, -26), RightElbow = A(20), LeftElbow = A(20) },
+	Serve = { RightShoulder = A(128, 0, -8), RightElbow = A(24), LeftShoulder = A(20, 0, -10), Neck = A(8) },
 }
 
 -- A joint handle: the instance and the property that holds its parent-side frame.

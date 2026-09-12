@@ -19,4 +19,21 @@ function Build.all(): string
 	return table.concat(out, "\n")
 end
 
+-- The larp-off scene assets built from data: sets (Larp.Assets.Sets) and each scene's
+-- props (Larp.Assets.Scenes.<scene>). The Bag scene's are hand-built and not listed.
+--   require(game.ServerStorage.LarpBuild.Build).scenes()
+Build.sets = { "CafeFront" }
+Build.sceneProps = { "Aesthetic" }
+
+function Build.scenes(): string
+	local out = {}
+	for _, name in Build.sets do
+		table.insert(out, name .. ": " .. require(script.Parent.Sets:FindFirstChild(name)).build())
+	end
+	for _, name in Build.sceneProps do
+		table.insert(out, name .. " props: " .. require(script.Parent.Scenes:FindFirstChild(name)).build())
+	end
+	return table.concat(out, "\n")
+end
+
 return Build

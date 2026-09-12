@@ -1,5 +1,41 @@
 # Handoff
-## LATEST: Claude, 2026-09-12 (denser pickups, tripod fix)
+## LATEST: Claude, 2026-09-12 (Aesthetic scene)
+- **The Aesthetic larp-off scene is in** (CCTV mode). Larp-offs now play two rounds: Bag, then Aesthetic. A security cam across the street from a café: each larper walks out with their drink, stops on the sidewalk, sips and looks off, and the street escalates with the tier.
+  - **Tiers:**
+    - T1: vending-machine coffee, overcast, a blank stare.
+    - T2: iced latte; a reflection check at the window, then the shades flip down.
+    - T3: matcha and a tote; a slow-mo walk-out and a portrait-mode haze.
+    - T4: adds a film camera; a friend walks backwards filming, and golden hour with a lens flare.
+    - T5: golden matcha, an entourage of three filming, falling petals.
+    - Maxxed: the sign becomes "@NAME CAFÉ", a line of six fans holds matcha, and a blimp shows their name.
+  - **Fumbles:** DrinkSplash, ToteSnap (T3+), WindowBonk, NpcCup (the barista runs out with a cup that says NPC), SignFlip (T6 only).
+  - **Takeover:** the loser's café pulls its shutters down ("CLOSED"), then their feed cuts to static. The optional `sc.takeover` hook in StreetRound returns the delay.
+  - **Post:** "romanticizing my life ✨", a portrait photo shot in the moment's light, with the sign text.
+  - **No music (owner's rule):** the spec's lo-fi beat is a soft-focus haze, and the T5 violinist is cut.
+- **Code:**
+  - `Config.Scenes.Aesthetic` (all tiers, looks, fumbles and copy are data) and `LarpClient.Scenes.AestheticStreet`.
+  - **New `LarpClient.StreetKit`:** shared helpers for the next scenes (walk a path, follow a body part, mirror a set, NPC walk tracks).
+  - **`Cctv`:**
+    - per-scene set folders (`sceneFolder`/`showScene`) and `setCam`
+    - `look` (relight a feed), `haze`, `flare`, `tag`
+    - `pin` (world text over a part; ViewportFrames don't render SurfaceGuis)
+    - post photos keep their light and pinned text
+  - **Wiring:** StreetRound swaps the set and camera names per round; SceneDirector builds every round scene at the intro; BagStreet's set moved into the feed's Bag folder.
+  - **Content:** new poses in `Poses`, and six Pro Sound Effects ids in `Config.Sounds`.
+- **Assets are built from data:**
+  - `LarpBuild.Sets.CafeFront` builds `Larp.Assets.Sets.CafeFront`; feed B mirrors it with `StreetKit.mirror`.
+  - `LarpBuild.Scenes.Aesthetic` builds `Larp.Assets.Scenes.Aesthetic`: the props and 4 R15 NPC rigs, with their Animate scripts stripped.
+  - `Build.scenes()` rebuilds both. They live in the place file, so **save the place (Ctrl+S)**.
+- **Studio-only test hook:** `LarpDebug:Invoke("force", userId, { stats = { "Aesthetic" }, a = 6, b = 2, winner = "A", fumble = "WindowBonk", timing = {...} })`, then `"practice"`. It forces tiers, winner, fumble and timing. It lives only in that play session; pass nil to clear it.
+- **Tested:**
+  - 51/51 unit tests, including the new "every scene tier has 2+ fumbles" and "every round scene has a CCTV module and six tiers".
+  - Forced T6-vs-T3 and T6-vs-T2 rounds played with no console errors.
+  - Screenshots confirmed the golden look, flare, petals, the sign's name, the portrait haze and the reflection check.
+  - **Not yet seen by me at normal speed:** the fumbles, the shutter takeover, the post photo, the blimp (after its fix) and the crew's new spots. The owner is testing.
+  - The mirror matched 69/69 before the last tweaks.
+- **Round length is unchanged:** 8.9 s per round, so a two-round larp-off is about 25 s. To shorten it, trim `Tuning.Timing.street`.
+
+## Claude, 2026-09-12 (denser pickups, tripod fix)
 - **Pickup counts are doubled** (user request):
   - Streets hold 208 slots (`Layout.streets[].spawns`).
   - Each location holds 80 (`Locations.<X>.config.spawns`; for the Car Lot, City tops it up to `Layout.carLotSpawns`).

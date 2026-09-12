@@ -29,10 +29,26 @@ return function(t)
 		expect.equal(Tiers.preViral(24000, false, 2, FLOORS), 5)
 	end)
 
-	-- Config promise: every Bag tier has at least two fitting fumbles.
-	t.test("every Bag tier has 2+ fumbles", function()
-		for tier = 1, Tiers.max(Tuning.Tiers) do
-			expect.truthy(#SceneRules.fumblesFor(BagScene.fumbles, tier) >= 2)
+	-- Config promise: every tier of every round scene has at least two fitting fumbles.
+	t.test("every scene tier has 2+ fumbles", function()
+		for _, id in Catalog.roundStatIds do
+			local scene = require(Larp.Config.Scenes[Catalog.statsById[id].scene])
+			for tier = 1, Tiers.max(Tuning.Tiers) do
+				expect.truthy(#SceneRules.fumblesFor(scene.fumbles, tier) >= 2)
+			end
+		end
+	end)
+
+	-- A stat that plays rounds needs its CCTV module and all six tiers of scene data.
+	t.test("every round scene has a CCTV module and six tiers", function()
+		local modules = game.StarterPlayer.StarterPlayerScripts.LarpClient.Scenes
+		for _, id in Catalog.roundStatIds do
+			local sceneId = Catalog.statsById[id].scene
+			expect.truthy(modules:FindFirstChild(sceneId .. "Street") ~= nil)
+			local data = require(Larp.Config.Scenes[sceneId])
+			for tier = 1, Tiers.max(Tuning.Tiers) do
+				expect.truthy(data.tiers[tier] ~= nil)
+			end
 		end
 	end)
 

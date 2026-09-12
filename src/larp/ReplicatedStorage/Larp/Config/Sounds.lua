@@ -17,5 +17,12 @@ return {
 	Ping = 17208361335, -- Roblox GUI - Notification High (viral pings, legendary drops)
 	RecordScratch = 9118086936, -- PSE: Record Scratch 1 (fumbles, upsets)
 	FailSting = 17208353912, -- Roblox GUI - Negative (fumbles, EXPOSED; stands in for a sad trombone)
+	-- Aesthetic (café) scene
+	DoorBell = 9119081659, -- PSE: Shop Door Bell Small Ceramic Teapot 1
+	Sip = 9119956540, -- PSE: Tea Sip 6 (big slurps)
+	IceClink = 9119922401, -- PSE: Tea Cup Detach 5 (ceramic clinks)
+	Splash = 9126173489, -- PSE: Water Burst Movement Out Of Liquid Splashing 4
+	Bonk = 9113437465, -- PSE: Big Thuds Wall Impact 1
+	ClothRip = 9113836369, -- PSE: Cloth Rip Zippy 5
 	-- Not yet sourced from the licensed library: SadTrombone, EngineRev. Add ids here when found.
 }

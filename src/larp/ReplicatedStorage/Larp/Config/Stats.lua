@@ -21,6 +21,7 @@ return {
 		color = Color3.fromRGB(240, 124, 167),
 		zone = "Cafe",
 		zoneName = "Café Strip",
+		scene = "Aesthetic",
 	},
 	{
 		id = "Drip",

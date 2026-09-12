@@ -421,11 +421,13 @@ local function intro(ctx)
 		end
 	end
 	if ctx.cctv then
-		-- build both streets now so the first round starts without a hitch
-		local sc = streetScene(Catalog.statsById[Catalog.statIds[1]].scene)
-		for _, key in { "A", "B" } do
-			if sc and sc.build then
-				sc.build(ctx, key)
+		-- build every round's sets now so no round starts with a hitch
+		for _, statId in Catalog.roundStatIds do
+			local sc = streetScene(Catalog.statsById[statId].scene)
+			for _, key in { "A", "B" } do
+				if sc and sc.build then
+					sc.build(ctx, key)
+				end
 			end
 		end
 	end
