@@ -1,5 +1,9 @@
 # Handoff
-## LATEST: Claude, 2026-09-12 (Drip scene)
+## Claude, 2026-09-12 (legendary drop banner)
+- **Legendary drops are a big banner now, not a notification card** (owner request). New `LarpClient.Announcer`: "✦ LEGENDARY DROP ✦", the item name in LuckiestGuy with a shimmer, and where it dropped, near the top of the screen (60% wide, 820 px max). It slams in, holds 3.4 s and floats off. Drops queue (3 at most) and wait while a larp-off is on screen (SceneDirector calls `Announcer.setBusy`). Copy is in `Config.Text.Legendary`.
+- **The owner owns every system, CodexUI included**: when they ask to replace something, replace it.
+
+## Claude, 2026-09-12 (Drip scene)
 - **The Drip larp-off scene is in** (CCTV mode). Larp-offs now play three rounds: Bag, Aesthetic, then Drip (8.9 s each, about 34 s with intro and verdict). A low security cam at the end of the mall promenade: each larper walks out of the sliding doors straight at the lens like a catwalk, heel-turns, poses, and the feed freeze-frames.
   - **The outfit is all they wear (owner request):** the scene's avatar copy loses the player's own shirt, pants, t-shirt decal, layered clothing and accessories (hair stays), and each tier colours its body parts in an outfit (`outfit` in Config.Scenes.Drip; skin shows under short sleeves or legs). Worn pieces sized to the avatar go on top. The real character on stage keeps its clothes.
   - **Tiers:**

@@ -9,7 +9,9 @@ local Debris = game:GetService("Debris")
 local Larp = game:GetService("ReplicatedStorage"):WaitForChild("Larp")
 local Catalog = require(Larp.Shared.Catalog)
 local Net = require(Larp.Shared.Net)
+local Text = require(Larp.Config.Text)
 local SoundKit = require(script.Parent.SoundKit)
+local Announcer = require(script.Parent.Announcer)
 
 local TAG = "LarpPickup"
 local ANIMATE_RANGE = 160 -- studs from the camera within which pickups spin and bob
@@ -191,12 +193,19 @@ function PickupFx.start(ui)
 		end)
 	end)
 
+	-- a legendary drop gets the big banner (Announcer), not a notification card
 	Net.get("LegendarySpawned").OnClientEvent:Connect(function(itemId, _position, place)
 		local item = Catalog.itemsById[itemId]
 		local stat = item and Catalog.statsById[item.stat]
 		if item then
 			local where = if type(place) == "string" then place else "in the " .. (stat and stat.zoneName or "map")
-			ui:Notify(("A %s just dropped %s!"):format(item.name, where), "info")
+			local rarity = Catalog.rarities[item.rarity]
+			Announcer.push({
+				title = Text.Legendary.title,
+				text = item.name,
+				sub = Text.Legendary.where:format(where),
+				color = rarity and rarity.color,
+			})
 			SoundKit.play("Ping", { volume = 0.5 })
 		end
 	end)

@@ -28,6 +28,7 @@ local Poses = require(script.Parent.Poses)
 local Crowd = require(script.Parent.Crowd)
 local Cctv = require(script.Parent.Cctv)
 local StreetRound = require(script.Parent.StreetRound)
+local Announcer = require(script.Parent.Announcer)
 local ChallengePrompts = require(script.Parent.ChallengePrompts)
 local MusicKit = require(script.Parent.MusicKit)
 
@@ -466,6 +467,7 @@ local function intro(ctx)
 	ctx.ducked = true
 	if ctx.participant then
 		ctx.ui:SetMatchActive(true)
+		Announcer.setBusy(true)
 		ChallengePrompts.setEnabled(false)
 	end
 end
@@ -788,6 +790,7 @@ local function finish(ctx, aborted: boolean, reason: string?)
 	if ctx.participant then
 		ChallengePrompts.setEnabled(true)
 		ctx.ui:SetMatchActive(false)
+		Announcer.setBusy(false)
 		if aborted then
 			ctx.ui:Notify("Larp-off cancelled: " .. tostring(reason or "aborted"), "warning")
 		else

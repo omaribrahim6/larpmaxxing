@@ -40,6 +40,11 @@ return {
 		youAreBusy = "Finish your current larp-off first",
 	},
 	UpsetBanner = "UPSET on %s!",
+	-- the banner when a legendary item drops (LarpClient.Announcer)
+	Legendary = {
+		title = "✦ LEGENDARY DROP ✦",
+		where = "just dropped %s",
+	},
 	RewardsLimited = "No bonus: you've already larped-off each other twice in 10 minutes",
 	SavingDisabled = "Progress won't save this session",
 }
