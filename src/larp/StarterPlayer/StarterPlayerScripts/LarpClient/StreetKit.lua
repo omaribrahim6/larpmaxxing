@@ -106,6 +106,55 @@ function StreetKit.follow(kit, model: Model, where: () -> CFrame?)
 	return stop
 end
 
+-- A copy of an NPC rig standing on `ground` facing `dir` in `parent`, optionally
+-- recoloured ({ shirt, pants, skin }). Returns the rig (nil without a template) and its
+-- stand height.
+function StreetKit.npc(ctx, template: Instance?, parent: Instance, ground: Vector3, dir: Vector3, colors): (Model?, number)
+	if not template then
+		return nil, 3
+	end
+	local rig = template:Clone()
+	if colors then
+		for _, p in rig:GetChildren() do
+			if p:IsA("BasePart") then
+				local n = p.Name
+				if n == "UpperTorso" or n == "LowerTorso" or n:find("UpperArm") then
+					p.Color = colors.shirt
+				elseif n:find("Leg") or n:find("Foot") then
+					p.Color = colors.pants
+				elseif n == "Head" or n:find("LowerArm") or n:find("Hand") then
+					p.Color = colors.skin
+				end
+			end
+		end
+	end
+	local humanoid = rig:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		pcall(function()
+			humanoid.EvaluateStateMachine = false
+		end)
+	end
+	rig.Parent = parent
+	local height = ctx.standHeight(rig)
+	rig:PivotTo(StreetKit.standAt(height, ground, dir))
+	return rig, height
+end
+
+-- A gentle idle sway for standing NPCs (skips any with the Moving attribute set).
+function StreetKit.idle(kit, rigs: { Model })
+	local rest = {}
+	for i, rig in rigs do
+		rest[i] = rig:GetPivot()
+	end
+	kit:loop(function(time)
+		for i, rig in rigs do
+			if rig.Parent and not rig:GetAttribute("Moving") then
+				rig:PivotTo(rest[i] * CFrame.Angles(0, math.sin(time * 1.3 + i) * 0.04, math.sin(time * 1.7 + i * 2) * 0.02))
+			end
+		end
+	end)
+end
+
 -- A position along a path of points at arc length s (clamped), and the path's length.
 function StreetKit.path(points: { Vector3 }): ((number) -> Vector3, number)
 	local segs, total = {}, 0

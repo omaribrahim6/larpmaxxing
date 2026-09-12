@@ -1,5 +1,26 @@
 # Handoff
-## LATEST: Claude, 2026-09-12 (Aesthetic scene)
+## LATEST: Claude, 2026-09-12 (Drip scene)
+- **The Drip larp-off scene is in** (CCTV mode). Larp-offs now play three rounds: Bag, Aesthetic, then Drip (8.9 s each, about 34 s with intro and verdict). A low security cam at the end of the mall promenade: each larper walks out of the sliding doors straight at the lens like a catwalk, heel-turns, poses, and the feed freeze-frames.
+  - **Tiers (the fit is worn pieces sized to each avatar):**
+    - T1: plain tee; a shopper glances up, then looks away.
+    - T2: jorts; two hypebeasts nod.
+    - T3: jorts and a silver chain; a strut, and the runway tiles light up under each step (a wave when the pose lands).
+    - T4: adds designer shades; slow-mo, flashes down the route, the wind machine kicks on with an impact hit.
+    - T5: adds the limited sneakers; dusk, a red carpet unrolling a step ahead, six photographers, a "LOOK 01" easel.
+    - Maxxed: a runway blazer; the catwalk rises under them, spark fountains, fireworks, an audience of eight, and the mall's giant screen lights up with a turning sneaker and "@NAME".
+  - **Fumbles:** Trip, ShadesDrop (T4+, then blinded by the flashes), SneakerFly, WrongWayBin.
+  - **Takeover:** a copy of the winner, in their fit, struts onto the loser's runway, hip-bumps them off the side and poses there.
+  - **No music (owner's rule):** the spec's runway beat and bass drop are the wind machine with an impact hit.
+- **Code:**
+  - `Config.Scenes.Drip`; `LarpClient.Scenes.DripStreet` (setup and beats), `DripFx` (street effects) and `DripFumbles` (fumbles and takeover).
+  - `StreetKit.npc` and `StreetKit.idle` are shared now; `Poses.restCopy` lets a clone of a posed avatar pose cleanly.
+  - `LarpBuild.SceneProps` holds the prop and R15-NPC helpers both prop builders use (Aesthetic's builder was switched over and rebuilt identically: 14 props).
+  - `LarpBuild.Sets.MallWalk` (237 parts) and `LarpBuild.Scenes.Drip` (19 props) are in `Build.scenes()`. Set text is a `PinText` attribute on a part, pinned at runtime.
+  - Six Pro Sound Effects ids in `Config.Sounds` (bin, squeak, flash pop, body fall, cloth, sparks). No licensed wind or firework clip exists, so those use Whoosh, the cloth rustle, Boom and an electric crackle.
+- **Save the place (Ctrl+S):** the MallWalk set and Drip props live in the place file.
+- **Tested:** 51/51 unit tests (the scene-coverage rules now include Drip); every new and changed script compiles; mirror 76/76. A forced T6-vs-T4 round played with no console errors. **Not seen by me on screen:** the owner is testing.
+
+## Claude, 2026-09-12 (Aesthetic scene)
 - **The Aesthetic larp-off scene is in** (CCTV mode). Larp-offs now play two rounds: Bag, then Aesthetic. A security cam across the street from a café: each larper walks out with their drink, stops on the sidewalk, sips and looks off, and the street escalates with the tier.
   - **Tiers:**
     - T1: vending-machine coffee, overcast, a blank stare.

@@ -47,6 +47,17 @@ Poses.Defs = {
 	Bonk = { Neck = A(24), Waist = A(14), RightShoulder = A(40, 0, 24), LeftShoulder = A(40, 0, -24), RightElbow = A(30), LeftElbow = A(30) },
 	OopsDown = { Neck = A(-34), Waist = A(-14), RightShoulder = A(40, 0, 26), LeftShoulder = A(40, 0, -26), RightElbow = A(20), LeftElbow = A(20) },
 	Serve = { RightShoulder = A(128, 0, -8), RightElbow = A(24), LeftShoulder = A(20, 0, -10), Neck = A(8) },
+	-- Drip (runway) scene
+	Strut = { Neck = A(10), Waist = A(-3), RightShoulder = A(0, 0, 6), LeftShoulder = A(0, 0, -6) },
+	Shrug = { RightShoulder = A(10, 0, 28), LeftShoulder = A(10, 0, -28), RightElbow = A(60), LeftElbow = A(60), Neck = A(0, 0, 10), Waist = A(0, 0, -3) },
+	HandHip = { RightShoulder = A(8, 0, 36), RightElbow = A(80), LeftShoulder = A(0, 0, -8), Waist = A(0, 12, -5), Neck = A(8, -14, 6) },
+	OverShoulder = { Waist = A(0, 32, 0), Neck = A(8, -46, 0), RightShoulder = A(8, 0, 36), RightElbow = A(80), LeftShoulder = A(-10, 0, -12) },
+	Nod = { Neck = A(-22) },
+	Squint = { RightShoulder = A(155, 0, -28), RightElbow = A(105), LeftShoulder = A(20, 0, -10), Neck = A(-12, 0, 8), Waist = A(-8) },
+	Stumble = { Waist = A(-28), Neck = A(18), RightShoulder = A(115, 0, 30), LeftShoulder = A(95, 0, -35), RightElbow = A(20), LeftElbow = A(30) },
+	Splat = { RightShoulder = A(170, 0, 30), LeftShoulder = A(170, 0, -30), Neck = A(20) },
+	Flail = { RightShoulder = A(20, 0, 110), LeftShoulder = A(20, 0, -110), RightElbow = A(40), LeftElbow = A(40), Neck = A(12), Waist = A(4) },
+	HipBump = { Waist = A(0, -20, 22), RightShoulder = A(0, 0, 50), LeftShoulder = A(40, 0, -20), LeftElbow = A(70), Neck = A(8, 30) },
 }
 
 -- A joint handle: the instance and the property that holds its parent-side frame.
@@ -173,6 +184,19 @@ function Poses.selfie(kit, character: Model?, reach: Vector3, base, duration: nu
 		end
 	end
 	Poses.applyDef(kit, character, def, duration)
+end
+
+-- A clone of a posed character starts out in its pose; this puts the clone's joints back
+-- to the source's rest, so poses apply to it cleanly.
+function Poses.restCopy(copy: Model, source: Model)
+	local from = joints(source)
+	for jointName, handle in joints(copy) do
+		local src = from[jointName]
+		local saved = src and originals[src.object]
+		if saved then
+			(handle.object :: any)[handle.prop] = saved.value
+		end
+	end
 end
 
 -- Big-screen mode: poses applied to the avatar copy in the scene set are mirrored

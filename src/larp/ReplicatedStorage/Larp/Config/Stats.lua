@@ -29,6 +29,7 @@ return {
 		color = Color3.fromRGB(163, 146, 242),
 		zone = "Mall",
 		zoneName = "Mall",
+		scene = "Drip",
 	},
 	{
 		id = "Gains",

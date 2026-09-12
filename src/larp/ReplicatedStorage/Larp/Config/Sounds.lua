@@ -24,5 +24,12 @@ return {
 	Splash = 9126173489, -- PSE: Water Burst Movement Out Of Liquid Splashing 4
 	Bonk = 9113437465, -- PSE: Big Thuds Wall Impact 1
 	ClothRip = 9113836369, -- PSE: Cloth Rip Zippy 5
+	-- Drip (mall runway) scene
+	BinCrash = 9120256999, -- PSE: Trash Can Kick Metal Garbage Can 6
+	Squeak = 9119304133, -- PSE: Sneaker Squeak Long Rubbery Squeak 2
+	FlashPop = 9113669552, -- PSE: Camera Flash 4 (Speedlite pop)
+	BodyFall = 9113480917, -- PSE: Body Fall Thud 1
+	ClothFlap = 9114369924, -- PSE: Falcon Wing Flaps 3 (heavy cloth rustle: the carpet, the wind machine)
+	Sparks = 9116278351, -- PSE: Lightning Flashes Quick Electrical Bursts 38 (spark fountains)
 	-- Not yet sourced from the licensed library: SadTrombone, EngineRev. Add ids here when found.
 }
