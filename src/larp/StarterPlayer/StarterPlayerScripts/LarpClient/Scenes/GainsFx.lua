@@ -67,8 +67,8 @@ function GainsFx.startMirror(ctx, st)
 	end)
 end
 
--- Adds `source` (a model) to the mirror: an inert copy of it (no joints, humanoid or
--- scripts, every part anchored) follows it, mirrored, until the round resets.
+-- Adds `source` (a model) to the mirror: an inert copy of it (no joints or scripts, every
+-- part anchored) follows it, mirrored, until the round resets.
 function GainsFx.reflect(st, source: Instance?)
 	if not source or not st.reflections then
 		return
@@ -90,8 +90,17 @@ function GainsFx.reflect(st, source: Instance?)
 		end
 	end
 	for _, d in dd do
-		if d:IsA("JointInstance") or d:IsA("WeldConstraint") or d:IsA("Constraint") or d:IsA("Humanoid") or d:IsA("BaseScript") or d:IsA("Sound") or d:IsA("GuiBase3d") or d:IsA("LayerCollector") then
+		if d:IsA("JointInstance") or d:IsA("WeldConstraint") or d:IsA("Constraint") or d:IsA("BaseScript") or d:IsA("Sound") or d:IsA("GuiBase3d") or d:IsA("LayerCollector") then
 			d:Destroy()
+		elseif d:IsA("Humanoid") then
+			-- kept: a character's shirt and pants only draw on a body with a Humanoid. It
+			-- just mustn't think, or die because its joints are gone.
+			pcall(function()
+				d.EvaluateStateMachine = false
+			end)
+			d.RequiresNeck = false
+			d.BreakJointsOnDeath = false
+			d.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 		end
 	end
 	for _, p in dst do
