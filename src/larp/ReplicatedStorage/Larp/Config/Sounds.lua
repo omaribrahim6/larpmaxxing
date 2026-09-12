@@ -35,5 +35,14 @@ return {
 	Clank = 9125670743, -- PSE: Metal Impact Sledge Hammer Hits On 5 Ft I-Beam 3 (plates, bars)
 	Rumble = 9113215872, -- PSE: Avalanche Crashing 1 (the floor shaking, dust falling)
 	Creak = 9118296784, -- PSE: Robot Movement 7 (metal squeaks: the bar bending)
+	-- Big Brain (reading garden) scene
+	PageTurn = 9118835414, -- PSE: Scrapbook Open And Turn Pages 2 (a big book opening, pages turning)
+	Snore = 9119309082, -- PSE: Snores Coughs Several Males 6
+	MicFeedback = 9116916659, -- PSE: Microphone Feedback Long Nasty Squeals 9
+	Applause = 9113138157, -- PSE: Applause Tight 3 (group clap in a small room)
+	ChessTap = 9118623055, -- PSE: Rock Impacts 12 (wood on stone: a chess piece set down)
+	Switch = 9120100153, -- PSE: Toggle Switch Metal Industrial Equipment 90 (spotlights, the LIVE sign)
+	Chalk = 9113781512, -- PSE: Chalkboard 8
+	ChairScrape = 9113776775, -- PSE: Chair Scrape 3
 	-- Not yet sourced from the licensed library: SadTrombone, EngineRev. Add ids here when found.
 }

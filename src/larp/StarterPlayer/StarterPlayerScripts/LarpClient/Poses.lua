@@ -12,10 +12,25 @@ local JOINTS = {
 	LeftElbow = "LeftLowerArm",
 	Neck = "Head",
 	Waist = "UpperTorso",
+	RightHip = "RightUpperLeg",
+	LeftHip = "LeftUpperLeg",
+	RightKnee = "RightLowerLeg",
+	LeftKnee = "LeftLowerLeg",
 }
 
 local function A(x, y, z)
 	return CFrame.Angles(math.rad(x), math.rad(y or 0), math.rad(z or 0))
+end
+
+-- Sitting: thighs forward (+X on a hip, like a shoulder), shins back down. A pose sets
+-- every joint, so a seated pose carries the legs with it.
+local SIT = { RightHip = A(90), LeftHip = A(90), RightKnee = A(-90), LeftKnee = A(-90) }
+local function seated(def)
+	local out = table.clone(SIT)
+	for joint, offset in def do
+		out[joint] = offset
+	end
+	return out
 end
 
 Poses.Defs = {
@@ -71,6 +86,28 @@ Poses.Defs = {
 	Strain = { Waist = A(-40), Neck = A(26), RightShoulder = A(58, 0, -6), LeftShoulder = A(58, 0, 6), RightElbow = A(0), LeftElbow = A(0) },
 	Noodle = { Waist = A(-18, 0, 16), Neck = A(-28, 0, 22), RightShoulder = A(0, 0, 38), LeftShoulder = A(0, 0, -64), RightElbow = A(-10), LeftElbow = A(20) },
 	Pump = { RightShoulder = A(170, 0, 12), RightElbow = A(40), LeftShoulder = A(0, 0, -12), Neck = A(10) },
+	-- Big Brain (reading garden) scene: on the bench
+	Sit = seated({ RightShoulder = A(30, 0, -8), LeftShoulder = A(30, 0, 8), RightElbow = A(40), LeftElbow = A(40) }),
+	SitRead = seated({ RightShoulder = A(62, 0, -22), LeftShoulder = A(62, 0, 22), RightElbow = A(78), LeftElbow = A(78), Neck = A(-6) }),
+	SitMouth = seated({ RightShoulder = A(62, 0, -22), LeftShoulder = A(62, 0, 22), RightElbow = A(78), LeftElbow = A(78), Neck = A(-1, 7) }),
+	SitLap = seated({ RightShoulder = A(38, 0, -14), LeftShoulder = A(38, 0, 14), RightElbow = A(50), LeftElbow = A(50), Neck = A(-28), Waist = A(-10) }),
+	SitThink = seated({ RightShoulder = A(55, 0, -30), RightElbow = A(135), LeftShoulder = A(30, 0, 8), LeftElbow = A(60), Neck = A(-8, -10) }),
+	SitMove = seated({ RightShoulder = A(60, 0, 10), RightElbow = A(20), LeftShoulder = A(30, 0, 8), LeftElbow = A(40), Waist = A(-18, -15), Neck = A(-30, -15) }),
+	SitSleep = seated({ Neck = A(28), Waist = A(12), RightShoulder = A(8, 0, 14), LeftShoulder = A(8, 0, -14), RightElbow = A(10), LeftElbow = A(10) }),
+	SitHandUp = seated({ RightShoulder = A(150, 0, -10), RightElbow = A(30), LeftShoulder = A(30, 0, 8), LeftElbow = A(40), Neck = A(10) }),
+	SitPoke = seated({ RightShoulder = A(95, 0, -35), RightElbow = A(120), LeftShoulder = A(30, 0, 8), LeftElbow = A(40), Neck = A(4) }),
+	SitFlinch = seated({ RightShoulder = A(120, 0, -30), RightElbow = A(130), LeftShoulder = A(20, 0, -10), Neck = A(20, 0, 12), Waist = A(10) }),
+	SitEars = seated({ RightShoulder = A(120, 0, 28), LeftShoulder = A(120, 0, -28), RightElbow = A(120), LeftElbow = A(120), Neck = A(-10), Waist = A(-8) }),
+	SitFacepalm = seated({ RightShoulder = A(100, 0, -25), RightElbow = A(140), LeftShoulder = A(30, 0, 8), LeftElbow = A(40), Neck = A(-25), Waist = A(-10) }),
+	SitMic = seated({ RightShoulder = A(120, 0, 30), RightElbow = A(140), LeftShoulder = A(38, 0, 14), LeftElbow = A(50), Waist = A(-10), Neck = A(-4) }),
+	SitClapA = seated({ RightShoulder = A(70, 0, -30), LeftShoulder = A(70, 0, 30), RightElbow = A(50), LeftElbow = A(50) }),
+	SitClapB = seated({ RightShoulder = A(70, 0, -5), LeftShoulder = A(70, 0, 5), RightElbow = A(50), LeftElbow = A(50) }),
+	-- standing: the audience's ovation, the Maxxed lecture, the takeover bow
+	ClapA = { RightShoulder = A(80, 0, -30), LeftShoulder = A(80, 0, 30), RightElbow = A(45), LeftElbow = A(45), Neck = A(8) },
+	ClapB = { RightShoulder = A(80, 0, -2), LeftShoulder = A(80, 0, 2), RightElbow = A(45), LeftElbow = A(45), Neck = A(8) },
+	Lecture = { Waist = A(0, 25), Neck = A(8, 30), LeftShoulder = A(40, 0, -85), LeftElbow = A(5), RightShoulder = A(30, 0, -6), RightElbow = A(70) },
+	Bow = { Waist = A(-40), Neck = A(-15), RightShoulder = A(10), LeftShoulder = A(10) },
+	Shush = { RightShoulder = A(85, 0, -35), RightElbow = A(135), Neck = A(-4) },
 }
 
 -- A joint handle: the instance and the property that holds its parent-side frame.

@@ -45,5 +45,6 @@ return {
 		color = Color3.fromRGB(114, 165, 244),
 		zone = "Library",
 		zoneName = "Library",
+		scene = "BigBrain",
 	},
 }

@@ -323,8 +323,9 @@ function Feed:project(position: Vector3): Vector2?
 end
 
 -- World text on a part's front (-Z) face, drawn over the feed and re-placed every frame
--- (so it follows a moving part or camera). style: font, color, stroke. Returns the label;
--- set its Text to change it. Cleared by reset().
+-- (so it follows a moving part or camera). style: font, color, stroke, rotation (degrees;
+-- 180 is an upside-down title). Returns the label; set its Text to change it. Cleared by
+-- reset().
 function Feed:pin(part: BasePart, text: string, style: { [string]: any }?)
 	style = style or {}
 	local l = label({
@@ -333,6 +334,7 @@ function Feed:pin(part: BasePart, text: string, style: { [string]: any }?)
 		TextColor3 = style.color or HUD,
 		TextXAlignment = Enum.TextXAlignment.Center,
 		AnchorPoint = Vector2.new(0.5, 0.5),
+		Rotation = style.rotation or 0,
 		ZIndex = 3,
 	})
 	if style.stroke then

@@ -1,5 +1,22 @@
 # Handoff
-## LATEST: Claude, 2026-09-12 (Gains scene)
+## LATEST: Claude, 2026-09-12 (Big Brain scene)
+- **The Big Brain larp-off scene is in** (CCTV mode), the fifth and last. Larp-offs now play all five rounds: Bag, Aesthetic, Drip, Gains, Big Brain. A park-bench reading garden outside the library; each larper strolls in, sits on the bench and reads (the avatar really sits: hips and knees are posed joints now).
+  - **Tiers:**
+    - T1: opens a book upside down (its title is pinned rotated 180°).
+    - T2: a comic; their lips move ("mm…" captions).
+    - T3: lens-less glasses snap on; a huge "VERY SERIOUS" book thuds open on their lap and turns its own pages.
+    - T4: a chessboard appears and they play both sides, spinning the board; four people gather and one shushes; equations drift up; the garden dims ("Hush" look).
+    - T5: headphones, a podcast mic on a boom arm, a LIVE sign lights; six seated listeners clap silently.
+    - Maxxed: a stage rises under the bench; they stand at a lectern under a spotlight, a giant screen of nonsense diagrams rises ("by @NAME"), a chalkboard writes itself, eight people give a standing ovation.
+    - Camera: slow two-stage push-ins and a rack focus (haze) from face to book.
+  - **Fumbles:** AsleepBook (book on the face, snore bubble), DunceCap ("2 + 2 = 5"), PokeGlasses (T3+), SelfMate (T4–5), MicFeedback (T5+).
+  - **Takeover:** the loser's garden goes dark, a spotlight swings in from the winner's side of the monitor, and the loser's audience turns their chairs away (three are seated first if they had none).
+  - **No music (owner's rule):** there's no licensed "hmm" or hush, so both are captions; page turns, snores, mic feedback, applause, chess taps and chair scrapes are Pro Sound Effects.
+- **Code:** `Config.Scenes.BigBrain`; `LarpClient.Scenes.BigBrainStreet`, `BigBrainFx`, `BigBrainFumbles`. `Poses` gained hip and knee joints, `SIT` and `seated()` plus seated poses; `Cctv` `Feed:pin` takes `style.rotation`. Eight Pro Sound Effects ids in `Config.Sounds`.
+- **Assets:** `LarpBuild.Sets.ReadingBench` (117 parts) and `LarpBuild.Scenes.BigBrain` (14 props) are in `Build.scenes()`. **Save the place (Ctrl+S).**
+- **Tested:** 51/51 unit tests; every new and changed script compiles; mirror 89/89. **Not seen on screen by me:** a forced round was queued but never started before the owner took over testing at normal timing.
+
+## Claude, 2026-09-12 (Gains scene)
 - **The Gains larp-off scene is in** (CCTV mode). Larp-offs now play four rounds: Bag, Aesthetic, Drip, Gains (8.9 s each). A low security cam on the gym's free-weights floor looks up at the lifting platform with the mirror wall behind it.
   - **The mirror:** ViewportFrames don't render reflections, so `GainsFx` builds one: the set's `Room` is mirrored across the mirror plane (z = 0) behind the glass once per feed, and the avatar, the weight, the NPCs and the rack's dumbbells each get an inert copy that follows them mirrored every frame (`GainsFx.reflect`).
   - **Tiers:**
