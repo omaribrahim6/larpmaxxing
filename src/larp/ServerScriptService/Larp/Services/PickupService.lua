@@ -37,17 +37,31 @@ local function weightedPick(order: { string }, weights: { [string]: number }): s
 	return order[#order]
 end
 
--- Picks an item for a zone: mostly its home stat, sometimes any other stat.
-function PickupService.chooseItem(homeStat: string)
-	local statId = homeStat
-	local others = {}
+-- Picks an item for a zone. A location (`homeStat`) spawns its home stat, or another stat
+-- (1 - Tuning.Pickup.homeZoneShare) of the time; a street (`homeStat` nil) spawns any stat.
+function PickupService.chooseItem(homeStat: string?)
+	local stocked = {}
 	for _, id in Catalog.statIds do
-		if id ~= homeStat and #Catalog.itemsByStat[id] > 0 then
-			table.insert(others, id)
+		if #Catalog.itemsByStat[id] > 0 then
+			table.insert(stocked, id)
 		end
 	end
-	if #others > 0 and rng:NextNumber() > Tuning.Pickup.homeZoneShare then
-		statId = others[rng:NextInteger(1, #others)]
+	if #stocked == 0 then
+		return nil
+	end
+	local statId = homeStat
+	if statId == nil then
+		statId = stocked[rng:NextInteger(1, #stocked)]
+	else
+		local others = {}
+		for _, id in stocked do
+			if id ~= homeStat then
+				table.insert(others, id)
+			end
+		end
+		if #others > 0 and rng:NextNumber() > Tuning.Pickup.homeZoneShare then
+			statId = others[rng:NextInteger(1, #others)]
+		end
 	end
 	local items = Catalog.itemsByStat[statId]
 	if not items or #items == 0 then
@@ -139,7 +153,7 @@ function PickupService:_placement(point: BasePart)
 	return CFrame.new(center) * CFrame.Angles(0, rng:NextNumber(0, math.pi * 2), 0), occupied, position
 end
 
-function PickupService:_spawn(point: BasePart, homeStat: string)
+function PickupService:_spawn(point: BasePart, homeStat: string?)
 	if not point.Parent or not folder or not folder.Parent then return end
 	local item = PickupService.chooseItem(homeStat)
 	if not item then
@@ -246,6 +260,20 @@ function PickupService:Start()
 			if point:IsA("BasePart") then
 				task.delay(rng:NextNumber(0, 2), function()
 					self:_spawn(point, statId)
+				end)
+			end
+		end
+	end
+
+	-- Streets (Map.Streets.<street>, built by LarpBuild.City) spawn every stat: the walk
+	-- between locations picks up a bit of everything.
+	local streets = map:FindFirstChild("Streets")
+	for _, zone in if streets then streets:GetChildren() else {} do
+		local points = zone:FindFirstChild("SpawnPoints")
+		for _, point in if points then points:GetChildren() else {} do
+			if point:IsA("BasePart") then
+				task.delay(rng:NextNumber(0, 2), function()
+					self:_spawn(point, nil)
 				end)
 			end
 		end

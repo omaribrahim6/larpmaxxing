@@ -159,4 +159,14 @@ return function(t)
 		expect.truthy(common > 0.55 and common < 0.65)
 		expect.truthy((counts.Legendary or 0) > 0)
 	end)
+
+	-- Streets (no home stat) spawn any stat that has items.
+	t.test("street pickups come from any stocked stat", function()
+		local Pickup = require(game.ServerScriptService.Larp.Services.PickupService)
+		local Catalog = require(game.ReplicatedStorage.Larp.Shared.Catalog)
+		for _ = 1, 200 do
+			local item = Pickup.chooseItem(nil)
+			expect.truthy(item ~= nil and #Catalog.itemsByStat[item.stat] > 0)
+		end
+	end)
 end

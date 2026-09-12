@@ -14,6 +14,7 @@ Covered roots:
 - ServerScriptService.UnitTestRunner
 - StarterPlayer.StarterPlayerScripts.LarpClient
 - ServerStorage.UnitTest
+- ServerStorage.LarpBuild (edit-time map builders; see its City and Layout modules)
 
 Codex's CodexUI and CodexShared live in `src/client`, `src/config` and `src/shared` and are not part of this mirror.
 
@@ -28,7 +29,7 @@ local function fnv(s)
 	end
 	return string.format("%08x", h)
 end
-local roots = { game.ReplicatedStorage.Larp, game.ServerScriptService.Larp, game.StarterPlayer.StarterPlayerScripts.LarpClient, game.ServerStorage.UnitTest, game.ServerScriptService:FindFirstChild("UnitTestRunner") }
+local roots = { game.ReplicatedStorage.Larp, game.ServerScriptService.Larp, game.StarterPlayer.StarterPlayerScripts.LarpClient, game.ServerStorage.UnitTest, game.ServerScriptService:FindFirstChild("UnitTestRunner"), game.ServerStorage:FindFirstChild("LarpBuild") }
 local out = {}
 for _, r in roots do
 	local list = r:GetDescendants(); table.insert(list, 1, r)

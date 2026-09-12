@@ -45,7 +45,9 @@ return {
 	},
 
 	Pickup = {
-		homeZoneShare = 0.75, -- share of a zone's spawns that are its home stat
+		-- Share of a location's spawns that are its home stat. 1 = a location only spawns its
+		-- own stat (user direction 2026-09-12); the streets spawn every stat.
+		homeZoneShare = 1,
 		respawnMin = 8,
 		respawnMax = 15,
 		hoverHeight = 3,

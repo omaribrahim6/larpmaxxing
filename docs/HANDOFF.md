@@ -1,5 +1,24 @@
 # Handoff
-## LATEST: Claude, 2026-09-12 (vocal-only music)
+## LATEST: Claude, 2026-09-12 (city map)
+- **The city (user direction):** the Plaza and Stage 1 stay in the middle. A ring road circles them, and avenues lined with solid (non-enterable) buildings lead out to each location:
+  - east: Money Mile → **Car Lot** (moved to x 332..424)
+  - west: Latte Lane → **Café Strip**
+  - south: Runway Road → **Mall**
+  - north: Grind Street → Iron & Ink St, which leads to the **Gym** (east) and **Library** (west)
+  - Signposts at each junction point the way.
+- **Pickups:** every street is a pickup zone (`Map.Streets.<street>`) that spawns any stat. Each location spawns only its own stat (`Tuning.Pickup.homeZoneShare = 1`).
+  - Only Bag exists today, so streets spawn Bag.
+  - The Café, Mall, Gym and Library spawn nothing until their stats exist. Their SpawnPoints are ready: 40 each, plus 104 on the streets.
+- **Builder (`ServerStorage.LarpBuild`, edit-time only, modular):**
+  - `Layout` is the plan as data: streets, plots, signs, furniture and filler.
+  - `Buildings` holds the styles and shop names. `Kit` holds the primitives.
+  - `City` builds the streets: it rasterizes them on a 4-stud grid, merges the roads and sidewalks into few parts, lines every frontage with buildings, and fills the blocks behind.
+  - `Locations/<Name>` builds one location, and each has its own `config`.
+  - `Build.all()` rebuilds everything. To change one thing, edit its data and rebuild just that piece.
+  - **From MCP `execute_luau`, run a fresh clone of LarpBuild**, because modules are cached between calls.
+- **Music zones:** `Map.Cafe`, `Map.Gym` and `Map.Mall` now have ZoneBounds, so their tracks play there once their ids are set.
+
+## Claude, 2026-09-12 (vocal-only music)
 - **The owner's rule:** music is vocal-only (voices, humming, beatboxing, natural ambience; no instruments, nothing Arabic or nasheed-sounding). See DECISIONS 2026-09-12.
 - **Tools (`tools/audio`):**
   - `lyria.py <track>` makes Lyria 3 Pro takes (about 2.5 min each, 44.1 kHz MP3) from `tracks.json`. Use `--rules rules_plain` so it sings only the wordless lyric sheet.
