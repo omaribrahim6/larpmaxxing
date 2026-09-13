@@ -150,6 +150,56 @@ return function(t)
 		expect.equal(#CosmeticService.earned(#Catalog.ranks), #Cosmetics)
 	end)
 
+	-- Every music zone lists takes with a file and a numeric id (0 = not uploaded yet).
+	t.test("music takes are well-formed", function()
+		local Music = require(Larp.Config.Music)
+		expect.truthy(Music.tracks[Music.default])
+		for _, track in Music.tracks do
+			expect.truthy(#track.takes > 0)
+			for _, take in track.takes do
+				expect.equal(type(take.file), "string")
+				expect.equal(type(take.id), "number")
+			end
+		end
+	end)
+
+	-- VIP and Elite pickups average about 2x and 3x the open zones' points (spec "Map"),
+	-- open at Poser and Aura Farmer, and every home zone has both.
+	t.test("VIP and Elite areas are rank-gated and richer", function()
+		local Areas = require(Larp.Config.Areas)
+		local AreaService = require(game.ServerScriptService.Larp.Services.AreaService)
+		local function average(weights)
+			local points, total = 0, 0
+			for _, rarity in Catalog.rarities.Order do
+				local w = if weights then weights[rarity] or 0 else Catalog.rarities[rarity].weight
+				points += w * Catalog.rarities[rarity].points
+				total += w
+			end
+			return points / total
+		end
+		local open = average(nil)
+		local vip = average(Areas.tiers.VIP.weights) / open
+		local elite = average(Areas.tiers.Elite.weights) / open
+		expect.truthy(vip > 1.7 and vip < 2.3)
+		expect.truthy(elite > 2.7 and elite < 3.3)
+		local rankOf = {}
+		for i, rank in Catalog.ranks do
+			rankOf[rank.name] = i
+		end
+		for _, tier in Areas.tiers do
+			expect.truthy(rankOf[tier.rank])
+		end
+		expect.falsy(AreaService.allowed("VIP", rankOf.Poser - 1))
+		expect.truthy(AreaService.allowed("VIP", rankOf.Poser))
+		expect.falsy(AreaService.allowed("Elite", rankOf.Poser))
+		expect.truthy(AreaService.allowed("Elite", rankOf["Aura Farmer"]))
+		expect.truthy(AreaService.allowed(nil, 1))
+		for _, id in Catalog.statIds do
+			local names = Areas.zones[Catalog.statsById[id].zone]
+			expect.truthy(names and names.VIP and names.Elite)
+		end
+	end)
+
 	-- Number formatting for the HUD.
 	t.test("number formatting", function()
 		expect.equal(Format.int(1234567), "1,234,567")

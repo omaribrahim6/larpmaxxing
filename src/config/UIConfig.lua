@@ -37,7 +37,7 @@ return {
 			body = "Walk near props to grab them. Every prop adds points to one of your five stats, and the rarer it is, the more it's worth.",
 			tip = "✨ Legendaries shoot a beam into the sky. Race for them!"},
 		{art = "map", color = Color3.fromRGB(96, 214, 200), title = "FIVE STATS, FIVE PLACES",
-			body = "Each place in the city grows one stat: the Car Lot for Money, the Café Strip for Aesthetic, the Mall for Drip, the Gym for Gains and the Library for Big Brain. The streets drop all five.",
+			body = "Each place in the city grows one stat: the Car Lot for Money, the Café Strip for Aesthetic, the Mall for Drip, the Gym for Gains and the Library for Big Brain. The streets drop all five. Rank up to open their VIP rooms and Elite rooftops.",
 			tip = "🏃 Press Shift (or tap Sprint) to run."},
 		{art = "ranks", color = Color3.fromRGB(176, 132, 255), title = "RANK UP",
 			body = "All your points add up to your rank. Start as an NPC and climb all the way to LARP Maxxer.",

@@ -1,5 +1,44 @@
 # Handoff
-## LATEST: Claude, 2026-09-13 (rank cosmetics)
+## LATEST: Claude, 2026-09-13 (VIP rooms, Elite rooftops, music playlists)
+- **Every home zone now has a VIP room (open from Poser) and an Elite rooftop (open from Aura Farmer)** (spec "Map"):
+  - Just inside each zone's gate stand two glowing doors, gold VIP and purple ELITE, each with its rank on the sign.
+  - Using a door (E, or a tap) checks the rank on the server and moves the player there. Too low a rank shows "🔒 The Pro Gym opens at Poser".
+  - The VIP rooms sit under their zones, closed in and lit, each with a theme:
+    - Showroom: two of the lot's cars on turntables.
+    - Back Room: an espresso bar and tables.
+    - Designer Floor: clothing racks and mannequins.
+    - Pro Gym: racks, dumbbells and a mirror wall.
+    - Rare Books Room: tall shelves of books.
+  - The Elite rooftops top towers out past the skyline. Each has a purple-neon parapet, a helipad ring, a water tower, AC units, loungers and the rooftop's name. Invisible walls keep anyone from falling.
+  - Every area has an EXIT back to its gate.
+- **Pickups:**
+  - Each area has 30 spawn points, 90 props, from its zone's stat: 450 VIP and 450 Elite props in all.
+  - They use the spec's rarity weights, so a VIP prop averages about 2× an open zone's points and an Elite prop about 3×.
+  - Only players of the area's rank can collect them.
+- **Losing a rank:** anyone inside an area their rank no longer opens (after Touch Grass, say) is sent back to the gate within a second.
+- **Music:** each VIP room and rooftop plays its zone's track.
+- **Code:**
+  - `Config.Areas`: the tiers, their weights and the room names.
+  - `LarpBuild.Premium`: the builder. It writes `Workspace.Larp.Map.Premium`, and `Build.all()` runs it too. Rebuild with `require(game.ServerStorage.LarpBuild.Premium).build()`.
+  - `Services.AreaService`: the doors' prompts and the sweep.
+  - `PickupService`: area slots, area weights and the rank check. A Legendary in an area is announced "in the Pro Gym".
+  - `MusicKit`: area Volumes count as their zone.
+  - The Tutorial's map page mentions the rooms.
+- **Tested in a play session:**
+  - The rules tests pass 21/21, including the new VIP/Elite and music tests.
+  - At Poser, the VIP door led into the Showroom with its welcome, and EXIT led back to the gate.
+  - At Poser, the ELITE door was refused.
+  - At Aura Farmer, the ELITE door led to the rooftop, where a short walk collected 595 points.
+  - Touching Grass on the roof sent the player back to the gate.
+  - Screenshots checked the rooms and the rooftop.
+- **Music takes (the owner's picks, `Config.Music`):**
+  - Street rotates takes 05, 10, 11, 13 and 15; Car Lot 06 and 07; Café 01 and 03; Mall 01 and 05. Gym 01 loops on its own.
+  - Street 05, 10 and 15 were exported as seamless loops with `tools/audio/loop.py`.
+  - `MusicKit` plays a zone's takes one after another, starting at a random one.
+  - **Waiting on upload:** the 12 files are in `.local/audio/upload/`, and every id is 0 until they're uploaded. A zone with no ids stays silent.
+- **Save the place (Ctrl+S):** `Map.Premium` lives in the place file.
+
+## Claude, 2026-09-13 (rank cosmetics)
 - **Each rank-up now gives an avatar item** (spec "Rank cosmetics"), worn from then on:
   - Normie: 🎧 wired earbuds.
   - Wannabe: 👜 a canvas tote on the back, printed "i ♥ matcha".

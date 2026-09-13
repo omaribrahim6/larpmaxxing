@@ -80,4 +80,10 @@
   - No asset uploads are needed, and each item sizes itself to the avatar's body parts.
   - Players wear every item up to their best rank, so the look grows with progress and survives Touch Grass.
   - The held matcha is kept upright by the clients instead of following the hand, because many avatars' idle animations hold the forearms forward.
+- 2026-09-13 (Claude): VIP rooms and Elite rooftops are separate spaces reached by doors, not areas carved into the zones.
+  - Every zone plot is already full (a yard plus its building), and rebuilding a location replaces its whole model, so the areas live in their own `Map.Premium`.
+  - VIP rooms are under their zones. Elite rooftops top towers past the skyline, so their view is the city.
+  - Access follows the current rank, so Touch Grass closes them again until the player ranks back up (the sweep sends them out).
+  - The door spots were found by searching each zone for a clear spot beside its gate. The Café's are sideways along its entry lane.
+- 2026-09-13 (Claude): the owner picked the music takes. A zone rotates through its takes rather than looping one, so the long sessions don't repeat a single loop.
 - 2026-09-12 (Claude): one zone track plays at a time (Config.Music), crossfading on ZoneBounds. Anywhere without its own track plays the Street main theme. Music ducks to 35% while any larp-off plays near the player, so stamps and stings stay clear.

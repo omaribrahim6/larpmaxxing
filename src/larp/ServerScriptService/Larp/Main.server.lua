@@ -19,6 +19,7 @@ local ORDER = {
 	"MonetizationService",
 	"RebirthService",
 	"CosmeticService",
+	"AreaService",
 }
 
 local services = {}

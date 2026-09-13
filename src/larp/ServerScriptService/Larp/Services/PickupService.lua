@@ -40,7 +40,8 @@ end
 
 -- Picks an item for a zone. A location (`homeStat`) spawns its home stat, or another stat
 -- (1 - Tuning.Pickup.homeZoneShare) of the time; a street (`homeStat` nil) spawns any stat.
-function PickupService.chooseItem(homeStat: string?)
+-- `weights` (rarity -> weight) replaces the open zones' rarity weights: a VIP or Elite area's.
+function PickupService.chooseItem(homeStat: string?, weights: { [string]: number }?)
 	local stocked = {}
 	for _, id in Catalog.statIds do
 		if #Catalog.itemsByStat[id] > 0 then
@@ -68,14 +69,14 @@ function PickupService.chooseItem(homeStat: string?)
 	if not items or #items == 0 then
 		return nil
 	end
-	local weights = {}
+	local picks = {}
 	for _, rarity in Catalog.rarities.Order do
-		weights[rarity] = 0
+		picks[rarity] = 0
 	end
 	for _, item in items do
-		weights[item.rarity] = Catalog.rarities[item.rarity].weight
+		picks[item.rarity] = if weights then weights[item.rarity] or 0 else Catalog.rarities[item.rarity].weight
 	end
-	local rarity = weightedPick(Catalog.rarities.Order, weights)
+	local rarity = weightedPick(Catalog.rarities.Order, picks)
 	local pool = {}
 	for _, item in items do
 		if item.rarity == rarity then
@@ -120,6 +121,7 @@ function PickupService:Init(services)
 	self.Events = services.EventService
 	self.Store = services.MonetizationService
 	self.Rebirth = services.RebirthService
+	self.Areas = services.AreaService
 end
 
 -- Spawn Parts are population slots, not grid coordinates. Sample fresh positions
@@ -159,7 +161,7 @@ function PickupService:_placement(slot)
 end
 
 -- The pickups on the map that can still be collected: model -> what collecting it needs.
-local live: { [Model]: { item: any, points: number, position: Vector3, cell: number, respawn: () -> () } } = {}
+local live: { [Model]: { item: any, points: number, tier: string?, position: Vector3, cell: number, respawn: () -> () } } = {}
 -- The same pickups bucketed into CELL-stud squares, so the magnet only looks near each
 -- player (with a few thousand pickups on the map, scanning them all per player adds up).
 local CELL = 16
@@ -182,7 +184,8 @@ local lastAnnounce = -math.huge -- when the last Legendary banner went out
 function PickupService:_spawn(slot, homeStat: string?)
 	local point = slot.point
 	if not point.Parent or not folder or not folder.Parent then return end
-	local item = PickupService.chooseItem(homeStat)
+	local area = slot.area -- a VIP or Elite area's { tier, name, weights }, or nil
+	local item = PickupService.chooseItem(homeStat, area and area.weights)
 	if not item then
 		return
 	end
@@ -206,6 +209,7 @@ function PickupService:_spawn(slot, homeStat: string?)
 	model:SetAttribute("StatId", item.stat)
 	model:SetAttribute("Rarity", item.rarity)
 	model:SetAttribute("Points", rarity.points)
+	model:SetAttribute("Tier", area and area.tier)
 	CollectionService:AddTag(model, PickupService.TAG)
 	model.Parent = folder
 	local cell = cellKey(math.floor(center.Position.X / CELL), math.floor(center.Position.Z / CELL))
@@ -214,6 +218,7 @@ function PickupService:_spawn(slot, homeStat: string?)
 	live[model] = {
 		item = item,
 		points = rarity.points,
+		tier = area and area.tier, -- only players of its rank collect it
 		position = center.Position,
 		cell = cell,
 		respawn = function()
@@ -233,7 +238,8 @@ function PickupService:_spawn(slot, homeStat: string?)
 		lastAnnounce = os.clock()
 		-- where it dropped: the location's name, or the streets (which spawn every stat)
 		local home = homeStat and Catalog.statsById[homeStat]
-		Net.get("LegendarySpawned"):FireAllClients(item.id, center.Position, if home then "in the " .. home.zoneName else "on the streets")
+		local where = if area then "in the " .. area.name elseif home then "in the " .. home.zoneName else "on the streets"
+		Net.get("LegendarySpawned"):FireAllClients(item.id, center.Position, where)
 	end
 end
 
@@ -280,6 +286,11 @@ function PickupService:_magnetTick()
 		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 		if root and self:_canCollect(player) then
 			local reach = PickupService.magnetRadius(player)
+			-- a VIP or Elite pickup is only for players of its rank
+			local rank = self.Stats:GetRankIndex(player)
+			local function allowed(tier: string?): boolean
+				return tier == nil or self.Areas == nil or self.Areas.allowed(tier, rank)
+			end
 			local at = root.Position
 			local reachSquared = reach * reach
 			local full = false
@@ -289,7 +300,7 @@ function PickupService:_magnetTick()
 					for model in if bucket then bucket else {} do
 						local entry = live[model]
 						local d = entry and entry.position - at
-						if d and d.X * d.X + d.Y * d.Y + d.Z * d.Z <= reachSquared then
+						if d and d.X * d.X + d.Y * d.Y + d.Z * d.Z <= reachSquared and allowed(entry.tier) then
 							if not limiter:Allow(player, 1) then
 								full = true
 								break
@@ -310,10 +321,10 @@ function PickupService:_magnetTick()
 end
 
 -- Fills one SpawnPoint's `slots` (default Tuning.Pickup.slotsPerSpawnPoint), each staggered
--- over the first two seconds.
-function PickupService:_fill(point: BasePart, homeStat: string?, slots: number?)
+-- over the first two seconds. `area` marks a VIP or Elite area's slots.
+function PickupService:_fill(point: BasePart, homeStat: string?, slots: number?, area: { [string]: any }?)
 	for _ = 1, slots or Tuning.Pickup.slotsPerSpawnPoint or 1 do
-		local slot = { point = point }
+		local slot = { point = point, area = area }
 		task.delay(rng:NextNumber(0, 2), function()
 			self:_spawn(slot, homeStat)
 		end)
@@ -356,6 +367,29 @@ function PickupService:Start()
 		for _, point in if points then points:GetChildren() else {} do
 			if point:IsA("BasePart") then
 				self:_fill(point, nil, Tuning.Pickup.streetSlotsPerSpawnPoint)
+			end
+		end
+	end
+
+	-- Rank-gated areas (Map.Premium.<zone>.VIP / .Elite, built by LarpBuild.Premium) spawn
+	-- their zone's stat with the tier's richer rarity weights (Config.Areas).
+	local premium = map:FindFirstChild("Premium")
+	local areas = self.Areas and self.Areas.config
+	for _, zone in if premium and areas then premium:GetChildren() else {} do
+		local statId = nil
+		for _, id in Catalog.statIds do
+			if Catalog.statsById[id].zone == zone.Name then
+				statId = id
+			end
+		end
+		for tier, spec in areas.tiers do
+			local points = zone:FindFirstChild(tier) and zone[tier]:FindFirstChild("SpawnPoints")
+			local names = areas.zones[zone.Name]
+			local info = { tier = tier, name = names and names[tier] or tier, weights = spec.weights }
+			for _, point in if points then points:GetChildren() else {} do
+				if point:IsA("BasePart") then
+					self:_fill(point, statId, nil, info)
+				end
 			end
 		end
 	end
