@@ -1,5 +1,13 @@
 # Handoff
-## LATEST: Claude, 2026-09-13 (map and sprint buttons)
+## LATEST: Claude, 2026-09-13 (Car Lot show cars)
+- **The Car Lot now shows the expensive cars** (owner: larping Money means going to the lot to take selfies with them).
+  - The six plain parked cars are now three T5 Supercars and three T4 Sports Cars, taking turns. They're the Money scene's own models (`Larp.Assets.Scenes.Money`).
+  - The cars are longer than the old spots, so each slides along its length toward the lot's middle until it clears the fences and lamps. Checked: all six are clear.
+- **The VIP Showroom** puts the same T5 and T4 on its turntables, taken from the scene models instead of the lot.
+- **Code:** `LarpBuild.CarLotCars` does the swap; `Build.all()` runs it too. It can be re-run: `require(game.ServerStorage.LarpBuild.CarLotCars).build()`.
+- **Save the place (Ctrl+S):** the cars live in the place file.
+
+## Claude, 2026-09-13 (map and sprint buttons)
 - **Bottom right, two new HUD buttons** (owner request). On phones they sit above the jump button.
   - 🗺️ **Map**, or **M**, opens the city map. It closes with ×, M, gamepad B, or a click outside.
   - 🏃 **Sprint** toggles sprinting on every device, and the button turns green ("Sprint ON") while it's on. Shift still toggles too, and both stay in sync.

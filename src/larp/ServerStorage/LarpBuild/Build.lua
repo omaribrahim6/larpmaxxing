@@ -5,6 +5,7 @@
 --   require(game.ServerStorage.LarpBuild.Locations.Mall).build()
 --   require(game.ServerStorage.LarpBuild.LeaderboardWall).build()
 --   require(game.ServerStorage.LarpBuild.Premium).build()
+--   require(game.ServerStorage.LarpBuild.CarLotCars).build()
 -- MCP execute_luau caches required modules between calls, so from there require a fresh
 -- clone of the LarpBuild folder (and destroy it after), or edits won't take effect.
 local City = require(script.Parent.City)
@@ -18,6 +19,7 @@ function Build.all(): string
 	for _, name in Build.locations do
 		table.insert(out, name .. ": " .. require(script.Parent.Locations:FindFirstChild(name)).build())
 	end
+	table.insert(out, "Car Lot show cars: " .. require(script.Parent.CarLotCars).build())
 	table.insert(out, "VIP and Elite areas: " .. require(script.Parent.Premium).build())
 	table.insert(out, "Leaderboard wall: " .. require(script.Parent.LeaderboardWall).build())
 	return table.concat(out, "\n")

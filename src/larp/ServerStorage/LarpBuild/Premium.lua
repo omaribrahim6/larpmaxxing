@@ -144,15 +144,11 @@ end
 -- room is unrotated, so offsets are world axes. (m, at, W, H, D, spec)
 local PROPS = {}
 
--- Showroom: two of the Car Lot's cars on turntables.
+-- Showroom: the Money scene's T5 supercar and T4 sports car on turntables, like the lot's
+-- show cars (LarpBuild.CarLotCars).
 function PROPS.cars(m, at, W, H, D, spec)
-	local cars = {}
-	local lot = workspace.Larp.Map:FindFirstChild("CarLot")
-	for _, c in if lot then lot:GetChildren() else {} do
-		if c.Name == "ParkedCar" and c:IsA("Model") then
-			table.insert(cars, c)
-		end
-	end
+	local money = Larp.Assets.Scenes.Money
+	local cars = { money:FindFirstChild("T5_Supercar"), money:FindFirstChild("T4_SportsCar") }
 	for i, x in { -20, 20 } do
 		local base = at(x, 0, 8).Position
 		Plot.column(m, "Turntable", base + Vector3.new(0, 0.3, 0), 0.6, 20, Color3.fromRGB(60, 62, 70), Enum.Material.Metal)
