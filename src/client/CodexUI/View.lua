@@ -12,6 +12,7 @@ local Juice = require(script.Parent.Juice)
 local Hud = require(script.Parent.Hud)
 local Celebrate = require(script.Parent.Celebrate)
 local Tutorial = require(script.Parent.Tutorial)
+local Store = require(script.Parent.Store)
 local View = {}
 View.__index = View
 local new = Theme.new
@@ -47,6 +48,7 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 		tiers = extras.tiers, floors = extras.floors or {}, play = play, button = button,
 		settingsOpen = function() callbacks.settingsOpen() end,
 		helpOpen = function() callbacks.helpOpen() end,
+		shopOpen = function() callbacks.shopOpen() end,
 		onTierUp = function(statId, tier) self.celebrate:Push({kind = "tier", statId = statId, tier = tier}) end})
 	self.settingsOpen = self.hud.settingsButton
 	self.helpOpen = self.hud.helpButton
@@ -54,6 +56,9 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 	self.tutorial = Tutorial.new(self.root, {config = config, catalog = catalog, format = format, play = play, button = button,
 		rankIndex = function() return self.rankIndex or 1 end,
 		onClose = function() callbacks.tutorialClosed() end})
+	-- the shop and codes box
+	self.store = Store.new(self.root, {config = config, store = extras.store or {passes = {}, products = {}}, play = play, button = button,
+		redeem = function(code) callbacks.redeem(code) end})
 
 	self.guide = Theme.panel(self.root, {name = "Guide", anchor = MID, box = UDim2.fromOffset(440,128), z = 10, edge = c.Accent})
 	self.guide.Visible = false
@@ -188,6 +193,7 @@ function View:Render(model)
 	self.guideLocation.Text = if model.guideLocation then "📍 "..model.guideLocation else ""
 	self.hud.frame.Visible = not model.inMatch
 	self.hud:Render(model)
+	if self.store:IsOpen() then self.store:Refresh() end
 
 	if self.settings.Visible and not self.settingsWas then
 		Juice.punch(self.settings, 0.85, 0.3)
@@ -335,6 +341,7 @@ function View:FocusTargets()
 		return targets
 	end
 	if self.tutorial:IsOpen() then return self.tutorial:FocusTargets() end
+	if self.store:IsOpen() then return self.store:FocusTargets() end
 	return {}
 end
 
@@ -420,6 +427,7 @@ function View:Destroy()
 	self.hud:Destroy()
 	self.celebrate:Destroy()
 	self.tutorial:Destroy()
+	self.store:Destroy()
 	self.gui:Destroy()
 end
 return View

@@ -118,6 +118,7 @@ function PickupService:Init(services)
 	self.Data = services.DataService
 	self.Matches = services.MatchService
 	self.Events = services.EventService
+	self.Store = services.MonetizationService
 end
 
 -- Spawn Parts are population slots, not grid coordinates. Sample fresh positions
@@ -242,6 +243,7 @@ function PickupService:_collect(model: Model, player: Player)
 	forget(model)
 	-- a stat rush on the item's stat (Golden Hour, PR Day) multiplies its points
 	local points = entry.points * (if self.Events then self.Events:PointsMultiplier(entry.item.stat) else 1)
+		* (if self.Store then self.Store:PickupMultiplier(player) else 1) -- a 2x pass or a boost
 	self.Stats:AddPoints(player, entry.item.stat, points, "pickup")
 	Net.get("PickupCollected"):FireClient(player, entry.item.id, points, entry.item.stat, entry.item.rarity, entry.position)
 	model:SetAttribute("CollectedBy", player.UserId)

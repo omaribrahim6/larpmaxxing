@@ -16,6 +16,7 @@ local ORDER = {
 	"PracticeNpcService",
 	"LeaderboardService",
 	"EventService",
+	"MonetizationService",
 }
 
 local services = {}

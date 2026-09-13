@@ -113,8 +113,10 @@ function Controller.start()
 			end,
 			helpDismiss=function() self.model.onboarding:Dismiss() self.view:Render(self.model) end,
 			rematch=function() self:RequestRematch() end,
+			shopOpen=function() self.view.store:Open() self.view:Render(self.model) end,
+			redeem=function(code) if not self.adapter:Send("RedeemCode",code) then notice(Config.Words.Unavailable,"warning") end end,
 		},{
-			play=play,tiers=require(larp.Shared.Tiers),floors=tuning.Tiers,
+			play=play,tiers=require(larp.Shared.Tiers),floors=tuning.Tiers,store=require(larp.Config.Store),
 			reduce=function() return self.model.settings.reduceEffects==true end,
 			scene=function(statId)
 				local stat=catalog.statsById[statId]
@@ -141,7 +143,7 @@ function Controller.start()
 		self.model.inMatch=isActive==true
 		if isActive then
 			self.model.onboarding:MatchStarted()
-			self:Respond(false) self.model.rematch=nil self.view:SetSettings(false) self.view.tutorial:Close()
+			self:Respond(false) self.model.rematch=nil self.view:SetSettings(false) self.view.tutorial:Close() self.view.store:Close()
 		else self.view:ClearRound() end
 		-- promotions and tier-ups wait until the larp-off is off screen
 		self.view.celebrate:SetPaused(self.model.inMatch)

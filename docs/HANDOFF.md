@@ -1,5 +1,28 @@
 # Handoff
-## LATEST: Claude, 2026-09-13 (text-only notices, bigger stat bars, fuller streets)
+## LATEST: Claude, 2026-09-13 (shop and codes)
+- **The spec's monetization is wired, and dormant until you create the items.**
+  - `Config.Store` lists the 2× Pickups and Magnet game passes and the 2× Boost (15 min) and Summon a Stat Rush developer products, with the spec's suggested prices.
+  - **Every id is 0.** An item with id 0 is hidden in the shop and never granted.
+  - **To go live:** create each pass or product on the Creator Dashboard, paste its id into `Config.Store`, and save.
+- **Codes:**
+  - They're in `ServerScriptService.Larp.Config.Codes`, server-only so players can't read them off the client. The launch code `LARPMAXXING` gives a 15-minute 2× boost.
+  - Each works once per player (`redeemedCodes` in the profile), is case- and space-insensitive, and redemption is rate-limited.
+- **`Services.MonetizationService`:**
+  - **Passes:** checked on join and on purchase. 2× Pickups multiplies pickup points; Magnet sets the existing `MagnetMultiplier` attribute.
+  - **Products:** go through `ProcessReceipt`, with purchase ids kept in the profile (the last 50) so a retried receipt is never granted twice. A product for an unloaded profile waits for Roblox to retry.
+  - **Summon a Stat Rush:** starts a random rush "summoned by <name>" through `EventService:Begin`.
+  - **Pickup points stack:** stat rush × pass × boost (the spec allows stacking).
+  - **What the client sees:** player attributes `Owns<key>` and `BoostEndsAt` (server time).
+  - **Profile fields:** `boostUntil`, `redeemedCodes` and `receipts` in `DataService.defaults`.
+  - **New remote:** `RedeemCode`.
+- **Client:**
+  - A gold "🛒 Shop" button at the bottom of the HUD dock opens `CodexUI.Store`. It lists the set-up items with Buy (Roblox's purchase prompt) or OWNED, shows "The shop opens soon" while none are set up, and has a codes box.
+  - A running boost counts down as text under the event timer ("⚡ 2x BOOST 14:32").
+  - Gamepad B closes the shop.
+- **Not built (spec):** Nameplate Styles and Victory Poses passes (the cosmetics don't exist yet).
+- **Receipts are granted into the session profile and saved by the next autosave or on leave.** A server crash before that could lose the grant (the standard ProfileService pattern is to save first).
+
+## Claude, 2026-09-13 (text-only notices, bigger stat bars, fuller streets)
 - **Owner feedback: fewer cards.** Notices happen often and that's wanted, but they shouldn't cover the screen. The frequent ones are now outlined text with emoji and no card behind them:
   - Legendary drops: one small line at the top ("✦ LEGENDARY DROP ✦ BLACK CARD just dropped in the Car Lot", the item in its rarity colour). `Announcer.push{ small = true }`.
   - Stat rushes: a bold shimmering headline between two lines, with no band behind it.

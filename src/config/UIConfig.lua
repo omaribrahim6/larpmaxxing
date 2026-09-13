@@ -84,6 +84,9 @@ return {
 		UpsetTag = "UPSET x2",
 		-- the How to play book
 		TutorialTitle = "HOW TO PLAY", PageOf = "%d / %d", Next = "Next", Back = "Back", LetsGo = "LET'S GO!",
+		-- the shop
+		Shop = "Shop", ShopTitle = "SHOP", Codes = "CODES", EnterCode = "Enter a code", Redeem = "Redeem", Owned = "OWNED",
+		ComingSoon = "The shop opens soon. Check back later!", BoostLeft = "⚡ 2x BOOST  %d:%02d",
 		Plaza = "PLAZA", StreetsAll = "STREETS DROP ALL FIVE", You = "YOU", Vs = "VS", RoundPerStat = "ONE ROUND PER STAT",
 	},
 }

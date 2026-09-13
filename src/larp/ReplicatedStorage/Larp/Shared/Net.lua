@@ -26,6 +26,7 @@ Net.Names = {
 	"RespondChallenge", -- id, accept
 	"RequestPractice", -- { rematch = bool }
 	"UpdateSetting", -- key, value
+	"RedeemCode", -- code (the shop's codes box)
 	"ClientReady", -- (no args) client listeners are connected; server replies with ProfileSync
 }
 

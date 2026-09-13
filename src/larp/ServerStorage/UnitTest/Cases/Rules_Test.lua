@@ -97,6 +97,24 @@ return function(t)
 		end
 	end)
 
+	-- The shop's items have unique keys and each does something; codes are normalised.
+	t.test("shop items and codes are well-formed", function()
+		local Store = require(Larp.Config.Store)
+		local seen = {}
+		for _, list in { Store.passes, Store.products } do
+			for _, item in list do
+				expect.falsy(seen[item.key])
+				seen[item.key] = true
+				expect.truthy(type(item.id) == "number" and item.id >= 0)
+				expect.truthy(item.multiplier or item.magnet or item.boostMinutes or item.rush)
+			end
+		end
+		for code, reward in require(game.ServerScriptService.Larp.Config.Codes) do
+			expect.equal(code, (string.gsub(string.upper(code), "%s", "")))
+			expect.truthy(reward.boostMinutes ~= nil)
+		end
+	end)
+
 	-- Number formatting for the HUD.
 	t.test("number formatting", function()
 		expect.equal(Format.int(1234567), "1,234,567")

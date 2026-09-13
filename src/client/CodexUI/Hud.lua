@@ -2,6 +2,7 @@
 -- value, and progress to the next scene tier its larp-off round reaches), Wins with the
 -- Settings and Help buttons, the pickup combo meter, and each pickup's points flying from
 -- the player into its stat bar. Presentation only: every number comes from the profile.
+local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Theme = require(script.Parent.Theme)
 local Juice = require(script.Parent.Juice)
@@ -104,7 +105,7 @@ function Hud.new(root, fx, deps)
 	self.note = Theme.text(self.left, { name = "SaveStatus", font = Theme.Small, size = 11, color = c.Muted, position = UDim2.fromOffset(6, y), box = UDim2.new(1, -12, 0, 16), stroke = false })
 
 	-- right edge, middle (clear of the player list): Wins, Settings, Help
-	self.dock = Theme.new("Frame", self.frame, { Name = "Dock", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -12, 0.5, -30), Size = UDim2.fromOffset(136, 164) })
+	self.dock = Theme.new("Frame", self.frame, { Name = "Dock", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -12, 0.5, -30), Size = UDim2.fromOffset(136, 218) })
 	self.dockScale = Theme.new("UIScale", self.dock, { Name = "Fit" })
 	local wins = Theme.panel(self.dock, { name = "Wins", anchor = MID, position = UDim2.fromOffset(68, 24), box = UDim2.fromOffset(136, 48), color = Color3.fromRGB(124, 90, 26) })
 	self.winsChip = wins
@@ -126,6 +127,7 @@ function Hud.new(root, fx, deps)
 	Theme.border(pointer, c.Ink, 2.5)
 	local bubble = Theme.panel(self.hint, { name = "Bubble", color = c.Accent, radius = 12 })
 	Theme.text(bubble, { name = "Text", font = Theme.Display, text = words.NewHere, size = 18, color = c.Ink, align = CENTER, position = UDim2.fromOffset(8, 2), box = UDim2.new(1, -16, 1, -4), scaled = true, maxSize = 18, stroke = false })
+	self.shopButton = deps.button(self.dock, { name = "Shop", text = "🛒  " .. words.Shop, size = 16, color = c.Accent, position = UDim2.fromOffset(68, 190), box = UDim2.fromOffset(136, 46) }, deps.shopOpen)
 
 	-- the combo meter, bottom centre above the rematch button
 	self.comboGroup = Theme.new("CanvasGroup", self.frame, { Name = "Combo", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -84), Size = UDim2.fromOffset(280, 92), GroupTransparency = 1 })
@@ -134,6 +136,9 @@ function Hud.new(root, fx, deps)
 	-- big words at combo milestones ("ON A ROLL!")
 	self.callout = Theme.text(self.frame, { name = "Callout", font = Theme.Display, size = 54, align = CENTER, anchor = MID, position = UDim2.fromScale(0.5, 0.32), box = UDim2.new(0.9, 0, 0, 70), scaled = true, maxSize = 60, stroke = 3.5 })
 	self.callout.Visible = false
+	-- a running 2x boost counts down under the event timer (text, no card)
+	self.boost = Theme.text(self.frame, { name = "Boost", font = Theme.Display, size = 22, color = c.Accent, align = CENTER, anchor = Vector2.new(0.5, 0), position = UDim2.new(0.5, 0, 0, 48), box = UDim2.new(0.5, 0, 0, 30), stroke = 2.5 })
+	self.boost.Visible = false
 
 	-- the screen's edges glow in the rarity's colour for Epic and Legendary pickups
 	self.edges = {}
@@ -244,6 +249,12 @@ function Hud:Render(model)
 end
 
 function Hud:Tick(now)
+	local endsAt = Players.LocalPlayer:GetAttribute("BoostEndsAt")
+	local left = if type(endsAt) == "number" then math.ceil(endsAt - workspace:GetServerTimeNow()) else 0
+	self.boost.Visible = left > 0
+	if left > 0 then
+		self.boost.Text = self.deps.config.Words.BoostLeft:format(math.floor(left / 60), left % 60)
+	end
 	-- the combo meter fades once pickups stop chaining
 	if self.comboShown and now - self.lastCollect > self.deps.config.Combo.window then
 		self.comboShown = false

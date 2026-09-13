@@ -47,4 +47,12 @@ return {
 	},
 	RewardsLimited = "No bonus: you've already larped-off each other twice in 10 minutes",
 	SavingDisabled = "Progress won't save this session",
+	-- the shop and codes (MonetizationService)
+	Store = {
+		boost = "⚡ 2x pickups for %d minutes!",
+		thanks = "Thanks! Your pass is active",
+		badCode = "That code doesn't exist (or it expired)",
+		usedCode = "You've already used that code",
+		slow = "Slow down a little",
+	},
 }

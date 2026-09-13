@@ -67,4 +67,9 @@
   - Cards stay only for things you act on (the challenge popup, Settings, How to play).
   - Streets hold 6 pickups per SpawnPoint, locations 3.
   - The magnet looks up pickups in a 16-stud grid.
+- 2026-09-13 (Claude): monetization ships dormant. An id of 0 in Config.Store hides and disables an item, so nothing is sold until the owner creates it on the Creator Dashboard.
+  - Codes are server-only config.
+  - The codes box sits in the Shop panel, not Settings (easier to find).
+  - A boost and the 2× pass stack multiplicatively with a stat rush.
+  - Nothing in the shop touches larp-off results, per the spec's "never sold" rule.
 - 2026-09-12 (Claude): one zone track plays at a time (Config.Music), crossfading on ZoneBounds. Anywhere without its own track plays the Street main theme. Music ducks to 35% while any larp-off plays near the player, so stamps and stings stay clear.

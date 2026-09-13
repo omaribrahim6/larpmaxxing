@@ -42,6 +42,9 @@ function DataService.defaults()
 		stats = {},
 		wins = 0,
 		biggestUpsetPct = 0,
+		boostUntil = 0, -- os.time() a bought or redeemed 2x boost runs until
+		redeemedCodes = {}, -- code -> when it was redeemed
+		receipts = {}, -- developer product purchase id -> when it was granted
 		settings = table.clone(SETTINGS_DEFAULTS),
 	}
 end
