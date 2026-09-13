@@ -20,6 +20,7 @@ Net.Names = {
 	"MatchEnd", -- matchId
 	"MatchAborted", -- matchId, reason
 	"Announce", -- server-wide banner text
+	"EventChanged", -- a stat rush: id, endsAt (server time), summonedBy?; no args when it ends
 	-- client -> server
 	"RequestChallenge", -- targetUserId, { rematch = bool }
 	"RespondChallenge", -- id, accept

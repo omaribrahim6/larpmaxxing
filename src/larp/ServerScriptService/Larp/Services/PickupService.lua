@@ -117,6 +117,7 @@ function PickupService:Init(services)
 	self.Stats = services.StatService
 	self.Data = services.DataService
 	self.Matches = services.MatchService
+	self.Events = services.EventService
 end
 
 -- Spawn Parts are population slots, not grid coordinates. Sample fresh positions
@@ -193,7 +194,9 @@ function PickupService:_spawn(slot, homeStat: string?)
 		points = rarity.points,
 		position = center.Position,
 		respawn = function()
-			task.delay(rng:NextNumber(Tuning.Pickup.respawnMin, Tuning.Pickup.respawnMax), function()
+			-- a stat rush on this zone's stat (Car Meet, ...) respawns it faster
+			local speed = if self.Events then self.Events:SpawnMultiplier(homeStat) else 1
+			task.delay(rng:NextNumber(Tuning.Pickup.respawnMin, Tuning.Pickup.respawnMax) / speed, function()
 				if point.Parent then
 					self:_spawn(slot, homeStat)
 				end
@@ -216,8 +219,10 @@ end
 function PickupService:_collect(model: Model, player: Player)
 	local entry = live[model]
 	live[model] = nil
-	self.Stats:AddPoints(player, entry.item.stat, entry.points, "pickup")
-	Net.get("PickupCollected"):FireClient(player, entry.item.id, entry.points, entry.item.stat, entry.item.rarity, entry.position)
+	-- a stat rush on the item's stat (Golden Hour, PR Day) multiplies its points
+	local points = entry.points * (if self.Events then self.Events:PointsMultiplier(entry.item.stat) else 1)
+	self.Stats:AddPoints(player, entry.item.stat, points, "pickup")
+	Net.get("PickupCollected"):FireClient(player, entry.item.id, points, entry.item.stat, entry.item.rarity, entry.position)
 	model:SetAttribute("CollectedBy", player.UserId)
 	task.delay(Tuning.Pickup.flySeconds, function()
 		model:Destroy()

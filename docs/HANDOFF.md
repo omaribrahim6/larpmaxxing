@@ -1,5 +1,24 @@
 # Handoff
-## LATEST: Claude, 2026-09-12 (Plaza leaderboard wall)
+## LATEST: Claude, 2026-09-12 (stat rushes)
+- **The spec's stat rushes are in.** Every 10 minutes (the first 2 minutes after a server starts) one stat's rush runs for 2 minutes, rotating:
+  - 🌇 **Golden Hour:** Aesthetic props are worth 2×, and the sky fades to evening light for everyone.
+  - 🚗 **Car Meet:** Money props respawn 3× as fast in the Car Lot.
+  - 🧢 **Fit Check:** Drip props respawn 3× as fast in the Mall.
+  - 🏋️ **PR Day:** Gains props are worth 2×.
+  - 📚 **Finals Week:** Big Brain props respawn 3× as fast in the Library, and the screen dims while you're inside it.
+- **What players see:** a "⚡ STAT RUSH ⚡" banner (Announcer, so it waits out a larp-off), a crowd cheer, and the rush's name with a countdown at the top of the HUD (CodexUI's event timer, now hidden during larp-offs).
+- **Code:**
+  - `Config.Events` holds the schedule, boosts, looks and words.
+  - `Services.EventService` runs the schedule. `Begin(id, by)` starts a rush now; `by` is for the spec's "Summon a Stat Rush" product later.
+  - `PickupService` multiplies a rush stat's pickup points and divides its home zone's respawn delay.
+  - A new remote, `EventChanged(id, endsAt, summonedBy)`. Late joiners get the running rush when their client says ClientReady.
+  - `LarpClient.EventFx` shows it all. Looks fade in and out over 3 s and restore the original lighting.
+- **Studio:** fire a rush with `ServerStorage.LarpDebug:Invoke("rush", userId, "GoldenHour")`.
+- **Not built:**
+  - Car Meet's cars lining the Plaza and Fit Check's runway (spawn boosts stand in).
+  - PR Day's hype soundtrack (no music, owner's rule).
+
+## Claude, 2026-09-12 (Plaza leaderboard wall)
 - **The spec's leaderboard wall is in**, on the Plaza's east edge (x = 53), facing players as they spawn. It has four boards under a gold "🏆 LEADERBOARDS" header:
   - Top Points, Most Wins and Biggest Upset: all-time, every server, top 10.
   - In This Server: the top 5 right now, redrawn every 5 s.

@@ -238,7 +238,7 @@ function Controller.start()
 		local now=os.clock()
 		if self.eventInfo then
 			local left=math.max(0,math.ceil(self.eventInfo.endsAt-workspace:GetServerTimeNow()))
-			self.view.event.Visible=left>0
+			self.view.event.Visible=left>0 and not self.model.inMatch
 			self.view.event.Text=self.eventInfo.label.."  "..string.format("%d:%02d",math.floor(left/60),left%60)
 			if left==0 then self.eventInfo=nil end
 		end

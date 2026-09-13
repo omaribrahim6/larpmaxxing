@@ -86,6 +86,17 @@ return function(t)
 		expect.equal(RankMath.progress(1e9, Catalog.ranks).fraction, 1)
 	end)
 
+	-- Every stat rush names a real stat and boosts it.
+	t.test("stat rushes are well-formed", function()
+		local Events = require(Larp.Config.Events)
+		for _, id in Events.order do
+			local rush = Events.rushes[id]
+			expect.truthy(rush ~= nil)
+			expect.truthy(Catalog.statsById[rush.stat] ~= nil)
+			expect.truthy((rush.points or 1) > 1 or (rush.spawn or 1) > 1)
+		end
+	end)
+
 	-- Number formatting for the HUD.
 	t.test("number formatting", function()
 		expect.equal(Format.int(1234567), "1,234,567")

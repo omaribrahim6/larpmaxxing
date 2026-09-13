@@ -15,6 +15,7 @@ local ORDER = {
 	"PickupService",
 	"PracticeNpcService",
 	"LeaderboardService",
+	"EventService",
 }
 
 local services = {}
@@ -54,6 +55,9 @@ if game:GetService("RunService"):IsStudio() then
 		elseif command == "demo" then
 			-- NPC vs NPC larp-off the target can watch as a spectator (stand near the stage)
 			return services.PracticeNpcService:_demo(...)
+		elseif command == "rush" then
+			-- a stat rush now (a Config.Events id, e.g. "GoldenHour")
+			return services.EventService:Begin(...)
 		elseif command == "force" then
 			-- the next larp-offs' stats, tiers, winner, fumble and timing (nil clears it);
 			-- see MatchService.force
