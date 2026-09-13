@@ -153,6 +153,8 @@ function Controller.start()
 			or index<1 or index>count or index%1~=0 or count%1~=0 then return false end
 		self.view:SetRound(stat,index,count) return true
 	end
+	-- The round chip goes once the rounds are over (SceneDirector, at the verdict).
+	function self:ClearRound() self.view:ClearRound() end
 	function self:ShowRematch(kind,userId,seconds)
 		local ok=self.model:SetRematch(kind,userId,seconds or tuning.Challenge.rematchWindowSeconds)
 		if ok then self.model.onboarding:MatchFinished() end

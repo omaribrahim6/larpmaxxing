@@ -367,11 +367,10 @@ function View:Toast(text, kind, now)
 	if victim then table.remove(self.toasts, victim).frame:Destroy() end
 	local c = self.config.Colors
 	local bad = kind == "warning" or kind == "error"
-	local frame = Theme.panel(self.toastRoot, {name = "Notice", anchor = Vector2.new(0,1), box = UDim2.new(1,0,0,52), radius = 12})
-	local strip = new("Frame", frame, {Name = "Strip", BackgroundColor3 = if bad then c.Negative elseif kind == "success" then c.Positive else c.Accent,
-		BorderSizePixel = 0, Position = UDim2.fromOffset(7,9), Size = UDim2.new(0,5,1,-18)})
-	Theme.corner(strip)
-	Theme.text(frame, {name = "Message", text = text, size = 15, color = if bad then c.Negative else c.Text, position = UDim2.fromOffset(20,8), box = UDim2.new(1,-32,1,-16), wrap = true, stroke = 1.2})
+	-- outlined text, no card: notices come often and shouldn't cover the screen
+	local frame = new("Frame", self.toastRoot, {Name = "Notice", AnchorPoint = Vector2.new(0,1), Size = UDim2.new(1,0,0,40), BackgroundTransparency = 1})
+	local icon = if bad then "⚠️ " elseif kind == "success" then "✅ " else ""
+	Theme.text(frame, {name = "Message", text = icon..text, size = 18, color = if bad then c.Negative elseif kind == "success" then c.Positive else c.Text, align = CENTER, position = UDim2.fromOffset(12,2), box = UDim2.new(1,-24,1,-4), wrap = true, stroke = 2})
 	Juice.punch(frame, 0.85, 0.3)
 	table.insert(self.toasts, ToastPolicy.insertionIndex(self.toasts, kind), {frame = frame, text = text, kind = kind, createdAt = now, deadline = now + ToastPolicy.duration(text, self.config.ToastSeconds)})
 	self:Tick(now)
@@ -386,7 +385,7 @@ function View:Tick(now)
 	for i, item in self.toasts do
 		if item.width ~= width then
 			item.width = width
-			item.height = math.max(52, TextService:GetTextSize(item.text, 15, Theme.Body, Vector2.new(width, 1000)).Y + 20)
+			item.height = math.max(34, TextService:GetTextSize(item.text, 18, Theme.Body, Vector2.new(width - 16, 1000)).Y + 10)
 			item.frame.Size = UDim2.new(1,0,0,item.height)
 		end
 		heights[i] = item.height

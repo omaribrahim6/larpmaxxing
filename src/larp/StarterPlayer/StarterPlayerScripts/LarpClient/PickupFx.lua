@@ -216,6 +216,7 @@ function PickupFx.start(ui)
 				text = item.name,
 				sub = Text.Legendary.where:format(where),
 				color = rarity and rarity.color,
+				small = true, -- legendaries drop often: one line of text
 			})
 			SoundKit.play("Ping", { volume = 0.5 })
 		end

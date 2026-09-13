@@ -638,6 +638,10 @@ local function verdict(ctx, outcome)
 	-- the UI's full-screen stamp isn't used here so nothing shows twice.
 	local live = ctx.screenMode or ctx.cctv
 	local camOnStage = live and ctx.participant
+	-- the rounds are over, so the last round's chip ("BIG BRAIN  5 / 5") goes
+	if ctx.participant then
+		ctx.ui:ClearRound()
+	end
 	if ctx.cctv and ctx.participant then
 		-- the monitor shrinks back into the big screen behind the players
 		local surface = stageSurface(ctx.stage)

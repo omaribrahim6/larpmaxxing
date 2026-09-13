@@ -157,7 +157,24 @@ function PickupService:_placement(slot)
 end
 
 -- The pickups on the map that can still be collected: model -> what collecting it needs.
-local live: { [Model]: { item: any, points: number, position: Vector3, respawn: () -> () } } = {}
+local live: { [Model]: { item: any, points: number, position: Vector3, cell: number, respawn: () -> () } } = {}
+-- The same pickups bucketed into CELL-stud squares, so the magnet only looks near each
+-- player (with a few thousand pickups on the map, scanning them all per player adds up).
+local CELL = 16
+local grid: { [number]: { [Model]: boolean } } = {}
+local function cellKey(cx: number, cz: number): number
+	return (cx + 4096) * 8192 + (cz + 4096)
+end
+local function forget(model: Model)
+	local entry = live[model]
+	if entry then
+		live[model] = nil
+		local bucket = grid[entry.cell]
+		if bucket then
+			bucket[model] = nil
+		end
+	end
+end
 local lastAnnounce = -math.huge -- when the last Legendary banner went out
 
 function PickupService:_spawn(slot, homeStat: string?)
@@ -179,7 +196,7 @@ function PickupService:_spawn(slot, homeStat: string?)
 	local model = makeVisual(item)
 	model:PivotTo(center)
 	model.Destroying:Connect(function()
-		live[model] = nil
+		forget(model)
 		if occupied and occupied[slot] == reservation then occupied[slot] = nil end
 	end)
 
@@ -189,10 +206,14 @@ function PickupService:_spawn(slot, homeStat: string?)
 	model:SetAttribute("Points", rarity.points)
 	CollectionService:AddTag(model, PickupService.TAG)
 	model.Parent = folder
+	local cell = cellKey(math.floor(center.Position.X / CELL), math.floor(center.Position.Z / CELL))
+	grid[cell] = grid[cell] or {}
+	grid[cell][model] = true
 	live[model] = {
 		item = item,
 		points = rarity.points,
 		position = center.Position,
+		cell = cell,
 		respawn = function()
 			-- a stat rush on this zone's stat (Car Meet, ...) respawns it faster
 			local speed = if self.Events then self.Events:SpawnMultiplier(homeStat) else 1
@@ -218,7 +239,7 @@ end
 -- them (the CollectedBy attribute, see PickupFx), then it's removed and its slot respawns.
 function PickupService:_collect(model: Model, player: Player)
 	local entry = live[model]
-	live[model] = nil
+	forget(model)
 	-- a stat rush on the item's stat (Golden Hour, PR Day) multiplies its points
 	local points = entry.points * (if self.Events then self.Events:PointsMultiplier(entry.item.stat) else 1)
 	self.Stats:AddPoints(player, entry.item.stat, points, "pickup")
@@ -255,21 +276,38 @@ function PickupService:_magnetTick()
 		if root and self:_canCollect(player) then
 			local reach = PickupService.magnetRadius(player)
 			local at = root.Position
-			for model, entry in live do
-				if (entry.position - at).Magnitude <= reach then
-					if not limiter:Allow(player, 1) then
+			local reachSquared = reach * reach
+			local full = false
+			for cx = math.floor((at.X - reach) / CELL), math.floor((at.X + reach) / CELL) do
+				for cz = math.floor((at.Z - reach) / CELL), math.floor((at.Z + reach) / CELL) do
+					local bucket = grid[cellKey(cx, cz)]
+					for model in if bucket then bucket else {} do
+						local entry = live[model]
+						local d = entry and entry.position - at
+						if d and d.X * d.X + d.Y * d.Y + d.Z * d.Z <= reachSquared then
+							if not limiter:Allow(player, 1) then
+								full = true
+								break
+							end
+							self:_collect(model, player)
+						end
+					end
+					if full then
 						break
 					end
-					self:_collect(model, player)
+				end
+				if full then
+					break
 				end
 			end
 		end
 	end
 end
 
--- Fills one SpawnPoint's slots, each staggered over the first two seconds.
-function PickupService:_fill(point: BasePart, homeStat: string?)
-	for _ = 1, Tuning.Pickup.slotsPerSpawnPoint or 1 do
+-- Fills one SpawnPoint's `slots` (default Tuning.Pickup.slotsPerSpawnPoint), each staggered
+-- over the first two seconds.
+function PickupService:_fill(point: BasePart, homeStat: string?, slots: number?)
+	for _ = 1, slots or Tuning.Pickup.slotsPerSpawnPoint or 1 do
 		local slot = { point = point }
 		task.delay(rng:NextNumber(0, 2), function()
 			self:_spawn(slot, homeStat)
@@ -312,7 +350,7 @@ function PickupService:Start()
 		local points = zone:FindFirstChild("SpawnPoints")
 		for _, point in if points then points:GetChildren() else {} do
 			if point:IsA("BasePart") then
-				self:_fill(point, nil)
+				self:_fill(point, nil, Tuning.Pickup.streetSlotsPerSpawnPoint)
 			end
 		end
 	end

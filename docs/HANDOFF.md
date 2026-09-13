@@ -1,5 +1,18 @@
 # Handoff
-## LATEST: Claude, 2026-09-12 (stat rushes)
+## LATEST: Claude, 2026-09-13 (text-only notices, bigger stat bars, fuller streets)
+- **Owner feedback: fewer cards.** Notices happen often and that's wanted, but they shouldn't cover the screen. The frequent ones are now outlined text with emoji and no card behind them:
+  - Legendary drops: one small line at the top ("✦ LEGENDARY DROP ✦ BLACK CARD just dropped in the Car Lot", the item in its rarity colour). `Announcer.push{ small = true }`.
+  - Stat rushes: a bold shimmering headline between two lines, with no band behind it.
+  - Scene upgrades (tier-ups): the same size as before ("⬆️ SCENE UPGRADE", "💰 MONEY · TIER 4", the flex line), as text.
+  - The larp-off result: "YOU WON!", the score, "+1 WIN 🏆", and the bonus counting up, as text.
+  - Toasts: centred outlined text, prefixed ✅ or ⚠️.
+  - Promotions keep their sunburst (they're rare).
+- **Stat bars are bigger:** rows 44 → 54 px. The name is 13, the value 24 (was 10 and 19), the tier chip 17, and the tier bar 4 px. Phones shrink the HUD to 66% at most (was 58%).
+- **Fixed:** the last round's chip ("BIG BRAIN 5 / 5") stayed up through the verdict. SceneDirector now clears it when the verdict starts (a new `ui:ClearRound()`).
+- **The streets hold twice as many pickups:** `Tuning.Pickup.streetSlotsPerSpawnPoint = 6` (locations stay at 3).
+- **The magnet now uses a spatial grid:** PickupService buckets pickups into 16-stud cells, so each player's magnet checks only the cells in reach instead of every pickup on the map.
+
+## Claude, 2026-09-12 (stat rushes)
 - **The spec's stat rushes are in.** Every 10 minutes (the first 2 minutes after a server starts) one stat's rush runs for 2 minutes, rotating:
   - 🌇 **Golden Hour:** Aesthetic props are worth 2×, and the sky fades to evening light for everyone.
   - 🚗 **Car Meet:** Money props respawn 3× as fast in the Car Lot.

@@ -10,7 +10,7 @@ local Hud = {}
 Hud.__index = Hud
 
 local CARD_W, CARD_H = 252, 96
-local ROW_W, ROW_H, ROW_GAP = 222, 44, 6
+local ROW_W, ROW_H, ROW_GAP = 244, 54, 6
 local MAX_ORBS = 14 -- points in flight at once; the rest land straight away
 local ORB_SIZE = { Common = 26, Uncommon = 30, Rare = 34, Epic = 40, Legendary = 48 }
 local COMBO_COLORS = { -- the meter's colour from this combo length up
@@ -62,12 +62,12 @@ function Hud.new(root, fx, deps)
 	-- a glint runs along the fill every few seconds (see Tick)
 	self.glint = Theme.new("Frame", self.fill, { Name = "Glint", BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0.3, BorderSizePixel = 0, Size = UDim2.new(0, 26, 1, 0), Position = UDim2.new(-0.3, 0, 0, 0) })
 	Theme.new("UIGradient", self.glint, { Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.5, 0), NumberSequenceKeypoint.new(1, 1) }) })
-	local progress = Theme.text(track, { name = "Progress", size = 14, align = CENTER, stroke = 1.6 })
+	local progress = Theme.text(track, { name = "Progress", size = 16, align = CENTER, stroke = 1.8 })
 	self.totalCounter = Juice.counter(progress, function(v)
 		return if self.nextThreshold then format.int(v) .. " / " .. format.int(self.nextThreshold) else format.int(v)
 	end, 0.7)
-	self.nextText = Theme.text(card, { name = "Next", font = Theme.Small, size = 11, color = c.Muted, position = UDim2.fromOffset(14, 72), box = UDim2.new(0.6, -14, 0, 18), stroke = false })
-	self.toGo = Theme.text(card, { name = "ToGo", font = Theme.Small, size = 11, color = c.Muted, position = UDim2.new(0.4, 0, 0, 72), box = UDim2.new(0.6, -14, 0, 18), align = Enum.TextXAlignment.Right, stroke = false })
+	self.nextText = Theme.text(card, { name = "Next", font = Theme.Small, size = 12, color = c.Muted, position = UDim2.fromOffset(14, 72), box = UDim2.new(0.6, -14, 0, 18), stroke = false })
+	self.toGo = Theme.text(card, { name = "ToGo", font = Theme.Small, size = 12, color = c.Muted, position = UDim2.new(0.4, 0, 0, 72), box = UDim2.new(0.6, -14, 0, 18), align = Enum.TextXAlignment.Right, stroke = false })
 
 	-- one bar per stat: icon, name, value, tier chip, and a thin bar to the next tier
 	local y = CARD_H + 10
@@ -80,18 +80,18 @@ function Hud.new(root, fx, deps)
 		Theme.border(icon)
 		Theme.shade(icon)
 		Theme.text(icon, { name = "Emoji", text = icons[id] or "", scaled = true, align = CENTER, position = UDim2.fromScale(0.2, 0.2), box = UDim2.fromScale(0.6, 0.6), stroke = false })
-		Theme.text(body, { name = "Name", font = Theme.Small, text = stat.displayName:upper(), size = 10, color = stat.color:Lerp(Color3.new(1, 1, 1), 0.3), position = UDim2.fromOffset(28, 3), box = UDim2.new(1, -84, 0, 12), stroke = false })
-		local value = Theme.text(body, { name = "Value", font = Theme.Display, size = 19, position = UDim2.fromOffset(28, 13), box = UDim2.new(1, -84, 0, 18), stroke = 1.8 })
-		local chip = Theme.new("Frame", body, { Name = "Tier", BackgroundColor3 = stat.color, BorderSizePixel = 0, AnchorPoint = MID, Position = UDim2.new(1, -28, 0.5, -1), Size = UDim2.fromOffset(42, 20) })
+		Theme.text(body, { name = "Name", font = Theme.Small, text = stat.displayName:upper(), size = 13, color = stat.color:Lerp(Color3.new(1, 1, 1), 0.3), position = UDim2.fromOffset(30, 2), box = UDim2.new(1, -94, 0, 14), stroke = 1.2 })
+		local value = Theme.text(body, { name = "Value", font = Theme.Display, size = 24, position = UDim2.fromOffset(30, 15), box = UDim2.new(1, -94, 0, 24), stroke = 2 })
+		local chip = Theme.new("Frame", body, { Name = "Tier", BackgroundColor3 = stat.color, BorderSizePixel = 0, AnchorPoint = MID, Position = UDim2.new(1, -33, 0.5, -1), Size = UDim2.fromOffset(52, 26) })
 		Theme.corner(chip, 7)
 		Theme.border(chip, c.Ink, 2)
-		local chipText = Theme.text(chip, { name = "Label", font = Theme.Display, size = 13, align = CENTER, stroke = 1.4 })
-		local tierTrack = Theme.new("Frame", body, { Name = "TierTrack", Position = UDim2.new(0, 28, 1, -6), Size = UDim2.new(1, -84, 0, 3), BackgroundColor3 = c.Ink, BackgroundTransparency = 0.2, BorderSizePixel = 0 })
+		local chipText = Theme.text(chip, { name = "Label", font = Theme.Display, size = 17, align = CENTER, stroke = 1.6 })
+		local tierTrack = Theme.new("Frame", body, { Name = "TierTrack", Position = UDim2.new(0, 30, 1, -6), Size = UDim2.new(1, -94, 0, 4), BackgroundColor3 = c.Ink, BackgroundTransparency = 0.2, BorderSizePixel = 0 })
 		Theme.corner(tierTrack)
 		local tierFill = Theme.new("Frame", tierTrack, { Name = "Fill", Size = UDim2.fromScale(0, 1), BackgroundColor3 = stat.color, BorderSizePixel = 0 })
 		Theme.corner(tierFill)
 		-- "+15" pops off the right end of the bar as points land
-		local pop = Theme.text(row, { name = "Pop", font = Theme.Display, size = 20, color = stat.color, anchor = Vector2.new(0, 0.5), position = UDim2.new(1, 6, 0.5, 0), box = UDim2.fromOffset(90, 26), stroke = 2 })
+		local pop = Theme.text(row, { name = "Pop", font = Theme.Display, size = 24, color = stat.color, anchor = Vector2.new(0, 0.5), position = UDim2.new(1, 6, 0.5, 0), box = UDim2.fromOffset(90, 26), stroke = 2 })
 		pop.TextTransparency = 1
 		pop.UIStroke.Transparency = 1
 		self.rows[id] = {
@@ -177,7 +177,7 @@ function Hud:_fit()
 	if size.X < 1 or size.Y < 1 then
 		return
 	end
-	local scale = math.clamp(math.min(size.Y / 660, size.X / 1000), 0.58, 1)
+	local scale = math.clamp(math.min(size.Y / 700, size.X / 1000), 0.66, 1)
 	self.leftScale.Scale = scale
 	self.dockScale.Scale = scale
 end

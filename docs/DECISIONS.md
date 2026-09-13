@@ -63,4 +63,8 @@
 - 2026-09-12 (Claude): stat rushes are data (Config.Events) with two kinds of boost, points× or home-zone respawn speed×, plus an optional lighting look.
   - The spec's set pieces (cars lining the Plaza, the Mall runway) are left for later.
   - PR Day's "hype soundtrack" is dropped under the no-music rule.
+- 2026-09-13 (owner): frequent notices are outlined text with emoji, not cards: legendary drops (one small line), stat rushes, scene upgrades, larp-off results and toasts.
+  - Cards stay only for things you act on (the challenge popup, Settings, How to play).
+  - Streets hold 6 pickups per SpawnPoint, locations 3.
+  - The magnet looks up pickups in a 16-stud grid.
 - 2026-09-12 (Claude): one zone track plays at a time (Config.Music), crossfading on ZoneBounds. Anywhere without its own track plays the Street main theme. Music ducks to 35% while any larp-off plays near the player, so stamps and stings stay clear.

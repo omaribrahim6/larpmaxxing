@@ -1,6 +1,8 @@
 -- Full-screen moments: a rank promotion, a stat's larp-off scene reaching a new tier, and
--- a larp-off's result card. They queue so two never overlap, wait while a larp-off is on
--- screen, and play in order of importance (the result, then a promotion, then tiers).
+-- a larp-off's result. They queue so two never overlap, wait while a larp-off is on screen,
+-- and play in order of importance (the result, then a promotion, then tiers). The tier and
+-- result moments are outlined text with no card, so they stay readable without covering
+-- the screen.
 local RunService = game:GetService("RunService")
 local Theme = require(script.Parent.Theme)
 local Juice = require(script.Parent.Juice)
@@ -185,12 +187,11 @@ local function shimmer(label, color, connections)
 	end))
 end
 
--- Scales a fixed-size card to fit narrow screens, popping it in from small.
-function Celebrate:_popIn(card, width)
-	local fit = math.min(1, self.gui.AbsoluteSize.X * 0.92 / width)
-	local s = Juice.scaler(card)
-	s.Scale = fit * 0.45
-	Juice.tween(s, 0.45, { Scale = fit }, Enum.EasingStyle.Back)
+-- An empty holder for a stack of text lines, popped in from small.
+local function holder(parent, anchorY, y, height)
+	local group = new("Frame", parent, { Name = "Text", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, anchorY), Position = UDim2.fromScale(0.5, y), Size = UDim2.new(0.84, 0, 0, height) })
+	Juice.punch(group, 0.45, 0.45)
+	return group
 end
 
 -- PROMOTED: the screen dims, a sunburst in the rank's colour turns behind the new rank's
@@ -266,11 +267,10 @@ function SHOW.rank(self, item)
 	self:_run(root, backdrop, content, d.config.CelebrateSeconds.rank, connections)
 end
 
--- SCENE UPGRADE: a card drops in under the top of the screen naming the stat's new tier
--- and what its larp-off round now shows (the tier's flex line).
+-- SCENE UPGRADE: outlined text under the top of the screen naming the stat's new tier and
+-- what its larp-off round now shows (the tier's flex line).
 function SHOW.tier(self, item)
 	local d = self.deps
-	local c = d.config.Colors
 	local words = d.config.Words
 	local stat = d.catalog.statsById[item.statId]
 	assert(stat, "unknown stat " .. tostring(item.statId))
@@ -279,27 +279,21 @@ function SHOW.tier(self, item)
 	local maxTier = #d.floors + 1
 	local root, backdrop, content = self:_stage(0, false)
 
-	local card = Theme.panel(content, { name = "Card", anchor = Vector2.new(0.5, 0), position = UDim2.fromScale(0.5, 0.27), box = UDim2.fromOffset(480, 132), edge = stat.color, edgeWidth = 3.5 })
-	local badge = new("Frame", card, { Name = "Badge", BackgroundColor3 = stat.color, BorderSizePixel = 0, AnchorPoint = MID, Position = UDim2.fromOffset(52, 66), Size = UDim2.fromOffset(72, 72) })
-	Theme.corner(badge)
-	Theme.border(badge, c.Ink, 3)
-	Theme.shade(badge)
-	Theme.text(badge, { name = "Emoji", text = d.config.StatIcons[item.statId] or "", scaled = true, align = CENTER, position = UDim2.fromScale(0.2, 0.2), box = UDim2.fromScale(0.6, 0.6), stroke = false })
-	Theme.text(card, { name = "Eyebrow", font = Theme.Small, text = words.TierUp, size = 13, color = stat.color:Lerp(WHITE, 0.35), position = UDim2.fromOffset(100, 12), box = UDim2.new(1, -116, 0, 16), stroke = false })
+	local group = holder(content, 0, 0.24, 140)
+	Theme.text(group, { name = "Eyebrow", font = Theme.Small, text = "⬆️  " .. words.TierUp, size = 18, color = stat.color:Lerp(WHITE, 0.4), align = CENTER, box = UDim2.new(1, 0, 0, 24), stroke = 2 })
 	local tierName = if item.tier >= maxTier then words.Maxxed else words.Tier:format(item.tier)
-	Theme.text(card, { name = "Headline", font = Theme.Display, text = words.TierLine:format(stat.displayName:upper(), tierName), size = 30, position = UDim2.fromOffset(100, 30), box = UDim2.new(1, -116, 0, 38), scaled = true, maxSize = 32, stroke = 2.5 })
-	Theme.text(card, { name = "Flex", text = tierData and tierData.flex or "", size = 16, color = c.Muted, position = UDim2.fromOffset(100, 72), box = UDim2.new(1, -116, 0, 46), wrap = true, top = true, stroke = 1.2 })
-	self:_popIn(card, 480)
-	Juice.punch(badge, 1.5, 0.6)
+	local icon = d.config.StatIcons[item.statId] or ""
+	Theme.text(group, { name = "Headline", font = Theme.Display, text = icon .. " " .. words.TierLine:format(stat.displayName:upper(), tierName), color = stat.color, align = CENTER, position = UDim2.fromOffset(0, 26), box = UDim2.new(1, 0, 0, 58), scaled = true, maxSize = 54, stroke = 3.5 })
+	Theme.text(group, { name = "Flex", text = tierData and tierData.flex or "", align = CENTER, position = UDim2.fromOffset(0, 88), box = UDim2.new(1, 0, 0, 46), scaled = true, wrap = true, maxSize = 24, stroke = 2 })
 
 	d.play("Equip", 0.6)
 	d.play("PickupRare", 0.35)
-	self:_confetti(root, 36, { stat.color, stat.color:Lerp(WHITE, 0.5), c.Accent }, Vector2.new(0.5, 0.33))
+	self:_confetti(root, 36, { stat.color, stat.color:Lerp(WHITE, 0.5), d.config.Colors.Accent }, Vector2.new(0.5, 0.3))
 	self:_run(root, backdrop, content, d.config.CelebrateSeconds.tier, {})
 end
 
 -- The larp-off result, once the scene has ended: the rounds score, and for a win the
--- +1 Win and the bonus counting up. Clicks pass through to the Rematch button below.
+-- +1 Win and the bonus counting up. Outlined text; clicks pass through to Rematch below.
 function SHOW.reward(self, item)
 	local d = self.deps
 	local c = d.config.Colors
@@ -308,22 +302,17 @@ function SHOW.reward(self, item)
 	local color = if won then (if item.upset then c.Accent else c.Positive) else c.Negative
 	local root, backdrop, content = self:_stage(0, false)
 
-	local card = Theme.panel(content, { name = "Card", anchor = MID, position = UDim2.fromScale(0.5, 0.42), box = UDim2.fromOffset(440, 250), edge = color, edgeWidth = 4 })
+	local group = holder(content, 0.5, 0.4, 230)
 	local headline = if won then (if item.upset then words.UpsetWon else words.Won)
 		elseif item.against - item.rounds <= 1 then words.CloseLoss
 		else words.Lost
-	Theme.text(card, { name = "Headline", font = Theme.Display, text = headline, color = color, align = CENTER, position = UDim2.fromOffset(16, 12), box = UDim2.new(1, -32, 0, 56), scaled = true, maxSize = 56, stroke = 3.5 })
-	Theme.text(card, { name = "Score", font = Theme.Display, text = ("%d - %d"):format(item.rounds, item.against), size = 40, align = CENTER, position = UDim2.fromOffset(16, 70), box = UDim2.new(1, -32, 0, 44), stroke = 3 })
+	Theme.text(group, { name = "Headline", font = Theme.Display, text = headline, color = color, align = CENTER, box = UDim2.new(1, 0, 0, 70), scaled = true, maxSize = 68, stroke = 4 })
+	Theme.text(group, { name = "Score", font = Theme.Display, text = ("%d - %d"):format(item.rounds, item.against), size = 44, align = CENTER, position = UDim2.fromOffset(0, 72), box = UDim2.new(1, 0, 0, 48), stroke = 3.5 })
 	if won then
-		Theme.text(card, { name = "Win", font = Theme.Display, text = words.WinPlus, size = 26, color = c.Accent, align = CENTER, position = UDim2.fromOffset(16, 122), box = UDim2.new(1, -32, 0, 32), stroke = 2.5 })
-		if item.upset then
-			local tag = new("Frame", card, { Name = "Upset", BackgroundColor3 = c.Accent, BorderSizePixel = 0, AnchorPoint = MID, Position = UDim2.new(1, -52, 0, 8), Size = UDim2.fromOffset(110, 30), Rotation = 8 })
-			Theme.corner(tag, 8)
-			Theme.border(tag, c.Ink, 2.5)
-			Theme.text(tag, { name = "Label", font = Theme.Display, text = words.UpsetTag, size = 16, color = c.Ink, align = CENTER, stroke = false })
-		end
+		local line = if item.upset then words.WinPlus .. "   " .. words.UpsetTag else words.WinPlus
+		Theme.text(group, { name = "Win", font = Theme.Display, text = line, size = 30, color = c.Accent, align = CENTER, position = UDim2.fromOffset(0, 124), box = UDim2.new(1, 0, 0, 36), stroke = 3 })
 		if item.bonus > 0 then
-			local bonus = Theme.text(card, { name = "Bonus", font = Theme.Display, size = 32, color = c.Positive, align = CENTER, anchor = MID, position = UDim2.new(0.5, 0, 0, 196), box = UDim2.new(1, -32, 0, 42), stroke = 3 })
+			local bonus = Theme.text(group, { name = "Bonus", font = Theme.Display, size = 36, color = c.Positive, align = CENTER, anchor = MID, position = UDim2.new(0.5, 0, 0, 190), box = UDim2.new(1, 0, 0, 44), stroke = 3.5 })
 			local counter = Juice.counter(bonus, function(v)
 				return "+" .. d.format.int(v) .. "  " .. words.Bonus
 			end, 1.2)
@@ -348,17 +337,15 @@ function SHOW.reward(self, item)
 				end)
 			end)
 		else
-			Theme.text(card, { name = "NoBonus", text = words.NoBonus, size = 18, color = c.Muted, align = CENTER, position = UDim2.fromOffset(16, 176), box = UDim2.new(1, -32, 0, 30), stroke = 1.2 })
+			Theme.text(group, { name = "NoBonus", text = words.NoBonus, size = 22, color = c.Muted, align = CENTER, position = UDim2.fromOffset(0, 170), box = UDim2.new(1, 0, 0, 30), stroke = 2 })
 		end
 		d.play("Slam", 0.6)
 		d.play("PickupRare", 0.45)
 		self:_confetti(root, 60, { c.Accent, c.Positive, WHITE, Color3.fromRGB(110, 200, 255) })
 	else
-		Theme.text(card, { name = "RunItBack", text = words.RunItBack, size = 19, color = c.Muted, align = CENTER, position = UDim2.fromOffset(16, 140), box = UDim2.new(1, -32, 0, 30), stroke = 1.2 })
-		card.Size = UDim2.fromOffset(440, 196)
+		Theme.text(group, { name = "RunItBack", text = words.RunItBack, size = 24, color = c.Muted, align = CENTER, position = UDim2.fromOffset(0, 128), box = UDim2.new(1, 0, 0, 32), stroke = 2 })
 		d.play("Swipe", 0.5)
 	end
-	self:_popIn(card, 440)
 	self:_run(root, backdrop, content, d.config.CelebrateSeconds.reward, {})
 end
 

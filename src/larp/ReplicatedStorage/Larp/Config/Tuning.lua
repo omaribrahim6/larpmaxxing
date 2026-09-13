@@ -57,6 +57,7 @@ return {
 		hoverHeight = 3,
 		hitboxDiameter = 2, -- a pickup's footprint, for spacing and obstacle checks
 		slotsPerSpawnPoint = 3, -- pickups each SpawnPoint keeps on the map
+		streetSlotsPerSpawnPoint = 6, -- the streets hold twice as many (owner, 2026-09-13)
 		announceGapSeconds = 25, -- at most one server-wide Legendary banner per this many seconds
 		-- The magnet: pickups within magnetRadius of a player fly into them and count. The
 		-- radius is multiplied by the player's MagnetMultiplier attribute (server-set, e.g. a
