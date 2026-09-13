@@ -29,8 +29,9 @@ return {
 	SceneMode = "Cctv",
 	Screen = { setOrigin = Vector3.new(0, 0, 3000) },
 
-	-- Rolled-value floors for Tier 2, 3, 4, 5 and Maxxed (Tier 6).
-	Tiers = { 100, 1000, 5000, 20000, 50000 },
+	-- Rolled-value floors for Tier 2, 3, 4, 5 and Maxxed (Tier 6). Doubled on 2026-09-12
+	-- with the denser pickups (were 100, 1000, 5000, 20000, 50000).
+	Tiers = { 200, 2000, 10000, 40000, 100000 },
 
 	ExposedSeconds = 180,
 	SamePairRewardLimit = { count = 2, windowSeconds = 600 },
@@ -48,11 +49,15 @@ return {
 		-- Share of a location's spawns that are its home stat. 1 = a location only spawns its
 		-- own stat (user direction 2026-09-12); the streets spawn every stat.
 		homeZoneShare = 1,
-		respawnMin = 3, -- seconds after a pickup is taken (quick: many players share a zone)
-		respawnMax = 6,
-		minSpacing = 6, -- studs between pickups (lets dense zones fill)
+		-- Tripled for busy servers (owner, 2026-09-12): respawns 3x faster, pickups 3x closer
+		-- and 3x as many (slotsPerSpawnPoint); rank and tier thresholds doubled to match.
+		respawnMin = 1, -- seconds after a pickup is taken
+		respawnMax = 2,
+		minSpacing = 2, -- studs between pickups
 		hoverHeight = 3,
-		hitboxDiameter = 5, -- a pickup's footprint, for spacing and obstacle checks
+		hitboxDiameter = 2, -- a pickup's footprint, for spacing and obstacle checks
+		slotsPerSpawnPoint = 3, -- pickups each SpawnPoint keeps on the map
+		announceGapSeconds = 25, -- at most one server-wide Legendary banner per this many seconds
 		-- The magnet: pickups within magnetRadius of a player fly into them and count. The
 		-- radius is multiplied by the player's MagnetMultiplier attribute (server-set, e.g. a
 		-- 2x magnet pass), at most maxMagnetMultiplier. Checked every magnetTick seconds.

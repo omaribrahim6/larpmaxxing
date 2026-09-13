@@ -1,5 +1,22 @@
 # Handoff
-## LATEST: Claude, 2026-09-12 (Bag is now Money)
+## LATEST: Claude, 2026-09-12 (3x pickup density, 2x progression)
+- **Pickups tripled for busy servers** (owner request; every multiplier is from the previous values):
+  - Respawn is 3x faster: `respawnMin`/`respawnMax` went from 3–6 s to 1–2 s.
+  - Pickups sit 3x closer: `minSpacing` went from 6 to 2. `hitboxDiameter` went from 5 to 2 as well, because the spacing floors at the hitbox.
+  - There are 3x as many: `Tuning.Pickup.slotsPerSpawnPoint = 3`. Each SpawnPoint keeps three pickups on the map, so the map needed no rebuild.
+    - PickupService now spawns per slot, not per point (`_fill`, and `slot` tables as the placement key).
+    - Playtested: 608 SpawnPoints now hold 1,824 pickups (Money 368, Aesthetic 358, Drip 382, Gains 361, Big Brain 355).
+- **Progression doubled to match:**
+  - Rank thresholds ×2: Normie 500, Wannabe 3,000, Poser 12,000, Main Character 40,000, Aura Farmer 120,000, LARP Maxxer 300,000.
+  - Scene-tier floors ×2 (`Tuning.Tiers`): 200, 2,000, 10,000, 40,000, 100,000. The HUD's tier chips and bars follow them.
+- **Kept cheap with 3x as many pickups:**
+  - Only Epic and Legendary pickups carry a glow light. That's about 90 lights on the map, fewer than before; Uncommon and Rare keep their sparkles.
+  - Pickups spin and bob within 100 studs of the camera (was 160). That's about 100 animated at a time, as before.
+  - The server announces at most one Legendary banner per `announceGapSeconds` (25).
+- **Unchanged:** the 12-pickups-per-second cap per player. A sprinting player in a packed zone can hit it; raise `Tuning.Pickup.maxPerSecond` if that feels slow.
+- **Tested:** 51/51 unit tests in a play server (the rank test uses the new thresholds); no console errors.
+
+## Claude, 2026-09-12 (Bag is now Money)
 - **The Bag stat is now Money** (owner request: kids won't know what "Bag" means). This was done all the way through, internal ids included:
   - The stat id, display name and scene are Money (`Config.Stats`), and its five items point at it (`Config.Items`).
   - Studio instances renamed:

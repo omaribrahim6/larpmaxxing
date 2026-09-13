@@ -54,4 +54,7 @@
   - Saved profiles migrate through `DataService.RENAMED_STATS` (old id to new, points added).
   - Item names that are literally bags stay as they are.
   - The spec's "Bag" means Money from now on.
+- 2026-09-12 (owner): pickups are 3x denser for multi-player areas: respawns 3x faster, 3x closer and 3x as many (3 slots per SpawnPoint).
+  - Rank thresholds and scene-tier floors doubled in exchange, replacing the spec's numbers.
+  - Kept cheap: only Epic and Legendary pickups carry lights, pickups animate within 100 studs, and there's at most one Legendary banner per 25 s.
 - 2026-09-12 (Claude): one zone track plays at a time (Config.Music), crossfading on ZoneBounds. Anywhere without its own track plays the Street main theme. Music ducks to 35% while any larp-off plays near the player, so stamps and stings stay clear.

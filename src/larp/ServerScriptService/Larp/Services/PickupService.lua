@@ -1,5 +1,6 @@
 -- Spawns randomly spaced props inside stat-zone bounds and validates pickups.
--- SpawnPoints are population slots; ZoneBounds controls placement. Item assets remain unchanged.
+-- Each SpawnPoint keeps Tuning.Pickup.slotsPerSpawnPoint pickups on the map; ZoneBounds controls
+-- placement. Item assets remain unchanged.
 local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -120,7 +121,8 @@ end
 
 -- Spawn Parts are population slots, not grid coordinates. Sample fresh positions
 -- inside the zone and reject nearby pickups and solid map obstacles.
-function PickupService:_placement(point: BasePart)
+function PickupService:_placement(slot)
+	local point = slot.point
 	local zone = point.Parent and point.Parent.Parent
 	local bounds = zone and zone:FindFirstChild("ZoneBounds")
 	if not bounds or not bounds:IsA("BasePart") then
@@ -148,25 +150,27 @@ function PickupService:_placement(point: BasePart)
 			return #workspace:GetPartBoundsInBox(CFrame.new(checkCenter), Vector3.new(diameter, checkHeight, diameter), overlap) == 0
 		end)
 	if not position then return nil end
-	occupied[point] = position
+	occupied[slot] = position
 	local center = ground(position.x, position.z) + Vector3.new(0, Tuning.Pickup.hoverHeight, 0)
 	return CFrame.new(center) * CFrame.Angles(0, rng:NextNumber(0, math.pi * 2), 0), occupied, position
 end
 
 -- The pickups on the map that can still be collected: model -> what collecting it needs.
 local live: { [Model]: { item: any, points: number, position: Vector3, respawn: () -> () } } = {}
+local lastAnnounce = -math.huge -- when the last Legendary banner went out
 
-function PickupService:_spawn(point: BasePart, homeStat: string?)
+function PickupService:_spawn(slot, homeStat: string?)
+	local point = slot.point
 	if not point.Parent or not folder or not folder.Parent then return end
 	local item = PickupService.chooseItem(homeStat)
 	if not item then
 		return
 	end
-	local center, occupied, reservation = self:_placement(point)
+	local center, occupied, reservation = self:_placement(slot)
 	if not center then
 		-- A crowded/blocked zone must not overlap props or loop indefinitely.
 		task.delay(Tuning.Pickup.respawnMin, function()
-			if point.Parent then self:_spawn(point, homeStat) end
+			if point.Parent then self:_spawn(slot, homeStat) end
 		end)
 		return
 	end
@@ -175,7 +179,7 @@ function PickupService:_spawn(point: BasePart, homeStat: string?)
 	model:PivotTo(center)
 	model.Destroying:Connect(function()
 		live[model] = nil
-		if occupied and occupied[point] == reservation then occupied[point] = nil end
+		if occupied and occupied[slot] == reservation then occupied[slot] = nil end
 	end)
 
 	model:SetAttribute("ItemId", item.id)
@@ -191,13 +195,16 @@ function PickupService:_spawn(point: BasePart, homeStat: string?)
 		respawn = function()
 			task.delay(rng:NextNumber(Tuning.Pickup.respawnMin, Tuning.Pickup.respawnMax), function()
 				if point.Parent then
-					self:_spawn(point, homeStat)
+					self:_spawn(slot, homeStat)
 				end
 			end)
 		end,
 	}
 
-	if rarity.announce then
+	-- a banner for the whole server, at most one per announceGapSeconds: with pickups this
+	-- dense Legendaries drop often (the first fill alone spawns a dozen)
+	if rarity.announce and os.clock() - lastAnnounce >= (Tuning.Pickup.announceGapSeconds or 0) then
+		lastAnnounce = os.clock()
 		-- where it dropped: the location's name, or the streets (which spawn every stat)
 		local home = homeStat and Catalog.statsById[homeStat]
 		Net.get("LegendarySpawned"):FireAllClients(item.id, center.Position, if home then "in the " .. home.zoneName else "on the streets")
@@ -255,6 +262,16 @@ function PickupService:_magnetTick()
 	end
 end
 
+-- Fills one SpawnPoint's slots, each staggered over the first two seconds.
+function PickupService:_fill(point: BasePart, homeStat: string?)
+	for _ = 1, Tuning.Pickup.slotsPerSpawnPoint or 1 do
+		local slot = { point = point }
+		task.delay(rng:NextNumber(0, 2), function()
+			self:_spawn(slot, homeStat)
+		end)
+	end
+end
+
 function PickupService:Start()
 	self._positions = {}
 	limiter = RateLimiter.new(Tuning.Pickup.maxPerSecond, Tuning.Pickup.maxPerSecond, 200)
@@ -278,9 +295,7 @@ function PickupService:Start()
 		end
 		for _, point in points:GetChildren() do
 			if point:IsA("BasePart") then
-				task.delay(rng:NextNumber(0, 2), function()
-					self:_spawn(point, statId)
-				end)
+				self:_fill(point, statId)
 			end
 		end
 	end
@@ -292,9 +307,7 @@ function PickupService:Start()
 		local points = zone:FindFirstChild("SpawnPoints")
 		for _, point in if points then points:GetChildren() else {} do
 			if point:IsA("BasePart") then
-				task.delay(rng:NextNumber(0, 2), function()
-					self:_spawn(point, nil)
-				end)
+				self:_fill(point, nil)
 			end
 		end
 	end

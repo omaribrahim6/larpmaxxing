@@ -14,7 +14,7 @@ local SoundKit = require(script.Parent.SoundKit)
 local Announcer = require(script.Parent.Announcer)
 
 local TAG = "LarpPickup"
-local ANIMATE_RANGE = 160 -- studs from the camera within which pickups spin and bob
+local ANIMATE_RANGE = 100 -- studs from the camera within which pickups spin and bob (pickups got 3x denser)
 local PickupFx = {}
 
 local active: { [Model]: { base: CFrame, phase: number } } = {}
@@ -65,11 +65,15 @@ local function decorate(model: Model)
 	local rarity = Catalog.rarities[model:GetAttribute("Rarity") or "Common"] or Catalog.rarities.Common
 	local rarityName = model:GetAttribute("Rarity")
 	if rarityName ~= "Common" then
-		local glow = Instance.new("PointLight")
-		glow.Color = rarity.color
-		glow.Range = if rarityName == "Legendary" then 16 else 9
-		glow.Brightness = if rarityName == "Legendary" then 3 else 1.5
-		glow.Parent = root
+		-- a glow only on Epic and Legendary: with pickups 3x denser, a light on every Uncommon
+		-- and Rare would be hundreds of lights for a phone to draw
+		if rarityName == "Epic" or rarityName == "Legendary" then
+			local glow = Instance.new("PointLight")
+			glow.Color = rarity.color
+			glow.Range = if rarityName == "Legendary" then 16 else 9
+			glow.Brightness = if rarityName == "Legendary" then 3 else 1.5
+			glow.Parent = root
+		end
 		local sparkle = Instance.new("ParticleEmitter")
 		sparkle.Texture = "rbxasset://textures/particles/sparkles_main.dds"
 		sparkle.Color = ColorSequence.new(rarity.color)
