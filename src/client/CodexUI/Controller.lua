@@ -116,6 +116,8 @@ function Controller.start()
 			shopOpen=function() self.view.store:Open() self.view:Render(self.model) end,
 			redeem=function(code) if not self.adapter:Send("RedeemCode",code) then notice(Config.Words.Unavailable,"warning") end end,
 			grassOpen=function() self.view.rebirth:Open(self.model.rebirths or 0) self.view:Render(self.model) end,
+			mapOpen=function() self.view.map:Toggle() self.view:Render(self.model) end,
+			sprintToggle=function() if self.sprintToggle then self.sprintToggle() end end,
 			touchGrass=function() if not self.adapter:Send("TouchGrass") then notice(Config.Words.Unavailable,"warning") end end,
 		},{
 			play=play,tiers=require(larp.Shared.Tiers),floors=tuning.Tiers,store=require(larp.Config.Store),rebirthMath=require(larp.Shared.RebirthMath),touchGrass=tuning.TouchGrass,cosmetics=require(larp.Config.Cosmetics),
@@ -145,7 +147,7 @@ function Controller.start()
 		self.model.inMatch=isActive==true
 		if isActive then
 			self.model.onboarding:MatchStarted()
-			self:Respond(false) self.model.rematch=nil self.view:SetSettings(false) self.view.tutorial:Close() self.view.store:Close() self.view.rebirth:Close()
+			self:Respond(false) self.model.rematch=nil self.view:SetSettings(false) self.view.tutorial:Close() self.view.store:Close() self.view.rebirth:Close() self.view.map:Close()
 		else self.view:ClearRound() end
 		-- promotions and tier-ups wait until the larp-off is off screen
 		self.view.celebrate:SetPaused(self.model.inMatch)
@@ -189,6 +191,9 @@ function Controller.start()
 	function self:Notify(message,kind) notice(message,kind) end
 	-- a line in the bottom-left feed (legendary drops, stat rushes): RichText, colour, big, seconds
 	function self:Feed(text,color,big,seconds) if self.view then self.view.feed:Push(text,color,big,seconds) end end
+	-- the Sprint button drives SprintKit (LarpClient), which reports back so the button shows it
+	function self:BindSprint(toggle) self.sprintToggle=toggle end
+	function self:SetSprinting(on) if self.view then self.view.hud:SetSprinting(on) end end
 	local function profile(packet)
 		local before=table.clone(self.model.settings)
 		local first=not self.model.loaded

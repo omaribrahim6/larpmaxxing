@@ -1,5 +1,5 @@
--- Sprint toggle: Left Shift, the gamepad's left-stick click, or the on-screen button on
--- touch screens. Sprinting raises WalkSpeed (Tuning.Movement) and widens the camera a
+-- Sprint toggle: Left Shift, the gamepad's left-stick click, or the HUD's Sprint button
+-- (every device; it lights up while sprinting). Sprinting raises WalkSpeed (Tuning.Movement) and widens the camera a
 -- little; the toggle survives respawns. It never overrides a WalkSpeed something else set
 -- (a scene pinning it), and leaves scripted scene cameras alone.
 local ContextActionService = game:GetService("ContextActionService")
@@ -14,6 +14,7 @@ local SprintKit = {}
 local ACTION = "LarpSprint"
 local player = Players.LocalPlayer
 local sprinting = false
+local ui = nil -- the CodexUI controller, whose Sprint button shows the toggle
 
 local function apply()
 	local character = player.Character
@@ -27,7 +28,9 @@ local function apply()
 			FieldOfView = M.fov + (if sprinting then M.sprintFov else 0),
 		}):Play()
 	end
-	ContextActionService:SetTitle(ACTION, if sprinting then "Walk" else "Sprint")
+	if ui then
+		ui:SetSprinting(sprinting)
+	end
 end
 
 function SprintKit.set(on: boolean)
@@ -39,15 +42,20 @@ function SprintKit.isSprinting(): boolean
 	return sprinting
 end
 
-function SprintKit.start()
+function SprintKit.start(controller)
+	ui = controller
+	if ui then
+		ui:BindSprint(function()
+			SprintKit.set(not sprinting)
+		end)
+	end
 	-- above the default controls, so Shift sprints instead of toggling Shift Lock
 	ContextActionService:BindActionAtPriority(ACTION, function(_, state)
 		if state == Enum.UserInputState.Begin then
 			SprintKit.set(not sprinting)
 		end
 		return Enum.ContextActionResult.Sink
-	end, true, Enum.ContextActionPriority.High.Value, Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL3)
-	ContextActionService:SetTitle(ACTION, "Sprint")
+	end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL3)
 	player.CharacterAdded:Connect(function(character)
 		character:WaitForChild("Humanoid", 10)
 		apply()

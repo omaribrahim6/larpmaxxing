@@ -1,5 +1,25 @@
 # Handoff
-## LATEST: Claude, 2026-09-13 (owner playtest: slower progression, rarer Legendaries, the feed)
+## LATEST: Claude, 2026-09-13 (map and sprint buttons)
+- **Bottom right, two new HUD buttons** (owner request). On phones they sit above the jump button.
+  - 🗺️ **Map**, or **M**, opens the city map. It closes with ×, M, gamepad B, or a click outside.
+  - 🏃 **Sprint** toggles sprinting on every device, and the button turns green ("Sprint ON") while it's on. Shift still toggles too, and both stay in sync.
+- **The map (`CodexUI.MapView`):** north up. It shows:
+  - the streets
+  - the Plaza
+  - the five zones in their stat's colour with its emoji
+  - a 💎 at each zone's VIP/ELITE doors
+  - other players as dots, and you as an arrow pointing where you face
+- **`Services.MapService` (server):**
+  - Streaming is on, so a client doesn't have the far parts to measure. The server measures the map once at start and publishes it to `ReplicatedStorage.Larp.MapInfo`: one Configuration per place, with kind, center, size, label and stat.
+  - A new zone or street shows up on the map automatically.
+- **SprintKit:** no longer makes its own touch-only button. `ui:BindSprint(fn)` and `ui:SetSprinting(on)` connect it to the HUD button.
+- **How to play:** the map page tip mentions Sprint and M.
+- **Tested in a play session with real key presses:**
+  - M opened the map: 20 places published, 22 shapes drawn.
+  - M closed it again.
+  - Shift gave walk speed 28 with "Sprint ON", and Shift again returned it to 16.
+
+## Claude, 2026-09-13 (owner playtest: slower progression, rarer Legendaries, the feed)
 - **Progression ×5** (owner: LARP Maxxer came in 5–10 minutes; a first run should take 30–40):
   - Ranks: Normie 2,500 · Wannabe 15,000 · Poser 60,000 · Main Character 200,000 · Aura Farmer 600,000 · LARP Maxxer 1,500,000.
   - Scene-tier floors: 1,000 · 10,000 · 50,000 · 200,000 · 500,000.

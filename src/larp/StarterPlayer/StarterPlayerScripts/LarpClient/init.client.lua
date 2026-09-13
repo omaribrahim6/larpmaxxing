@@ -12,7 +12,7 @@ local ui = require(player:WaitForChild("PlayerScripts"):WaitForChild("CodexUI"):
 
 require(script:WaitForChild("SoundKit")).init(ui)
 require(script:WaitForChild("MusicKit")).start(ui)
-require(script:WaitForChild("SprintKit")).start()
+require(script:WaitForChild("SprintKit")).start(ui)
 require(script:WaitForChild("PickupFx")).start(ui)
 require(script:WaitForChild("EventFx")).start(ui)
 require(script:WaitForChild("CosmeticFx")).start()

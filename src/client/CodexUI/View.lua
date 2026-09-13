@@ -15,6 +15,7 @@ local Tutorial = require(script.Parent.Tutorial)
 local Store = require(script.Parent.Store)
 local Rebirth = require(script.Parent.Rebirth)
 local Feed = require(script.Parent.Feed)
+local MapView = require(script.Parent.MapView)
 local View = {}
 View.__index = View
 local new = Theme.new
@@ -69,6 +70,8 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 		helpOpen = function() callbacks.helpOpen() end,
 		shopOpen = function() callbacks.shopOpen() end,
 		grassOpen = function() callbacks.grassOpen() end,
+		mapOpen = function() callbacks.mapOpen() end,
+		sprintToggle = function() callbacks.sprintToggle() end,
 		onTierUp = tierUp})
 	self.settingsOpen = self.hud.settingsButton
 	self.helpOpen = self.hud.helpButton
@@ -82,6 +85,8 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 	-- Touch Grass's confirm prompt
 	self.rebirth = Rebirth.new(self.root, {config = config, play = play, button = button, rebirthMath = extras.rebirthMath, tuning = extras.touchGrass,
 		confirm = function() callbacks.touchGrass() end})
+	-- the city map (the Map button, or M)
+	self.map = MapView.new(self.root, {config = config, catalog = catalog, play = play, button = button})
 
 	self.guide = Theme.panel(self.root, {name = "Guide", anchor = MID, box = UDim2.fromOffset(440,128), z = 10, edge = c.Accent})
 	self.guide.Visible = false
@@ -367,6 +372,7 @@ function View:FocusTargets()
 	if self.tutorial:IsOpen() then return self.tutorial:FocusTargets() end
 	if self.store:IsOpen() then return self.store:FocusTargets() end
 	if self.rebirth:IsOpen() then return self.rebirth:FocusTargets() end
+	if self.map:IsOpen() then return self.map:FocusTargets() end
 	return {}
 end
 
@@ -452,6 +458,7 @@ function View:Destroy()
 	self.store:Destroy()
 	self.rebirth:Destroy()
 	self.feed:Destroy()
+	self.map:Destroy()
 	self.gui:Destroy()
 end
 return View

@@ -132,6 +132,13 @@ function Hud.new(root, fx, deps)
 	self.grassButton = deps.button(self.dock, { name = "TouchGrass", text = "🌱  " .. words.TouchGrass, size = 15, color = Color3.fromRGB(52, 160, 72), position = UDim2.fromOffset(68, 244), box = UDim2.fromOffset(136, 46) }, deps.grassOpen)
 	self.grassButton.Visible = false
 
+	-- bottom right: the Map and Sprint buttons (above the jump button on touch screens)
+	local touch = game:GetService("UserInputService").TouchEnabled and not game:GetService("UserInputService").KeyboardEnabled
+	self.corner = Theme.new("Frame", self.frame, { Name = "Corner", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -16, 1, if touch then -170 else -20), Size = UDim2.fromOffset(152, 72) })
+	self.cornerScale = Theme.new("UIScale", self.corner, { Name = "Fit" })
+	self.mapButton = deps.button(self.corner, { name = "Map", text = "🗺️\n" .. words.Map, size = 15, position = UDim2.fromOffset(36, 36), box = UDim2.fromOffset(70, 70) }, deps.mapOpen)
+	self.sprintButton = deps.button(self.corner, { name = "Sprint", text = "🏃\n" .. words.Sprint, size = 15, position = UDim2.fromOffset(116, 36), box = UDim2.fromOffset(70, 70) }, deps.sprintToggle)
+
 	-- the combo meter, bottom centre above the rematch button (small: it's up a lot)
 	self.comboGroup = Theme.new("CanvasGroup", self.frame, { Name = "Combo", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -84), Size = UDim2.fromOffset(220, 68), GroupTransparency = 1 })
 	self.comboCount = Theme.text(self.comboGroup, { name = "Count", font = Theme.Display, size = 34, align = CENTER, position = UDim2.fromOffset(0, 2), box = UDim2.new(1, 0, 0, 40), stroke = 2.5 })
@@ -175,6 +182,7 @@ function Hud:_fit()
 	local scale = math.clamp(math.min(size.Y / 700, size.X / 1000), 0.66, 1)
 	self.leftScale.Scale = scale
 	self.dockScale.Scale = scale
+	self.cornerScale.Scale = scale
 end
 
 function Hud:Render(model)
@@ -239,6 +247,14 @@ function Hud:Render(model)
 			Juice.tween(row.tierFill, 0.45, { Size = UDim2.fromScale(f, 1) })
 		end
 	end
+end
+
+-- The Sprint button shows whether sprint is on (SprintKit reports it through the Controller).
+function Hud:SetSprinting(on)
+	local c = self.deps.config.Colors
+	local words = self.deps.config.Words
+	self.sprintButton.BackgroundColor3 = if on then c.Positive else c.Raised
+	Theme.setText(self.sprintButton, "🏃\n" .. (if on then words.Sprinting else words.Sprint))
 end
 
 function Hud:Tick(now)

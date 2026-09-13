@@ -7,7 +7,7 @@ function InputPolicy.nextIndex(index,count,reverse)
 end
 function InputPolicy.route(key, context)
 	if context.typing or context.menu or context.inMatch then return nil end
-	if context.challenge or context.settings or context.tutorial or context.store or context.rebirth then
+	if context.challenge or context.settings or context.tutorial or context.store or context.rebirth or context.map then
 		if key=="Tab" then return "focus" end
 		if key=="Down" then return "focusNext" end
 		if key=="Up" then return "focusPrevious" end
@@ -33,6 +33,11 @@ function InputPolicy.route(key, context)
 	if context.rebirth then
 		if key=="ButtonB" then return "closeRebirth" end
 	end
+	if context.map then
+		if key=="M" or key=="ButtonB" then return "map" end
+		return nil
+	end
+	if key=="M" then return "map" end
 	if key=="G" or key=="ButtonY" then return "settings" end
 	return nil
 end
