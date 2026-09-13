@@ -5,7 +5,7 @@ Codex owns these additions. Do not create a second HUD or change the baseline sn
 | Repository | Studio |
 |---|---|
 | src/client/CodexUI/Bootstrap.client.lua | StarterPlayer.StarterPlayerScripts.CodexUI.Bootstrap (LocalScript) |
-| src/client/CodexUI/{Controller,View,Model,RemoteAdapter,Onboarding,InputController,InputPolicy,FocusPolicy,Layout,SettingValue,ToastPolicy,Wayfinder}.lua | StarterPlayer.StarterPlayerScripts.CodexUI/<same name> (ModuleScripts) |
+| src/client/CodexUI/{Controller,View,Model,RemoteAdapter,Onboarding,InputController,InputPolicy,FocusPolicy,Layout,SettingValue,ToastPolicy,Wayfinder,Theme,Juice,Hud,Celebrate}.lua | StarterPlayer.StarterPlayerScripts.CodexUI/<same name> (ModuleScripts) |
 | src/config/UIConfig.lua | StarterPlayer.StarterPlayerScripts.CodexUI.UIConfig |
 | src/shared/CodexShared/{Cleanup,RateLimiter}.lua | ReplicatedStorage.CodexShared/<same name> |
 | tests/UnitSuite.lua | ServerStorage.CodexTests.UnitSuite (manual only) |
@@ -41,7 +41,10 @@ ui:ShowStamp("Ate", 0.9)           -- Ate, Fumbled, Certified, Exposed, Upset, V
 ui:SetMatchActive(false)
 ui:ShowRematch("Player", opponentUserId, 60) -- or ("Npc", 0, 60)
 ui:Notify("You earned bonus points", "success") -- only after server confirms reward
+ui:ShowReward({won = true, upset = false, bonus = 312, rounds = 3, against = 2}) -- result card once the match ends
+ui:Collected("Bag", 15, "Uncommon", worldPosition) -- PickupFx: points fly into the HUD bar; returns the combo length
 ```
+Since 2026-09-12 the look lives in Theme (fonts, primitives) and Juice (tweens, button feel, roll-up numbers, UI sounds), the HUD in Hud, and the full-screen promotion, scene-upgrade and result moments in Celebrate (the `LarpCelebrate` ScreenGui, DisplayOrder 45). RankUp celebrates instead of toasting.
 Claude's SceneDirector already calls these hooks. Match packets/cinematography and rematch eligibility remain with their owners. UI permits one request per displayed offer. During CCTV matches, SetMatchActive hides guide/HUD/settings and pauses notifications while preserving remaining reading time. The round chip and verdict stamps remain available.
 
 Claude's LarpClient starts CodexUI before sending ClientReady; StatService replies with ProfileSync. CodexUI does not create a competing bootstrap or new remotes.

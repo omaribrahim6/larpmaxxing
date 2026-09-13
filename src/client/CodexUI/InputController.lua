@@ -62,9 +62,7 @@ function InputController.new(controller)
 		end
 		local pad=gamepad()
 		local touch=UIS:GetLastInputType().Name=="Touch"
-		view.settingsOpen.Text=if pad then "Settings [Y]" elseif touch then "Settings" else "Settings [G]"
-		view.accept.Text=if pad or touch then "Accept" else "Accept [Y]"
-		view.decline.Text=if pad then "Decline [B]" elseif touch then "Decline" else "Decline [N]"
+		view:SetInputHints(pad,touch)
 	end
 	connections[1]=RunService.Heartbeat:Connect(refresh)
 	connections[2]=GuiService:GetPropertyChangedSignal("SelectedObject"):Connect(function() view:RevealFocused(GuiService.SelectedObject) end)

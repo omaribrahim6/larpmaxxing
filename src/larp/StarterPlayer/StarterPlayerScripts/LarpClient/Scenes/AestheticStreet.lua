@@ -958,7 +958,7 @@ function AestheticStreet.takeover(ctx, winKey: string, loseKey: string): number
 	panel.Name = "Shutter"
 	panel.Anchored, panel.CanCollide, panel.CanQuery, panel.CanTouch = true, false, false, false
 	panel.Color = Color3.fromRGB(150, 156, 164)
-	panel.Material = Enum.Material.CorrugatedSteel
+	panel.Material = Enum.Material.DiamondPlate
 	panel.Parent = feed.props
 	local slats = {}
 	for i = 1, 7 do

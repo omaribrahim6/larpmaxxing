@@ -12,8 +12,10 @@ local Onboarding=require(script.Parent.Onboarding)
 local InputController=require(script.Parent.InputController)
 local SettingValue=require(script.Parent.SettingValue)
 local Wayfinder=require(script.Parent.Wayfinder)
+local Juice=require(script.Parent.Juice)
 local Controller={}
 local active
+local function finite(n) return type(n)=="number" and n==n and math.abs(n)<math.huge end
 function Controller.start()
 	if active then return active end
 	local player=Players.LocalPlayer
@@ -76,18 +78,6 @@ function Controller.start()
 		elseif kind=="Player" then self.adapter:Send(remoteName,userId,{rematch=true}) end
 		self.view:Render(self.model)
 	end
-	self.view=View.new(player:WaitForChild("PlayerGui"),Config,catalog,require(larp.Shared.RankMath),
-		require(larp.Shared.Format),{
-			settingsOpen=function() if not self.model.incoming then self.view:SetSettings(true) self.view:Render(self.model) end end,
-			settingsClose=function() self.view:SetSettings(false) self.view:Render(self.model) end,
-			setting=function(key,direction) self:ChangeSetting(key,direction) end,
-			respond=function(accept) self:Respond(accept) end,
-			helpOpen=function() self.model.onboarding:Reopen() self.view:Render(self.model) end,
-			helpDismiss=function() self.model.onboarding:Dismiss() self.view:Render(self.model) end,
-			rematch=function() self:RequestRematch() end,
-		})
-	self.cleanup:Add(self.view)
-	self.cleanup:Add(InputController.new(self))
 	-- Client-owned groups: assign scene Sound.SoundGroup to these; no existing sounds are changed.
 	self.audioGroups={}
 	for key,name in {musicVolume="CodexMusic",sfxVolume="CodexSFX"} do
@@ -97,6 +87,29 @@ function Controller.start()
 	self:OnSettingChanged(function(key,value)
 		if self.audioGroups[key] then self.audioGroups[key].Volume=value end
 	end)
+	-- The UI's own sounds (clicks, popups, celebrations) play through the SFX group.
+	local play=Juice.player(require(larp.Config.Sounds),self.audioGroups.sfxVolume)
+	local scenes=larp.Config:WaitForChild("Scenes")
+	self.view=View.new(player:WaitForChild("PlayerGui"),Config,catalog,require(larp.Shared.RankMath),
+		require(larp.Shared.Format),{
+			settingsOpen=function() if not self.model.incoming then self.view:SetSettings(true) self.view:Render(self.model) end end,
+			settingsClose=function() self.view:SetSettings(false) self.view:Render(self.model) end,
+			setting=function(key,direction) self:ChangeSetting(key,direction) end,
+			respond=function(accept) self:Respond(accept) end,
+			helpOpen=function() self.model.onboarding:Reopen() self.view:Render(self.model) end,
+			helpDismiss=function() self.model.onboarding:Dismiss() self.view:Render(self.model) end,
+			rematch=function() self:RequestRematch() end,
+		},{
+			play=play,tiers=require(larp.Shared.Tiers),floors=tuning.Tiers,
+			reduce=function() return self.model.settings.reduceEffects==true end,
+			scene=function(statId)
+				local stat=catalog.statsById[statId]
+				local module=stat and stat.scene and scenes:FindFirstChild(stat.scene)
+				return module and require(module)
+			end,
+		})
+	self.cleanup:Add(self.view)
+	self.cleanup:Add(InputController.new(self))
 	function self:GetAudioGroup(kind)
 		return self.audioGroups[if kind=="Music" then "musicVolume" elseif kind=="SFX" then "sfxVolume" else ""]
 	end
@@ -115,20 +128,37 @@ function Controller.start()
 		if isActive then
 			self.model.onboarding:MatchStarted()
 			self:Respond(false) self.model.rematch=nil self.view:SetSettings(false)
-		else self.view.round.Visible=false end
+		else self.view:ClearRound() end
+		-- promotions and tier-ups wait until the larp-off is off screen
+		self.view.celebrate:SetPaused(self.model.inMatch)
 		self.view:Render(self.model)
 	end
 	function self:SetRound(statId,index,count)
 		local stat=catalog.statsById[statId]
 		if not stat or type(index)~="number" or type(count)~="number" or count<1 or count>20
 			or index<1 or index>count or index%1~=0 or count%1~=0 then return false end
-		self.view.round.Text=stat.displayName:upper().."   "..tostring(index).." / "..tostring(count)
-		self.view.round.Visible=true return true
+		self.view:SetRound(stat,index,count) return true
 	end
 	function self:ShowRematch(kind,userId,seconds)
 		local ok=self.model:SetRematch(kind,userId,seconds or tuning.Challenge.rematchWindowSeconds)
 		if ok then self.model.onboarding:MatchFinished() end
 		self.view:Render(self.model) return ok
+	end
+	-- LarpClient.PickupFx: a pickup's points just popped off the player at `position`. They
+	-- fly on into the stat's HUD bar and the combo meter counts. Presentation only (the
+	-- server already added the points); returns the combo length.
+	function self:Collected(statId,points,rarity,position)
+		if not catalog.statsById[statId] or not finite(points) then return 0 end
+		return self.view.hud:Collected(statId,points,rarity,position)
+	end
+	-- SceneDirector, for a participant: the result card, shown once the larp-off ends.
+	-- result = {won, upset, bonus, rounds, against}; the server has already paid the reward.
+	function self:ShowReward(result)
+		if type(result)~="table" then return false end
+		local function count(n) return if finite(n) then math.max(0,math.floor(n)) else 0 end
+		self.view.celebrate:Push({kind="reward",won=result.won==true,upset=result.upset==true,
+			bonus=count(result.bonus),rounds=count(result.rounds),against=count(result.against)})
+		return true
 	end
 	-- Event infrastructure only. No event is scheduled or fabricated by this package.
 	function self:SetEvent(label,endsAt)
@@ -159,9 +189,9 @@ function Controller.start()
 		ChallengeClosed=function(id) self.model:Close(id) self.view:Render(self.model) end,
 		MatchAborted=function() self.model.onboarding:ResetTransient() end,
 		Notice=notice, Announce=function(message) notice(message,"info") end,
+		-- a promotion is a full-screen moment (Celebrate), not a toast
 		RankUp=function(index)
-			local rank=catalog.ranks[index]
-			if rank then notice("Promoted to "..rank.name,"success") end
+			if catalog.ranks[index] then self.view.celebrate:Push({kind="rank",index=index}) end
 		end,
 		-- PickupFx owns floating pickup text; do not duplicate it with a toast card.
 	})

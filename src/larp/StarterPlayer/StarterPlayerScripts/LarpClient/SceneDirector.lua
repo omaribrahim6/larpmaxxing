@@ -594,7 +594,7 @@ local function playRound(ctx, pkg)
 	end
 	function handlers.draw()
 		kit:worldStamp(ctx.focus + Vector3.new(0, 8, 0), Text.Stamps.Draw, COLORS.Fumbled, 1.4, 0)
-		kit:sound("Cartoon", { volume = 0.45, duration = 1.5 })
+		kit:sound("Squeak", { volume = 0.5, speed = 0.8 })
 		if ctx.participant then
 			ctx.ui:ShowStamp("Draw", 0.9)
 		end
@@ -715,7 +715,7 @@ local function verdict(ctx, outcome)
 	kit:after(delay, function()
 		Poses.apply(kit, w.character, "Victory", 0.2)
 		stamp(w, 8, Text.Stamps.Certified, COLORS.Certified, 1.6, -4)
-		kit:sound("Fanfare", { volume = 0.5 })
+		kit:sound("CrowdCheer", { volume = 0.5 })
 		confetti(w, 50)
 		ctx.crowd:react("cheer", 1.2)
 		kit:orbit(camPos(w) + Vector3.new(0, 2.5, 0), 12, 3.5, -35, 25, 1.6, 55)
@@ -742,10 +742,12 @@ local function verdict(ctx, outcome)
 		local p = camPos(l)
 		kit:lookShot(p + Vector3.new(-l.outward * 1.2, 5, 7.5), p + Vector3.new(0, 4.8, 0), 44, 0.5)
 	end)
-	if ctx.participant and ctx.mySide == winner and (outcome.bonus or 0) > 0 then
-		kit:after(delay + 0.4, function()
-			ctx.ui:Notify(("+%d bonus%s"):format(outcome.bonus, if outcome.upset then " (upset x2)" else ""), "success")
-		end)
+	-- the result card (score, +1 Win, the bonus counting up) waits until the larp-off ends
+	if ctx.participant then
+		local mine = if ctx.mySide == "A" then outcome.winsA else outcome.winsB
+		local theirs = if ctx.mySide == "A" then outcome.winsB else outcome.winsA
+		local won = ctx.mySide == winner
+		ctx.ui:ShowReward({ won = won, upset = outcome.upset == true, bonus = if won then outcome.bonus else 0, rounds = mine, against = theirs })
 	end
 end
 

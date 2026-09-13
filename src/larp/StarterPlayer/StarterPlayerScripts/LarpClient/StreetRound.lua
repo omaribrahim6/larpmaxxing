@@ -125,7 +125,7 @@ function StreetRound.play(ctx, pkg, sc, live: () -> boolean)
 	end
 	function handlers.draw()
 		monitor:stamp(Text.Stamps.Draw, COLORS.Fumbled, 1.6, 0)
-		kit:sound("Cartoon", { volume = 0.45, duration = 1.5 })
+		kit:sound("Squeak", { volume = 0.5, speed = 0.8 })
 	end
 	function handlers.numbers()
 		if winner == "A" or winner == "B" then

@@ -10,13 +10,16 @@ return {
 	CrowdErupt = 9120974094, -- PSE: Wrestling Crowd 3 (double surge)
 	CrowdMixed = 9120975307, -- PSE: Wrestling Crowd 2 (cheers and boos)
 	CarAlarm = 9113719092, -- PSE: Car Alarm Chirp 4
-	Fanfare = 9045751375, -- APM: 1812 Overture (sting b)
-	Cartoon = 1844278029, -- APM: Cartoon Time 3 (b) Link 2 (NOBODY ATE)
 	Pickup = 17208380755, -- Roblox GUI - Purchase (pickups)
 	PickupRare = 17208327798, -- Roblox GUI - Aura (Epic and Legendary pickups)
 	Ping = 17208361335, -- Roblox GUI - Notification High (viral pings, legendary drops)
 	RecordScratch = 9118086936, -- PSE: Record Scratch 1 (fumbles, upsets)
 	FailSting = 17208353912, -- Roblox GUI - Negative (fumbles, EXPOSED; stands in for a sad trombone)
+	-- the player UI (CodexUI): buttons, popups, celebrations
+	UiSelect = 17208396156, -- Roblox GUI - Select (button clicks)
+	UiHover = 17208339919, -- Roblox GUI - Hover 01 (soft ticks: a bonus counting up)
+	Swipe = 17208405682, -- Roblox GUI - Swipe (panels and the rematch button appearing)
+	Equip = 17208323435, -- Roblox GUI - Equip (a stat's scene reaching a new tier)
 	-- Aesthetic (café) scene
 	DoorBell = 9119081659, -- PSE: Shop Door Bell Small Ceramic Teapot 1
 	Sip = 9119956540, -- PSE: Tea Sip 6 (big slurps)

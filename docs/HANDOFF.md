@@ -1,5 +1,30 @@
 # Handoff
-## LATEST: Claude, 2026-09-12 (Big Brain scene)
+## LATEST: Claude, 2026-09-12 (UI polish: new HUD, celebrations, combo)
+- **The owner asked for a better-looking, better-feeling UI with more dopamine.** CodexUI's look is replaced (the owner owns it; Codex is out until 2026-09-15). Every Controller API LarpClient uses still works; two were added.
+- **New CodexUI modules:**
+  - `Theme`: fonts (LuckiestGuy for numbers and names, FredokaOne for labels, GothamBlack for small caps) and the panel, label and chunky-button primitives. Colours stay in `UIConfig.Colors`.
+  - `Juice`: tweens, button hover/press/click feel, numbers that roll up, punches, and the UI's sounds through the SFX group.
+  - `Hud`: the always-on HUD.
+    - Top-left rank card: the rank name in its colour, and a bar filling in the next rank's colour that glints every few seconds and breathes when you're within 10% of the next rank. Below it, "NEXT: POSER" and "1,790 to go".
+    - Five stat bars: emoji icon, name, rolling value, a tier chip (T1–T5, MAX) and a thin bar to the stat's next scene tier (Tuning.Tiers).
+    - Right-middle dock: Wins chip, Settings (with a G/Y key chip) and Help. It sits at the right-middle, not the spec's top-right, so the player list doesn't cover it.
+    - Pickups: each pickup's points fly as an orb from the player into their stat bar (sized by rarity), the bar and icon punch, and "+N" pops off the end (points close together add up). Epic and Legendary pickups flash the screen edges in the rarity colour.
+    - Combo meter (bottom centre): pickups less than 2.2 s apart chain ("x12 COMBO +340"), changing colour as the chain grows, with callouts at 10/25/50/100 ("ON A ROLL!"). Each pickup in a chain also rings a little higher (PickupFx). Presentation only; rewards are unchanged.
+  - `Celebrate`: full-screen moments, queued, held during larp-offs, shown in order (result, rank, tier):
+    - PROMOTED: the screen dims, a turning sunburst in the rank's colour, the rank name slams in with a shimmer, then confetti and "Next up: …". Tap to skip.
+    - SCENE UPGRADE: when a stat crosses a tier floor, a card says "BAG · TIER 4" with that tier's flex line.
+    - Result card after a larp-off (participants): "YOU WON!", "UPSET WIN!", "SO CLOSE" or "GG", the round score, "+1 WIN 🏆" and the bonus counting up with ticks. Clicks pass through to Rematch.
+  - `View` was restyled: a challenge popup with the challenger's headshot, a rank-coloured rank and a punching countdown badge that goes green, then gold, then red; ON/OFF switches in Settings; toasts with a colour strip; a round chip with one dot per round; slamming stamps; and a Rematch button that breathes.
+- **API changes:**
+  - `ui:Collected(statId, points, rarity, position)` is called by PickupFx and returns the combo length.
+  - `ui:ShowReward({won, upset, bonus, rounds, against})` is called by SceneDirector at the verdict, replacing the "+N bonus" toast.
+  - RankUp now celebrates instead of showing a toast.
+  - InputController calls `view:SetInputHints`.
+- **No music (owner's rule):** the CERTIFIED fanfare (an APM orchestral sting) and the NOBODY ATE "Cartoon Time" music link are removed from Config.Sounds. CERTIFIED now plays a crowd cheer, and a draw plays a slowed sneaker squeak. New UI sounds are official Roblox GUI clips (Select, Hover, Swipe, Equip).
+- **Also fixed:** the Aesthetic takeover's shutter errored on `Enum.Material.CorrugatedSteel`, which doesn't exist (seen in the owner's playtest console); it uses DiamondPlate now.
+- **Tested:** everything compiles. An Edit-mode smoke test built the view and rendered a profile change (rank, tier chip, wins, combo, challenge, rematch). It ran every celebration with no error. **Not seen on screen by me:** the owner is play-testing.
+
+## Claude, 2026-09-12 (Big Brain scene)
 - **The Big Brain larp-off scene is in** (CCTV mode), the fifth and last. Larp-offs now play all five rounds: Bag, Aesthetic, Drip, Gains, Big Brain. A park-bench reading garden outside the library; each larper strolls in, sits on the bench and reads (the avatar really sits: hips and knees are posed joints now).
   - **Tiers:**
     - T1: opens a book upside down (its title is pinned rotated 180°).

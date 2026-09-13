@@ -187,9 +187,16 @@ function PickupFx.start(ui)
 		task.delay(require(Larp.Config.Tuning).Pickup.flySeconds, function()
 			local character = game:GetService("Players").LocalPlayer.Character
 			local body = character and (character:FindFirstChild("UpperTorso") or character:FindFirstChild("HumanoidRootPart"))
-			floatText(if body then body.Position + Vector3.new(0, 2, 0) else position, ("+%d %s"):format(points, stat.displayName), if rarity then rarity.color else stat.color)
+			local at = if body then body.Position + Vector3.new(0, 2, 0) else position
+			floatText(at, ("+%d %s"):format(points, stat.displayName), if rarity then rarity.color else stat.color)
+			-- the points fly on into the stat's HUD bar; chained pickups count a combo, and
+			-- each pickup in a chain rings a little higher
+			local combo = ui:Collected(statId, points, rarityName, at) or 1
 			local big = rarityName == "Epic" or rarityName == "Legendary"
-			SoundKit.play(if big then "PickupRare" else "Pickup", { volume = if rarityName == "Legendary" then 0.7 else 0.4 })
+			SoundKit.play(if big then "PickupRare" else "Pickup", {
+				volume = if rarityName == "Legendary" then 0.7 else 0.4,
+				speed = 1 + math.min(combo - 1, 16) * 0.03,
+			})
 		end)
 	end)
 

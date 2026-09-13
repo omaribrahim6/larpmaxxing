@@ -38,4 +38,11 @@
 - 2026-09-12 (Claude): Gains is the fourth larp-off scene. The spec's "gym mirror" is a real reflection: ViewportFrames can't render one, so the room is mirrored behind the glass once per feed and every moving thing gets a mirrored copy updated each frame. Maxxed lifts a shrunk clone of the actual stage the match is on. Under the no-music rule, the T3 pump-up track became chalk and a PR tag; the grunt and the chant are on-screen text over licensed crowd and impact sounds.
 - 2026-09-12 (Claude): Big Brain is the fifth larp-off scene, so every stat now plays a round. The avatar sits on the bench: Poses drives the hip and knee joints too, and seated poses merge the SIT legs (the real stage character mirrors it, sitting on nothing, which is accepted). Under the no-music rule the "hmm" and the lecture-hall hush are captions. Pinned world text can rotate (Feed:pin style.rotation) for the upside-down book title.
 - 2026-09-12 (owner): the owner owns every system, including CodexUI; when they ask for something replaced, replace it.
+- 2026-09-12 (owner request, built by Claude): the UI is rebuilt for feel.
+  - CodexUI is split into Theme (look), Juice (feel), Hud (always-on HUD), Celebrate (full-screen moments) and View (modals).
+  - The HUD's Wins/Settings/Help dock sits at the right-middle, not the spec's top-right, because the Roblox player list covers the top-right.
+  - A stat's tier chip is the scene tier its *value* reaches (Tuning.Tiers); the rolled value in a larp-off varies ±30%, so it's a guide, not a promise.
+  - The pickup combo is presentation only.
+  - Promotions and tier-ups wait until a larp-off is off screen.
+  - The fanfare and "Cartoon Time" stings were instrumental music, so they are removed under the no-music rule.
 - 2026-09-12 (Claude): one zone track plays at a time (Config.Music), crossfading on ZoneBounds. Anywhere without its own track plays the Street main theme. Music ducks to 35% while any larp-off plays near the player, so stamps and stings stay clear.
