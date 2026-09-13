@@ -70,6 +70,15 @@ return {
 
 	Spectate = { radius = 90 },
 
+	-- The Plaza's leaderboard wall (LeaderboardService, Config.Leaderboards).
+	Leaderboard = {
+		top = 10, -- rows on an all-time board
+		serverTop = 5, -- rows on the this-server board
+		refreshSeconds = 120, -- store everyone's numbers, then reread the all-time lists
+		serverSeconds = 5, -- redraw the this-server board
+		upsetScale = 10, -- upsets are stored as tenths of a percent
+	},
+
 	-- Sprint toggle (LarpClient.SprintKit): Left Shift, gamepad left-stick click, or the
 	-- on-screen button. walkSpeed must match StarterPlayer.CharacterWalkSpeed.
 	Movement = { walkSpeed = 16, sprintSpeed = 28, fov = 70, sprintFov = 8, fovSeconds = 0.3 },

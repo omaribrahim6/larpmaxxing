@@ -1,5 +1,20 @@
 # Handoff
-## LATEST: Claude, 2026-09-12 (3x pickup density, 2x progression)
+## LATEST: Claude, 2026-09-12 (Plaza leaderboard wall)
+- **The spec's leaderboard wall is in**, on the Plaza's east edge (x = 53), facing players as they spawn. It has four boards under a gold "🏆 LEADERBOARDS" header:
+  - Top Points, Most Wins and Biggest Upset: all-time, every server, top 10.
+  - In This Server: the top 5 right now, redrawn every 5 s.
+- **Code:**
+  - `Config.Leaderboards` holds the boards: title, what they rank, colour, and the OrderedDataStore for the all-time ones (`LarpTopPoints_v1`, `LarpTopWins_v1`, `LarpTopUpset_v1`).
+  - `LarpBuild.LeaderboardWall` builds the wall (also run by `Build.all()`). Each board part carries a `Leaderboard` attribute.
+  - `ServerScriptService.Larp.Services.LeaderboardService` draws a SurfaceGui on every board: medals for the top 3, avatar headshots, names and values.
+    - Every `Tuning.Leaderboard.refreshSeconds` (120) it stores each saving player's numbers, only the ones that changed, and rereads the all-time lists.
+    - A leaving player's final numbers are stored from their released profile.
+    - Upsets are stored as tenths of a percent, because OrderedDataStores only keep integers.
+- **Studio has no DataStore access,** so the all-time boards show this server's players, subtitled "THIS SERVER FOR NOW". On a live game they fill from the stores.
+- **The Touch Grass board** from the spec comes when rebirth exists: add a board entry to `Config.Leaderboards` and rebuild the wall.
+- **Save the place (Ctrl+S):** the wall lives in the place file.
+
+## Claude, 2026-09-12 (3x pickup density, 2x progression)
 - **Pickups tripled for busy servers** (owner request; every multiplier is from the previous values):
   - Respawn is 3x faster: `respawnMin`/`respawnMax` went from 3–6 s to 1–2 s.
   - Pickups sit 3x closer: `minSpacing` went from 6 to 2. `hitboxDiameter` went from 5 to 2 as well, because the spacing floors at the hitbox.

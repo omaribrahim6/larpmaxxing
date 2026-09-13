@@ -57,4 +57,7 @@
 - 2026-09-12 (owner): pickups are 3x denser for multi-player areas: respawns 3x faster, 3x closer and 3x as many (3 slots per SpawnPoint).
   - Rank thresholds and scene-tier floors doubled in exchange, replacing the spec's numbers.
   - Kept cheap: only Epic and Legendary pickups carry lights, pickups animate within 100 studs, and there's at most one Legendary banner per 25 s.
+- 2026-09-12 (Claude): the leaderboard wall's boards are server-drawn SurfaceGuis on parts the builder tags with a `Leaderboard` attribute, so no client code is needed.
+  - The all-time lists are OrderedDataStores, written every 2 minutes (only changed values) and on leave.
+  - Without DataStore access the all-time boards fall back to the current server's players, instead of sitting empty.
 - 2026-09-12 (Claude): one zone track plays at a time (Config.Music), crossfading on ZoneBounds. Anywhere without its own track plays the Street main theme. Music ducks to 35% while any larp-off plays near the player, so stamps and stings stay clear.

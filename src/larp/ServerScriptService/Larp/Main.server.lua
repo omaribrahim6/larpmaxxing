@@ -14,6 +14,7 @@ local ORDER = {
 	"ChallengeService",
 	"PickupService",
 	"PracticeNpcService",
+	"LeaderboardService",
 }
 
 local services = {}
