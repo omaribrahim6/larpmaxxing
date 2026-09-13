@@ -45,4 +45,8 @@
   - The pickup combo is presentation only.
   - Promotions and tier-ups wait until a larp-off is off screen.
   - The fanfare and "Cartoon Time" stings were instrumental music, so they are removed under the no-music rule.
+- 2026-09-12 (owner request, built by Claude): How to play is how new players learn.
+  - Its pictures are drawn live (ViewportFrames of the game's own models, plus drawn UI) instead of uploaded screenshots. They can't go stale or wait on moderation, and your own avatar appears in them.
+  - Whether a player has read it is a hidden persisted setting (`tutorialSeen`) on the existing UpdateSetting remote, so no new remote.
+  - The step-by-step guide waits until the book is closed.
 - 2026-09-12 (Claude): one zone track plays at a time (Config.Music), crossfading on ZoneBounds. Anywhere without its own track plays the Street main theme. Music ducks to 35% while any larp-off plays near the player, so stamps and stings stay clear.

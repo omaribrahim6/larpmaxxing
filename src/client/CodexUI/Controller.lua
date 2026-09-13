@@ -78,6 +78,13 @@ function Controller.start()
 		elseif kind=="Player" then self.adapter:Send(remoteName,userId,{rematch=true}) end
 		self.view:Render(self.model)
 	end
+	-- Remembers, in the profile, that this player has read How to play.
+	function self:MarkTutorialSeen()
+		if self.model.settings.tutorialSeen then return end
+		self.model:SetSetting("tutorialSeen",true)
+		if self.model.loaded and self.adapter and self.adapter:IsReady("UpdateSetting") then self.adapter:Send("UpdateSetting","tutorialSeen",true) end
+		settingChanged("tutorialSeen")
+	end
 	-- Client-owned groups: assign scene Sound.SoundGroup to these; no existing sounds are changed.
 	self.audioGroups={}
 	for key,name in {musicVolume="CodexMusic",sfxVolume="CodexSFX"} do
@@ -96,7 +103,14 @@ function Controller.start()
 			settingsClose=function() self.view:SetSettings(false) self.view:Render(self.model) end,
 			setting=function(key,direction) self:ChangeSetting(key,direction) end,
 			respond=function(accept) self:Respond(accept) end,
-			helpOpen=function() self.model.onboarding:Reopen() self.view:Render(self.model) end,
+			helpOpen=function() self.view.tutorial:Open() self.view:Render(self.model) end,
+			tutorialClosed=function()
+				local first=not self.model.settings.tutorialSeen
+				self:MarkTutorialSeen()
+				-- after the first read, the step-by-step guide takes over
+				if first then self.model.onboarding:Reopen() end
+				task.defer(function() if not self.destroyed then self.view:Render(self.model) end end)
+			end,
 			helpDismiss=function() self.model.onboarding:Dismiss() self.view:Render(self.model) end,
 			rematch=function() self:RequestRematch() end,
 		},{
@@ -127,7 +141,7 @@ function Controller.start()
 		self.model.inMatch=isActive==true
 		if isActive then
 			self.model.onboarding:MatchStarted()
-			self:Respond(false) self.model.rematch=nil self.view:SetSettings(false)
+			self:Respond(false) self.model.rematch=nil self.view:SetSettings(false) self.view.tutorial:Close()
 		else self.view:ClearRound() end
 		-- promotions and tier-ups wait until the larp-off is off screen
 		self.view.celebrate:SetPaused(self.model.inMatch)
@@ -169,8 +183,11 @@ function Controller.start()
 	function self:Notify(message,kind) notice(message,kind) end
 	local function profile(packet)
 		local before=table.clone(self.model.settings)
+		local first=not self.model.loaded
 		if self.model:SetProfile(packet) then
 			self.model.onboarding:Profile(self.model.stats,self.model.wins)
+			-- players who've already won a larp-off aren't new: no How to play pointer
+			if first and self.model.wins>0 then self:MarkTutorialSeen() end
 			for key,value in self.model.settings do if before[key]~=value then settingChanged(key) end end
 			if not self.model.settings.acceptLarpOffs then self:Respond(false) end
 			self.view:Render(self.model)

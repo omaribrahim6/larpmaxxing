@@ -117,7 +117,15 @@ function Hud.new(root, fx, deps)
 	Theme.corner(self.keyChip, 6)
 	Theme.border(self.keyChip, c.Accent, 1.5)
 	self.keyText = Theme.text(self.keyChip, { name = "Key", font = Theme.Small, text = "G", size = 12, color = c.Accent, align = CENTER, stroke = false })
-	self.helpButton = deps.button(self.dock, { name = "Help", text = "❓  " .. words.Help, size = 17, position = UDim2.fromOffset(68, 136), box = UDim2.fromOffset(136, 46) }, deps.helpOpen)
+	-- first visit: a glow behind How to play and a pointer bouncing beside it (SetHelpHighlight)
+	self.helpGlow = Theme.new("Frame", self.dock, { Name = "HelpGlow", BackgroundColor3 = c.Accent, BackgroundTransparency = 0.5, BorderSizePixel = 0, AnchorPoint = MID, Position = UDim2.fromOffset(68, 136), Size = UDim2.fromOffset(150, 60), Visible = false })
+	Theme.corner(self.helpGlow, 18)
+	self.helpButton = deps.button(self.dock, { name = "Help", text = "❓  " .. words.Help, size = 15, position = UDim2.fromOffset(68, 136), box = UDim2.fromOffset(136, 46) }, deps.helpOpen)
+	self.hint = Theme.new("Frame", self.dock, { Name = "Hint", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.fromOffset(-16, 136), Size = UDim2.fromOffset(176, 46), Visible = false })
+	local pointer = Theme.new("Frame", self.hint, { Name = "Pointer", BackgroundColor3 = c.Accent, BorderSizePixel = 0, AnchorPoint = MID, Position = UDim2.new(1, -3, 0.5, 0), Size = UDim2.fromOffset(20, 20), Rotation = 45 })
+	Theme.border(pointer, c.Ink, 2.5)
+	local bubble = Theme.panel(self.hint, { name = "Bubble", color = c.Accent, radius = 12 })
+	Theme.text(bubble, { name = "Text", font = Theme.Display, text = words.NewHere, size = 18, color = c.Ink, align = CENTER, position = UDim2.fromOffset(8, 2), box = UDim2.new(1, -16, 1, -4), scaled = true, maxSize = 18, stroke = false })
 
 	-- the combo meter, bottom centre above the rematch button
 	self.comboGroup = Theme.new("CanvasGroup", self.frame, { Name = "Combo", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -84), Size = UDim2.fromOffset(280, 92), GroupTransparency = 1 })
@@ -150,6 +158,12 @@ function Hud.new(root, fx, deps)
 				self.trackEdge.Transparency = 0.3 + 0.35 * math.sin(os.clock() * 6)
 			elseif self.trackEdge.Transparency ~= 1 then
 				self.trackEdge.Transparency = 1
+			end
+			if self.hintOn then
+				local wave = 0.5 + 0.5 * math.sin(os.clock() * 6)
+				self.hint.Position = UDim2.fromOffset(-16 - 10 * wave, 136)
+				self.helpGlow.BackgroundTransparency = 0.35 + 0.45 * wave
+				self.helpGlow.Size = UDim2.fromOffset(146 + 12 * wave, 56 + 12 * wave)
 			end
 		end),
 	}
@@ -379,6 +393,21 @@ function Hud:SetSettingsKey(key)
 	self.keyChip.Visible = key ~= nil
 	if key then
 		self.keyText.Text = key
+	end
+end
+
+-- New players: How to play turns gold, glows, and a "NEW? START HERE" pointer bounces
+-- beside it until they've read it.
+function Hud:SetHelpHighlight(on)
+	if self.hintOn == on then
+		return
+	end
+	self.hintOn = on
+	self.hint.Visible = on
+	self.helpGlow.Visible = on
+	self.helpButton.BackgroundColor3 = if on then self.deps.config.Colors.Accent else self.deps.config.Colors.Raised
+	if on then
+		Juice.punch(self.hint, 0.4, 0.5)
 	end
 end
 

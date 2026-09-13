@@ -123,6 +123,8 @@ return function(t)
 		expect.equal(Settings.sanitize("showCosmetics", 1), nil)
 		expect.equal(Settings.sanitize("coins", 5), nil)
 		expect.equal(Settings.sanitize("acceptLarpOffs", true), true)
+		expect.equal(Settings.sanitize("tutorialSeen", true), true)
+		expect.equal(Settings.sanitize("tutorialSeen", "yes"), nil)
 	end)
 
 	-- Practice NPC stats stay within the configured band; 0 stays 0, anything else >= floor.

@@ -16,9 +16,13 @@ function InputController.new(controller)
 	local function gamepad()
 		return UIS:GetLastInputType().Name:match("Gamepad")~=nil
 	end
+	-- the button a gamepad lands on when each modal opens
+	local function entry(modal)
+		return if modal==view.challenge then view.decline elseif modal==view.settings then view.settingsClose else view.tutorial.nextButton
+	end
 	local function context()
 		return {typing=UIS:GetFocusedTextBox()~=nil,menu=GuiService.MenuIsOpen,
-			inMatch=controller.model.inMatch,challenge=controller.model.incoming~=nil,settings=view.settings.Visible}
+			inMatch=controller.model.inMatch,challenge=controller.model.incoming~=nil,settings=view.settings.Visible,tutorial=view.tutorial:IsOpen()}
 	end
 	local actionName="CodexUI.Navigation"
 	CAS:BindAction(actionName,function(_,state,input)
@@ -31,20 +35,27 @@ function InputController.new(controller)
 					action=="focusPrevious" or (action=="focus" and (UIS:IsKeyDown(Enum.KeyCode.LeftShift) or UIS:IsKeyDown(Enum.KeyCode.RightShift))))
 				if index then select(targets[index]) view:RevealFocused(targets[index]) end
 			elseif action=="activate" then
-				if not view:ActivateFocused(GuiService.SelectedObject) then return Enum.ContextActionResult.Pass end
+				if not view:ActivateFocused(GuiService.SelectedObject) then
+					if not view.tutorial:IsOpen() then return Enum.ContextActionResult.Pass end
+					view.tutorial:Next()
+				end
+			elseif action=="pageNext" then view.tutorial:Next()
+			elseif action=="pagePrevious" then view.tutorial:Previous()
+			elseif action=="closeTutorial" then view.tutorial:Close()
 			elseif action=="accept" then controller:Respond(true)
 			elseif action=="decline" then controller:Respond(false)
 			else view:SetSettings(action=="settings") view:Render(controller.model) end
 		end
 		return Enum.ContextActionResult.Sink
-	end,false,Enum.KeyCode.G,Enum.KeyCode.Y,Enum.KeyCode.N,Enum.KeyCode.ButtonY,Enum.KeyCode.ButtonB,Enum.KeyCode.Tab,Enum.KeyCode.Return,Enum.KeyCode.Up,Enum.KeyCode.Down)
+	end,false,Enum.KeyCode.G,Enum.KeyCode.Y,Enum.KeyCode.N,Enum.KeyCode.ButtonY,Enum.KeyCode.ButtonB,Enum.KeyCode.Tab,Enum.KeyCode.Return,Enum.KeyCode.Up,Enum.KeyCode.Down,Enum.KeyCode.Left,Enum.KeyCode.Right,Enum.KeyCode.DPadLeft,Enum.KeyCode.DPadRight)
 	local function refresh()
-		local modal=if view.challenge.Visible then view.challenge elseif view.settings.Visible then view.settings else nil
+		local modal=if view.challenge.Visible then view.challenge elseif view.settings.Visible then view.settings
+			elseif view.tutorial:IsOpen() then view.tutorial.frame else nil
 		local ctx=context()
 		if modal~=previousModal then
 			if not previousModal then previousSelection=GuiService.SelectedObject end
 			if modal and gamepad() and not ctx.typing and not ctx.menu then
-				select(if modal==view.challenge then view.decline else view.settingsClose)
+				select(entry(modal))
 			elseif not modal then
 				local selected=GuiService.SelectedObject
 				if selected and previousModal and selected:IsDescendantOf(previousModal) then
@@ -57,7 +68,7 @@ function InputController.new(controller)
 		if modal and gamepad() and not ctx.typing and not ctx.menu then
 			local selected=GuiService.SelectedObject
 			if not Focus.canSelect(selected,view.gui) or not selected:IsDescendantOf(modal) then
-				select(if modal==view.challenge then view.decline else view.settingsClose)
+				select(entry(modal))
 			end
 		end
 		local pad=gamepad()

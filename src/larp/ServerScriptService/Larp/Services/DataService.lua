@@ -29,6 +29,7 @@ local SETTINGS_DEFAULTS = {
 	showCosmetics = true,
 	musicVolume = 1,
 	sfxVolume = 1,
+	tutorialSeen = false,
 }
 
 function DataService.defaults()

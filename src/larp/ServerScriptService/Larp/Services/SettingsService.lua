@@ -12,6 +12,7 @@ local ALLOWED = {
 	showCosmetics = "boolean",
 	musicVolume = "number",
 	sfxVolume = "number",
+	tutorialSeen = "boolean", -- the player has read How to play (the HUD stops pointing at it)
 }
 
 -- Cleans a value that passed the type check. Returns nil to reject it.

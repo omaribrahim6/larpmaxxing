@@ -11,6 +11,7 @@ local Theme = require(script.Parent.Theme)
 local Juice = require(script.Parent.Juice)
 local Hud = require(script.Parent.Hud)
 local Celebrate = require(script.Parent.Celebrate)
+local Tutorial = require(script.Parent.Tutorial)
 local View = {}
 View.__index = View
 local new = Theme.new
@@ -49,6 +50,10 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 		onTierUp = function(statId, tier) self.celebrate:Push({kind = "tier", statId = statId, tier = tier}) end})
 	self.settingsOpen = self.hud.settingsButton
 	self.helpOpen = self.hud.helpButton
+	-- the How to play book (over the HUD, under Settings and the challenge popup)
+	self.tutorial = Tutorial.new(self.root, {config = config, catalog = catalog, format = format, play = play, button = button,
+		rankIndex = function() return self.rankIndex or 1 end,
+		onClose = function() callbacks.tutorialClosed() end})
 
 	self.guide = Theme.panel(self.root, {name = "Guide", anchor = MID, box = UDim2.fromOffset(440,128), z = 10, edge = c.Accent})
 	self.guide.Visible = false
@@ -65,11 +70,14 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 	self.settings.Visible = false
 	Theme.text(self.settings, {name = "Title", font = Theme.Display, text = words.Settings:upper(), size = 28, color = c.Accent, position = UDim2.fromOffset(18,10), box = UDim2.new(1,-140,0,42), stroke = 2.5})
 	self.settingsClose = button(self.settings, {name = "CloseSettings", text = words.Close, size = 16, position = UDim2.new(1,-62,0,31), box = UDim2.fromOffset(96,42)}, callbacks.settingsClose)
+	-- hidden settings (tutorialSeen) are state, not options
+	local shown = {}
+	for _, def in config.Settings do if not def.hidden then table.insert(shown, def) end end
 	local list = new("ScrollingFrame", self.settings, {Name = "Options", Position = UDim2.fromOffset(14,62),
 		Size = UDim2.new(1,-28,1,-120), BackgroundTransparency = 1, BorderSizePixel = 0,
-		CanvasSize = UDim2.fromOffset(0,#config.Settings*62), ScrollBarThickness = 4, ScrollBarImageColor3 = c.Muted,
+		CanvasSize = UDim2.fromOffset(0,#shown*62), ScrollBarThickness = 4, ScrollBarImageColor3 = c.Muted,
 		ScrollingDirection = Enum.ScrollingDirection.Y})
-	for i, def in config.Settings do
+	for i, def in shown do
 		local y = (i-1)*62
 		local strip = new("Frame", list, {Name = def.key.."Row", Position = UDim2.fromOffset(0,y), Size = UDim2.new(1,-8,0,54),
 			BackgroundColor3 = c.Raised, BackgroundTransparency = 0.55, BorderSizePixel = 0})
@@ -166,7 +174,13 @@ function View:Render(model)
 			end
 		end
 	end
-	self.guide.Visible = guide ~= nil and guide:Visible(model.inMatch or model.incoming ~= nil or self.settings.Visible or model.rematch ~= nil)
+	-- a first-time player reads How to play before the step-by-step guide appears
+	local unread = model.loaded and model.settings.tutorialSeen == false
+	if model.inMatch and self.tutorial:IsOpen() then self.tutorial:Close() end
+	self.guide.Visible = guide ~= nil and guide:Visible(model.inMatch or model.incoming ~= nil or self.settings.Visible or model.rematch ~= nil
+		or unread or self.tutorial:IsOpen())
+	self.hud:SetHelpHighlight(unread and not model.inMatch and not self.tutorial:IsOpen())
+	if model.loaded then self.rankIndex = self.rankMath.indexFor(model.total, self.catalog.ranks) end
 	if guide then
 		local copy = self.config.Guide[guide:Step()]
 		if copy then self.guideTitle.Text = copy.title self.guideBody.Text = copy.body end
@@ -320,6 +334,7 @@ function View:FocusTargets()
 		for _, target in self.settingFocus do if target.Selectable then table.insert(targets, target) end end
 		return targets
 	end
+	if self.tutorial:IsOpen() then return self.tutorial:FocusTargets() end
 	return {}
 end
 
@@ -405,6 +420,7 @@ function View:Destroy()
 	self.step:Disconnect()
 	self.hud:Destroy()
 	self.celebrate:Destroy()
+	self.tutorial:Destroy()
 	self.gui:Destroy()
 end
 return View

@@ -5,7 +5,7 @@ Codex owns these additions. Do not create a second HUD or change the baseline sn
 | Repository | Studio |
 |---|---|
 | src/client/CodexUI/Bootstrap.client.lua | StarterPlayer.StarterPlayerScripts.CodexUI.Bootstrap (LocalScript) |
-| src/client/CodexUI/{Controller,View,Model,RemoteAdapter,Onboarding,InputController,InputPolicy,FocusPolicy,Layout,SettingValue,ToastPolicy,Wayfinder,Theme,Juice,Hud,Celebrate}.lua | StarterPlayer.StarterPlayerScripts.CodexUI/<same name> (ModuleScripts) |
+| src/client/CodexUI/{Controller,View,Model,RemoteAdapter,Onboarding,InputController,InputPolicy,FocusPolicy,Layout,SettingValue,ToastPolicy,Wayfinder,Theme,Juice,Hud,Celebrate,Tutorial,TutorialArt}.lua | StarterPlayer.StarterPlayerScripts.CodexUI/<same name> (ModuleScripts) |
 | src/config/UIConfig.lua | StarterPlayer.StarterPlayerScripts.CodexUI.UIConfig |
 | src/shared/CodexShared/{Cleanup,RateLimiter}.lua | ReplicatedStorage.CodexShared/<same name> |
 | tests/UnitSuite.lua | ServerStorage.CodexTests.UnitSuite (manual only) |

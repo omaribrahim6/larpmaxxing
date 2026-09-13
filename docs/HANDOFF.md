@@ -1,5 +1,29 @@
 # Handoff
-## LATEST: Claude, 2026-09-12 (UI polish: new HUD, celebrations, combo)
+## LATEST: Claude, 2026-09-12 (How to play for new players)
+- **New players are pointed at How to play** (owner request).
+  - Until they've read it, the HUD's How to play button (renamed from Help) turns gold with a pulsing glow, and a "NEW? START HERE" pointer bounces beside it.
+  - The step-by-step guide (Collect → Practice) waits until they close the book, then takes over.
+- **The book** (`CodexUI.Tutorial`, pages in `UIConfig.Tutorial`): six pages. Each has a picture, a title, a few lines of text and a tip, plus Back / Next, page dots and LET'S GO! on the last page.
+  - Keys: ← → or the D-pad turn pages, Enter goes to the next page, and B closes.
+  - It sits over the HUD with a dimmed backdrop, under Settings and the challenge popup, and closes when a larp-off starts.
+- **The pictures** (`CodexUI.TutorialArt`) are live renders of the game's own models, not uploaded images:
+  1. Collect props: the five Bag props spinning, Common to Legendary, with rarity and points, and the Legendary's sky beam.
+  2. Five stats, five places: a drawn city map with the Plaza in the middle and each stat's place, plus "streets drop all five".
+  3. Rank up: the rank ladder growing, with a bouncing YOU on the player's rank.
+  4. Larp-off: your own avatar against the Practice Larper (stand-in rigs in Studio), a Roblox-style "E Larp-off" prompt, VS, and one chip per round.
+  5. Bigger stats, bigger scenes: the Bag scene's six rides on rising podiums, the bus up to the private jet, labelled T1 to MAX.
+  6. Win, upset, rematch: the ATE, UPSET!, CERTIFIED and EXPOSED stamps around a trophy.
+  - A page's `image` (an uploaded screenshot's id) replaces its drawing, if real screenshots are wanted later.
+- **Remembered per player:** a hidden setting `tutorialSeen`, saved with the other settings (SettingsService allows it and DataService defaults it to false). Hidden settings don't show in Settings. Anyone who loads in with Wins already counts as having seen it.
+- **Studio:** DataStores are off, so every playtest starts as a new player, and the pointer shows each time.
+- **Tested:** everything compiles. An Edit-mode smoke test covered:
+  - the pointer shows for a new player and the guide waits
+  - all six pictures build, with no errors
+  - the pages step through and LET'S GO! closes and marks it read
+  - the pointer is gone once read
+  - 51/51 unit tests pass, and the settings test now covers tutorialSeen
+
+## Claude, 2026-09-12 (UI polish: new HUD, celebrations, combo)
 - **The owner asked for a better-looking, better-feeling UI with more dopamine.** CodexUI's look is replaced (the owner owns it; Codex is out until 2026-09-15). Every Controller API LarpClient uses still works; two were added.
 - **New CodexUI modules:**
   - `Theme`: fonts (LuckiestGuy for numbers and names, FredokaOne for labels, GothamBlack for small caps) and the panel, label and chunky-button primitives. Colours stay in `UIConfig.Colors`.
