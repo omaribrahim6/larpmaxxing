@@ -635,7 +635,7 @@ function Cctv:_stamp(parent: Instance, text: string, color: Color3, lifetime: nu
 	return l
 end
 
--- Round title slammed across the whole monitor ("BAG").
+-- Round title slammed across the whole monitor ("MONEY").
 function Cctv:title(text: string, color: Color3)
 	local l = self:_stamp(self.root, text, color, 0.9, 0, 0.4)
 	l.Size = UDim2.fromScale(0.5, 0.2)

@@ -8,12 +8,12 @@
 -- The first stat must have a scene (the larp-off intro uses it).
 return {
 	{
-		id = "Bag",
-		displayName = "Bag",
+		id = "Money",
+		displayName = "Money",
 		color = Color3.fromRGB(226, 176, 64),
 		zone = "CarLot",
 		zoneName = "Car Lot", -- what players call the zone
-		scene = "Bag",
+		scene = "Money",
 	},
 	{
 		id = "Aesthetic",

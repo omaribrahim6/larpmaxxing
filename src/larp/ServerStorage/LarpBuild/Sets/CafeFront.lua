@@ -1,5 +1,5 @@
 -- The Aesthetic round's CCTV set (Larp.Assets.Sets.CafeFront): a mint café on a sunny
--- street, watched by a security cam on the far side of the road. Set-local like the Bag's
+-- street, watched by a security cam on the far side of the road. Set-local like the Money scene's
 -- Sidewalk: the café's front is the plane z = 0 facing +Z, its sidewalk runs to the curb,
 -- the road is beyond and the camera looks back at the café (-Z) from across it. Feed B
 -- uses a mirrored copy (the scene module mirrors it across X), so its door is on the right.
@@ -272,9 +272,9 @@ function CafeFront.build(): string
 	Kit.tree(street, Vector3.new(-40, c.top, c.curb - 3), rng, 0.9)
 	Kit.tree(street, Vector3.new(24, c.top, c.curb - 3), rng, 0.9)
 	Kit.bin(street, Vector3.new(-20, c.top, c.curb - 1.5))
-	-- a parked car down the street, if the Bag scene's hatchback exists
+	-- a parked car down the street, if the Money scene's hatchback exists
 	local scenes = sets.Parent:FindFirstChild("Scenes")
-	local car = scenes and scenes:FindFirstChild("Bag") and scenes.Bag:FindFirstChild("T3_Hatchback")
+	local car = scenes and scenes:FindFirstChild("Money") and scenes.Money:FindFirstChild("T3_Hatchback")
 	if car then
 		local parked = car:Clone()
 		parked:PivotTo(CFrame.lookAt(Vector3.new(-38, 0, c.curb + 3.6), Vector3.new(-30, 0, c.curb + 3.6)))

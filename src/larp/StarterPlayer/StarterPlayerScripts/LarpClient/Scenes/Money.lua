@@ -1,4 +1,4 @@
--- The Bag round: pull up in whatever you can afford. Each climb step brings a better
+-- The Money round: pull up in whatever you can afford. Each climb step brings a better
 -- ride; the tier a side settles on plays its signature moment; the winner takes over
 -- the loser's spot; the loser fumbles.
 --
@@ -13,11 +13,11 @@
 local Players = game:GetService("Players")
 
 local Larp = game:GetService("ReplicatedStorage"):WaitForChild("Larp")
-local Data = require(Larp.Config.Scenes.Bag)
+local Data = require(Larp.Config.Scenes.Money)
 local Poses = require(script.Parent.Parent.Poses)
 
-local ASSETS = Larp.Assets.Scenes.Bag
-local Bag = {}
+local ASSETS = Larp.Assets.Scenes.Money
+local Money = {}
 
 local VEHICLE_Y_DROP = 9
 local DRIVE_IN = 36 -- studs a ride travels onto the screen
@@ -280,7 +280,7 @@ local function arrive(ctx, key: string, tier: number, done: () -> ())
 end
 
 -- One climb step: a better ride arrives behind the side.
-function Bag.showTier(ctx, key: string, tier: number, big: boolean?)
+function Money.showTier(ctx, key: string, tier: number, big: boolean?)
 	local kit, side = ctx.kit, ctx.sides[key]
 	local def = Data.tiers[tier]
 	local t = def and template(def.asset)
@@ -484,7 +484,7 @@ end
 -- The side settled on `tier`. Screen mode: their ride has stopped, so they get out
 -- (supercar doors open first, the jet's carpet rolls as they walk) and then the
 -- signature plays.
-function Bag.signature(ctx, key: string, tier: number)
+function Money.signature(ctx, key: string, tier: number)
 	if not ctx.screenMode then
 		signatureBody(ctx, key, tier)
 		return
@@ -506,7 +506,7 @@ function Bag.signature(ctx, key: string, tier: number)
 end
 
 -- The winner's scene spills onto the loser's spot.
-function Bag.takeover(ctx, winKey: string, loseKey: string)
+function Money.takeover(ctx, winKey: string, loseKey: string)
 	local kit = ctx.kit
 	local win, lose = ctx.sides[winKey], ctx.sides[loseKey]
 	local v = win.vehicle
@@ -550,8 +550,8 @@ function Bag.takeover(ctx, winKey: string, loseKey: string)
 	kit:sound("Whoosh", { volume = 0.5 })
 end
 
--- The loser's fumble. `variant` comes from the server (Config.Scenes.Bag.fumbles).
-function Bag.fumble(ctx, key: string, variant: string?)
+-- The loser's fumble. `variant` comes from the server (Config.Scenes.Money.fumbles).
+function Money.fumble(ctx, key: string, variant: string?)
 	local kit, side = ctx.kit, ctx.sides[key]
 	local v = side.vehicle
 	local fumble = nil
@@ -651,7 +651,7 @@ end
 
 -- Clears one side's round state (vehicles etc. live in the kit folder and go with it).
 -- In screen mode the avatar goes back out of sight until their ride arrives.
-function Bag.resetSide(ctx, key: string)
+function Money.resetSide(ctx, key: string)
 	local side = ctx.sides[key]
 	side.vehicle = nil
 	side.carpet = nil
@@ -672,5 +672,5 @@ function Bag.resetSide(ctx, key: string)
 	end
 end
 
-Bag.title = Data.title
-return Bag
+Money.title = Data.title
+return Money

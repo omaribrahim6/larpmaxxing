@@ -33,7 +33,7 @@ end
 services.DataService:Start()
 
 -- Studio-only test hook (never created on live servers): lets playtests drive the real
--- services, e.g. ServerStorage.LarpDebug:Invoke("addPoints", userId, "Bag", 5000).
+-- services, e.g. ServerStorage.LarpDebug:Invoke("addPoints", userId, "Money", 5000).
 if game:GetService("RunService"):IsStudio() then
 	local hook = Instance.new("BindableFunction")
 	hook.Name = "LarpDebug"

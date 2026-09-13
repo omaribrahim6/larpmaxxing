@@ -458,7 +458,7 @@ function Kit:bigNumber(position: Vector3, value: number, color: Color3, lifetime
 	return anchor
 end
 
--- Screen title for participants ("BAG"), plus a world copy spectators can read. On the
+-- Screen title for participants ("MONEY"), plus a world copy spectators can read. On the
 -- big screen the title goes across the screen itself.
 function Kit:title(text: string, color: Color3, worldPosition: Vector3?)
 	if worldPosition and not self.layer then

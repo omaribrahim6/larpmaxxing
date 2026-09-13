@@ -1,7 +1,7 @@
 -- Codex-owned presentation only. Gameplay definitions remain in Larp.Config.
 local Tuning = require(game:GetService("ReplicatedStorage"):WaitForChild("Larp").Config.Tuning)
 return {
-	GuideStatId="Bag",
+	GuideStatId="Money",
 	GuideTargets={
 		Collect={path={"Larp","Map","CarLot","ZoneBounds"},label="Car Lot"},
 		Practice={path={"Larp","Map","PracticeNpcSpot"},label="Practice Larper"},
@@ -9,9 +9,9 @@ return {
 	GuideDirections={"Ahead","Ahead right","Turn right","Behind right","Behind you","Behind left","Turn left","Ahead left"},
 	GuideNearDistance=12,
 	Guide={
-		Collect={title="1 / 2  BUILD YOUR BAG",body="Walk over Bag pickups in the Car Lot to grow your Bag stat. Then try your first larp-off."},
+		Collect={title="1 / 2  GET THAT MONEY",body="Walk over Money pickups in the Car Lot to grow your Money stat. Then try your first larp-off."},
 		Practice={title="2 / 2  TRY A LARP-OFF",body="Find the Practice Larper in the plaza. Use its interaction prompt to start your first match."},
-		Complete={title="YOU KNOW THE BASICS",body="Collect more Bag, practice again, or challenge another player. Close this guide whenever you're ready."},
+		Complete={title="YOU KNOW THE BASICS",body="Collect more Money, practice again, or challenge another player. Close this guide whenever you're ready."},
 		Loading={title="CONNECTING",body="Waiting for your profile."},
 	},
 	ChallengeMaxSeconds = Tuning.Challenge.acceptSeconds,
@@ -24,7 +24,7 @@ return {
 		Negative = Color3.fromRGB(255, 108, 128), Decline = Color3.fromRGB(120, 72, 100),
 	},
 	-- one emoji per stat: on its HUD bar and on the points that fly into it
-	StatIcons = { Bag = "💰", Aesthetic = "🍵", Drip = "👟", Gains = "💪", BigBrain = "🧠" },
+	StatIcons = { Money = "💰", Aesthetic = "🍵", Drip = "👟", Gains = "💪", BigBrain = "🧠" },
 	-- the pickup combo meter: pickups less than `window` seconds apart chain
 	Combo = { window = 2.2, milestones = { [10] = "ON A ROLL!", [25] = "UNSTOPPABLE!", [50] = "LARP FRENZY!", [100] = "MAXXED OUT!" } },
 	-- how long each full-screen moment holds (Celebrate)
@@ -37,7 +37,7 @@ return {
 			body = "Walk near props to grab them. Every prop adds points to one of your five stats, and the rarer it is, the more it's worth.",
 			tip = "✨ Legendaries shoot a beam into the sky. Race for them!"},
 		{art = "map", color = Color3.fromRGB(96, 214, 200), title = "FIVE STATS, FIVE PLACES",
-			body = "Each place in the city grows one stat: the Car Lot for Bag, the Café Strip for Aesthetic, the Mall for Drip, the Gym for Gains and the Library for Big Brain. The streets drop all five.",
+			body = "Each place in the city grows one stat: the Car Lot for Money, the Café Strip for Aesthetic, the Mall for Drip, the Gym for Gains and the Library for Big Brain. The streets drop all five.",
 			tip = "🏃 Press Shift (or tap Sprint) to run."},
 		{art = "ranks", color = Color3.fromRGB(176, 132, 255), title = "RANK UP",
 			body = "All your points add up to your rank. Start as an NPC and climb all the way to LARP Maxxer.",

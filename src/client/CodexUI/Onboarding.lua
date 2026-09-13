@@ -3,7 +3,7 @@
 local Onboarding = {}
 Onboarding.__index = Onboarding
 function Onboarding.new(statId)
-	return setmetatable({statId=statId or "Bag", loaded=false, collected=false, completed=false, dismissed=false, observed=false}, Onboarding)
+	return setmetatable({statId=statId or "Money", loaded=false, collected=false, completed=false, dismissed=false, observed=false}, Onboarding)
 end
 function Onboarding:Profile(stats, wins)
 	if type(stats)~="table" or type(wins)~="number" or wins~=wins or wins<0 or wins==math.huge then return false end

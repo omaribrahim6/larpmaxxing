@@ -25,7 +25,7 @@ return {
 	Practice = {
 		name = "Practice Larper",
 		busy = "The Practice Larper is mid larp-off. Try again in a few seconds.",
-		noStats = "You've got nothing to larp with yet. Grab some Bag in the Car Lot first.",
+		noStats = "You've got nothing to larp with yet. Grab some Money in the Car Lot first.",
 	},
 	Challenge = {
 		incoming = "%s wants to larp-off",

@@ -1,5 +1,25 @@
 # Handoff
-## LATEST: Claude, 2026-09-12 (How to play for new players)
+## LATEST: Claude, 2026-09-12 (Bag is now Money)
+- **The Bag stat is now Money** (owner request: kids won't know what "Bag" means). This was done all the way through, internal ids included:
+  - The stat id, display name and scene are Money (`Config.Stats`), and its five items point at it (`Config.Items`).
+  - Studio instances renamed:
+    - `Config.Scenes.Bag` became `Config.Scenes.Money` (the round title is now "MONEY").
+    - `LarpClient.Scenes.Bag` and `BagStreet` became `Scenes.Money` and `MoneyStreet`.
+    - `Larp.Assets.Scenes.Bag` became `Assets.Scenes.Money`.
+  - References to the old names were updated in:
+    - SceneDirector (the stage reset now uses the first stat's scene)
+    - AestheticStreet, GainsStreet and LarpBuild's CafeFront (they borrow its cars)
+    - Rules_Test
+  - Player-facing copy that changed:
+    - the Practice Larper's "grab some Money" notice
+    - the guide ("1 / 2 GET THAT MONEY")
+    - How to play's map page
+  - The items Designer bag and Tote bag keep their names (they're bags).
+- **Saved profiles migrate:** `DataService.reconcile` moves a stored `stats.Bag` into `stats.Money` (`RENAMED_STATS`), so nobody loses points. Rules_Test covers it.
+- **Debug hook:** `LarpDebug:Invoke("addPoints", userId, "Money", n)`.
+- **Docs and spec:** older handoff entries and SPEC-v1.1 still say Bag; read it as Money.
+
+## Claude, 2026-09-12 (How to play for new players)
 - **New players are pointed at How to play** (owner request).
   - Until they've read it, the HUD's How to play button (renamed from Help) turns gold with a pulsing glow, and a "NEW? START HERE" pointer bounces beside it.
   - The step-by-step guide (Collect → Practice) waits until they close the book, then takes over.

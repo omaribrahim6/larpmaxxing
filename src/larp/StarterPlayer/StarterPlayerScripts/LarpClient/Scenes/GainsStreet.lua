@@ -11,7 +11,7 @@
 -- The set is Larp.Assets.Sets.<street.set> (built by ServerStorage.LarpBuild.Sets.GymMirror),
 -- one copy per feed; feed B's copy is mirrored across X. The reflection behind the mirror is
 -- drawn by Scenes.GainsFx (ViewportFrames don't render reflections). Props and NPCs are in
--- Larp.Assets.Scenes.Gains, the car is the Bag scene's, and the stage is a scaled copy of
+-- Larp.Assets.Scenes.Gains, the car is the Money scene's, and the stage is a scaled copy of
 -- the real one. Scene state for a side lives in ctx.sides[key].gains.
 local Larp = game:GetService("ReplicatedStorage"):WaitForChild("Larp")
 local Data = require(Larp.Config.Scenes.Gains)
@@ -70,9 +70,9 @@ local function copyStage(stage: Instance): Model?
 	return copy
 end
 
--- The car the Tier 5 larper deadlifts (the Bag scene's sports car).
+-- The car the Tier 5 larper deadlifts (the Money scene's sports car).
 local function copyCar(): Model?
-	local bag = Larp.Assets.Scenes:FindFirstChild("Bag")
+	local bag = Larp.Assets.Scenes:FindFirstChild("Money")
 	local t = bag and bag:FindFirstChild("T4_SportsCar")
 	return t and t:Clone()
 end

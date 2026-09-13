@@ -1,6 +1,6 @@
 -- Builds the Gains round's props under ReplicatedStorage.Larp.Assets.Scenes.Gains: the
 -- water bottle, the dumbbell, the protein shake and the gym NPCs (R15 rigs). The barbells
--- are drawn by the scene (they bend), the car comes from the Bag scene and the stage is a
+-- are drawn by the scene (they bend), the car comes from the Money scene and the stage is a
 -- copy of the real one. Props follow the item convention: an invisible Root at the
 -- origin, front is -Z.
 --   require(game.ServerStorage.LarpBuild.Scenes.Gains).build()

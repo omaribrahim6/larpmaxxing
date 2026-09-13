@@ -1,7 +1,7 @@
 -- Builds the pickup item models under ReplicatedStorage.Larp.Assets.Items from parts, in
--- the style of the hand-built Bag five: an invisible 1-stud Root at the origin and the item
+-- the style of the hand-built Money five: an invisible 1-stud Root at the origin and the item
 -- drawn around it, about 2 studs across. PickupService clones, anchors and floats them.
--- Items.build() (re)creates every model in Items.builders and leaves the rest (the Bag
+-- Items.build() (re)creates every model in Items.builders and leaves the rest (the Money
 -- five) alone. To restyle an item, edit its builder and rebuild. Edit-time only.
 local Kit = require(script.Parent.Kit)
 

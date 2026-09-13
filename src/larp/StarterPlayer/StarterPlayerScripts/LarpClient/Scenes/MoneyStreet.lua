@@ -1,4 +1,4 @@
--- The Bag round as CCTV footage (scene mode "Cctv", driven by LarpClient.StreetRound).
+-- The Money round as CCTV footage (scene mode "Cctv", driven by LarpClient.StreetRound).
 -- Each larper strolls down a sidewalk on their own feed, clocks a parked ride (their
 -- tier), checks nobody's watching and takes a selfie with it like it's theirs. The
 -- loser gets exposed (the alarm goes off, it gets towed, the bus leaves...); the
@@ -11,18 +11,18 @@
 --
 -- Scene state for a side lives in ctx.sides[key].street.
 local Larp = game:GetService("ReplicatedStorage"):WaitForChild("Larp")
-local Data = require(Larp.Config.Scenes.Bag)
+local Data = require(Larp.Config.Scenes.Money)
 local Poses = require(script.Parent.Parent.Poses)
 local Cctv = require(script.Parent.Parent.Cctv)
 
-local ASSETS = Larp.Assets.Scenes.Bag
+local ASSETS = Larp.Assets.Scenes.Money
 local SETS = Larp.Assets.Sets
 local WALK_FALLBACK = "rbxassetid://507777826" -- Roblox's default R15 walk
 local SELFIE_FOV = 110 -- the post photo is shot on the phone's 0.5x ultra-wide
 
-local BagStreet = {}
-BagStreet.title = Data.title
-BagStreet.cams = Data.street.cams
+local MoneyStreet = {}
+MoneyStreet.title = Data.title
+MoneyStreet.cams = Data.street.cams
 
 local function template(name: string): Instance?
 	return ASSETS:FindFirstChild(name)
@@ -159,7 +159,7 @@ end
 ------------------------------------------------------------------ round setup
 
 -- Builds a side's street and avatar copy in its feed (once per match).
-function BagStreet.build(ctx, key: string)
+function MoneyStreet.build(ctx, key: string)
 	local side = ctx.sides[key]
 	if side.street then
 		return side.street
@@ -167,7 +167,7 @@ function BagStreet.build(ctx, key: string)
 	local feed = ctx.monitor.feeds[key]
 	local st = { feed = feed, flip = key == "B", height = 3 }
 	side.street = st
-	-- the street and avatar copy live in the feed's Bag folder (shown on Bag rounds)
+	-- the street and avatar copy live in the feed's Money folder (shown on Money rounds)
 	local folder = feed:sceneFolder(Data.id)
 	local setTemplate = SETS:FindFirstChild(Data.street.set)
 	if setTemplate then
@@ -187,8 +187,8 @@ end
 
 -- Puts a side's feed in its starting state for a round: their ride parked for `tier`,
 -- their avatar copy at the start of the walk and the camera on them.
-function BagStreet.prepare(ctx, key: string, tier: number)
-	local st = BagStreet.build(ctx, key)
+function MoneyStreet.prepare(ctx, key: string, tier: number)
+	local st = MoneyStreet.build(ctx, key)
 	local feed = st.feed
 	st.tier = tier
 	st.phone, st.phoneHeld, st.carpet, st.vehicleLeaving, st.photo = nil, nil, nil, nil, nil
@@ -229,7 +229,7 @@ end
 
 -- Strolls towards the ride, does a double take at it, then hurries to the selfie spot.
 -- The camera pans with them (a PTZ security cam) and settles on the ride.
-function BagStreet.walk(ctx, key: string, duration: number)
+function MoneyStreet.walk(ctx, key: string, duration: number)
 	local kit, side = ctx.kit, ctx.sides[key]
 	local st = side.street
 	if not st or not st.avatar or not st.poseCF then
@@ -493,7 +493,7 @@ end
 
 -- Turns to face the camera side with the ride behind them, glances left and right
 -- (nobody's watching), then the selfie. `snap` keeps the photo for the post.
-function BagStreet.selfie(ctx, key: string, tier: number, duration: number, snap: boolean)
+function MoneyStreet.selfie(ctx, key: string, tier: number, duration: number, snap: boolean)
 	local kit, side = ctx.kit, ctx.sides[key]
 	local st = side.street
 	if not st or not st.avatar or not st.poseCF then
@@ -544,8 +544,8 @@ function BagStreet.selfie(ctx, key: string, tier: number, duration: number, snap
 	end)
 end
 
--- The loser's fumble on their feed. `variant` comes from the server (Config.Scenes.Bag.fumbles).
-function BagStreet.fumble(ctx, key: string, variant: string?)
+-- The loser's fumble on their feed. `variant` comes from the server (Config.Scenes.Money.fumbles).
+function MoneyStreet.fumble(ctx, key: string, variant: string?)
 	local kit, side = ctx.kit, ctx.sides[key]
 	local st = side.street
 	if not st or not st.avatar then
@@ -654,13 +654,13 @@ function BagStreet.fumble(ctx, key: string, variant: string?)
 end
 
 -- Where the camera zooms on a same-ride face-off.
-function BagStreet.faceTarget(ctx, key: string): Vector3?
+function MoneyStreet.faceTarget(ctx, key: string): Vector3?
 	local st = ctx.sides[key].street
 	return st and st.avatar and st.avatar.Parent and headOf(st) or nil
 end
 
 -- The winner's post (see Cctv:showPost). `roll` is the server's Roll for this side.
-function BagStreet.post(ctx, key: string, roll, loserName: string?)
+function MoneyStreet.post(ctx, key: string, roll, loserName: string?)
 	local side = ctx.sides[key]
 	local st = side.street
 	local post = Data.street.post
@@ -682,4 +682,4 @@ function BagStreet.post(ctx, key: string, roll, loserName: string?)
 	}
 end
 
-return BagStreet
+return MoneyStreet

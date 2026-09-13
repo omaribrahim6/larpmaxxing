@@ -757,7 +757,7 @@ local function finish(ctx, aborted: boolean, reason: string?)
 	end
 	current = nil
 	for _, key in { "A", "B" } do
-		local sc = scene("Bag")
+		local sc = scene(Catalog.statsById[Catalog.statIds[1]].scene)
 		if sc and sc.resetSide then
 			sc.resetSide(ctx, key)
 		end

@@ -1,12 +1,12 @@
 -- Collectible props. `id` is also the model name under ReplicatedStorage.Larp.Assets.Items
--- (the Bag five are hand-built; the rest come from ServerStorage.LarpBuild.Items).
+-- (the Money five are hand-built; the rest come from ServerStorage.LarpBuild.Items).
 -- Five per stat, one per rarity, as in the spec's item table.
 return {
-	{ id = "MonopolyMoney", name = "Monopoly money", stat = "Bag", rarity = "Common" },
-	{ id = "FakeWatch", name = "Fake watch", stat = "Bag", rarity = "Uncommon" },
-	{ id = "RentedCarKeys", name = "Rented car keys", stat = "Bag", rarity = "Rare" },
-	{ id = "DesignerBag", name = "Designer bag", stat = "Bag", rarity = "Epic" },
-	{ id = "BlackCard", name = "Black card", stat = "Bag", rarity = "Legendary" },
+	{ id = "MonopolyMoney", name = "Monopoly money", stat = "Money", rarity = "Common" },
+	{ id = "FakeWatch", name = "Fake watch", stat = "Money", rarity = "Uncommon" },
+	{ id = "RentedCarKeys", name = "Rented car keys", stat = "Money", rarity = "Rare" },
+	{ id = "DesignerBag", name = "Designer bag", stat = "Money", rarity = "Epic" },
+	{ id = "BlackCard", name = "Black card", stat = "Money", rarity = "Legendary" },
 
 	{ id = "Matcha", name = "Matcha", stat = "Aesthetic", rarity = "Common" },
 	{ id = "ToteBag", name = "Tote bag", stat = "Aesthetic", rarity = "Uncommon" },

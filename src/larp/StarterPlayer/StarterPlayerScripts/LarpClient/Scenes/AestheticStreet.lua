@@ -30,7 +30,7 @@ local function template(name: string): Instance?
 end
 
 local function phoneTemplate(): Instance?
-	local bag = Larp.Assets.Scenes:FindFirstChild("Bag")
+	local bag = Larp.Assets.Scenes:FindFirstChild("Money")
 	return bag and bag:FindFirstChild("Phone")
 end
 

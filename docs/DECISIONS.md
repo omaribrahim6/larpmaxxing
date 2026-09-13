@@ -49,4 +49,9 @@
   - Its pictures are drawn live (ViewportFrames of the game's own models, plus drawn UI) instead of uploaded screenshots. They can't go stale or wait on moderation, and your own avatar appears in them.
   - Whether a player has read it is a hidden persisted setting (`tutorialSeen`) on the existing UpdateSetting remote, so no new remote.
   - The step-by-step guide waits until the book is closed.
+- 2026-09-12 (owner): the Bag stat is called Money, because younger players don't know the slang.
+  - The rename is complete (ids, modules, the asset folder and copy), so code and debug commands say what players see.
+  - Saved profiles migrate through `DataService.RENAMED_STATS` (old id to new, points added).
+  - Item names that are literally bags stay as they are.
+  - The spec's "Bag" means Money from now on.
 - 2026-09-12 (Claude): one zone track plays at a time (Config.Music), crossfading on ZoneBounds. Anywhere without its own track plays the Street main theme. Music ducks to 35% while any larp-off plays near the player, so stamps and stings stay clear.

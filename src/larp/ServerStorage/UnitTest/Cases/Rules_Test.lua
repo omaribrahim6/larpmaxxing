@@ -1,4 +1,4 @@
--- Tests for the small shared rule modules: Tiers, SceneRules (with the real Bag
+-- Tests for the small shared rule modules: Tiers, SceneRules (with the real Money
 -- config), PairLimiter, RankMath, Format, plus DataService.reconcile, the practice
 -- NPC's stat scaling and pickup rarity weighting.
 return function(t)
@@ -10,7 +10,7 @@ return function(t)
 	local Format = require(Larp.Shared.Format)
 	local Catalog = require(Larp.Shared.Catalog)
 	local Tuning = require(Larp.Config.Tuning)
-	local BagScene = require(Larp.Config.Scenes.Bag)
+	local MoneyScene = require(Larp.Config.Scenes.Money)
 	local expect = t.expect
 	local FLOORS = { 100, 1000, 5000, 20000, 50000 }
 
@@ -56,7 +56,7 @@ return function(t)
 	t.test("picked fumble fits the loser's tier", function()
 		local rng = Random.new(1)
 		for _ = 1, 200 do
-			local id = SceneRules.pickFumble(BagScene.fumbles, 1, rng)
+			local id = SceneRules.pickFumble(MoneyScene.fumbles, 1, rng)
 			expect.truthy(id == "BusLeaves" or id == "PhoneDrop")
 		end
 		expect.equal(SceneRules.pickFumble({}, 3, rng), nil)
@@ -98,14 +98,18 @@ return function(t)
 	-- Reconcile fills new stats/settings without touching existing values.
 	t.test("profile reconcile keeps existing values", function()
 		local DataService = require(game.ServerScriptService.Larp.Services.DataService)
-		local data = DataService.reconcile({ stats = { Bag = 42 }, wins = 3, settings = { clipMode = true } })
-		expect.equal(data.stats.Bag, 42)
+		local data = DataService.reconcile({ stats = { Money = 42 }, wins = 3, settings = { clipMode = true } })
+		expect.equal(data.stats.Money, 42)
 		expect.equal(data.wins, 3)
 		expect.equal(data.settings.clipMode, true)
 		expect.equal(data.settings.acceptLarpOffs, true)
 		expect.equal(data.settings.musicVolume, 1)
 		expect.equal(data.settings.showCosmetics, true)
-		expect.equal(DataService.reconcile(nil).stats.Bag, 0)
+		expect.equal(DataService.reconcile(nil).stats.Money, 0)
+		-- saved Bag points move to Money (the stat was renamed)
+		local moved = DataService.reconcile({ stats = { Bag = 7 } })
+		expect.equal(moved.stats.Money, 7)
+		expect.equal(moved.stats.Bag, nil)
 		-- a wrong-typed stored setting falls back to its default
 		expect.equal(DataService.reconcile({ settings = { sfxVolume = "loud" } }).settings.sfxVolume, 1)
 	end)
@@ -133,16 +137,16 @@ return function(t)
 		local P = Tuning.Practice
 		local rng = Random.new(7)
 		for _ = 1, 100 do
-			local s = Practice.statsFor({ Bag = 1000 }, rng)
-			expect.truthy(s.Bag >= 1000 * P.statMin and s.Bag <= 1000 * P.statMax)
-			local r = Practice.statsFor({ Bag = 1000 }, rng, true)
-			expect.truthy(r.Bag >= 1000 * P.rookie.statMin and r.Bag <= 1000 * P.rookie.statMax)
+			local s = Practice.statsFor({ Money = 1000 }, rng)
+			expect.truthy(s.Money >= 1000 * P.statMin and s.Money <= 1000 * P.statMax)
+			local r = Practice.statsFor({ Money = 1000 }, rng, true)
+			expect.truthy(r.Money >= 1000 * P.rookie.statMin and r.Money <= 1000 * P.rookie.statMax)
 		end
-		expect.equal(Practice.statsFor({ Bag = 0 }, rng).Bag, 0)
-		expect.equal(Practice.statsFor({ Bag = 1 }, rng, true).Bag, P.floor)
+		expect.equal(Practice.statsFor({ Money = 0 }, rng).Money, 0)
+		expect.equal(Practice.statsFor({ Money = 1 }, rng, true).Money, P.floor)
 	end)
 
-	-- A brand-new player (5 Bag, rookie band) beats the practice NPC almost every time,
+	-- A brand-new player (5 Money, rookie band) beats the practice NPC almost every time,
 	-- but upsets stay possible; a veteran's fight is close to a coin flip.
 	t.test("rookie practice fights are winnable but not certain", function()
 		local Practice = require(game.ServerScriptService.Larp.Services.PracticeNpcService)
@@ -151,8 +155,8 @@ return function(t)
 		local function winRate(bag, rookie)
 			local wins = 0
 			for _ = 1, 4000 do
-				local npc = Practice.statsFor({ Bag = bag }, rng, rookie)
-				local m = Resolver.resolveMatch({ Bag = bag }, npc, Catalog.roundStatIds, rng, Tuning.Upset)
+				local npc = Practice.statsFor({ Money = bag }, rng, rookie)
+				local m = Resolver.resolveMatch({ Money = bag }, npc, Catalog.roundStatIds, rng, Tuning.Upset)
 				if m.winner == "A" then
 					wins += 1
 				end
@@ -170,7 +174,7 @@ return function(t)
 		local Pickup = require(game.ServerScriptService.Larp.Services.PickupService)
 		local counts = {}
 		for _ = 1, 5000 do
-			local item = Pickup.chooseItem("Bag")
+			local item = Pickup.chooseItem("Money")
 			counts[item.rarity] = (counts[item.rarity] or 0) + 1
 		end
 		local common = (counts.Common or 0) / 5000

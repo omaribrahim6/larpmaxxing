@@ -22,6 +22,10 @@ local profiles: { [Player]: { data: any, persistent: boolean, key: string } } = 
 local store = nil -- SessionStore, or nil in memory mode
 local memoryReason: string? = nil
 
+-- Stats that were renamed: a saved profile's points move from the old id to the new one
+-- (Bag became Money on 2026-09-12 so kids know what it means).
+local RENAMED_STATS = { Bag = "Money" }
+
 local SETTINGS_DEFAULTS = {
 	acceptLarpOffs = true,
 	clipMode = false,
@@ -55,6 +59,12 @@ function DataService.reconcile(data)
 	end
 	if type(data.stats) ~= "table" then
 		data.stats = {}
+	end
+	for old, new in RENAMED_STATS do
+		if type(data.stats[old]) == "number" then
+			data.stats[new] = (if type(data.stats[new]) == "number" then data.stats[new] else 0) + data.stats[old]
+			data.stats[old] = nil
+		end
 	end
 	for _, id in Catalog.statIds do
 		if type(data.stats[id]) ~= "number" then

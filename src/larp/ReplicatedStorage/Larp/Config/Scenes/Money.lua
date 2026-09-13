@@ -1,10 +1,10 @@
--- Scene data for the Bag round. The client modules LarpClient.Scenes.Bag (stage and
--- big-screen modes) and LarpClient.Scenes.BagStreet (CCTV mode) play it; the server only
+-- Scene data for the Money round. The client modules LarpClient.Scenes.Money (stage and
+-- big-screen modes) and LarpClient.Scenes.MoneyStreet (CCTV mode) play it; the server only
 -- reads `fumbles` to pick a variant that fits the loser's tier.
--- Asset names refer to ReplicatedStorage.Larp.Assets.Scenes.Bag.
+-- Asset names refer to ReplicatedStorage.Larp.Assets.Scenes.Money.
 return {
-	id = "Bag",
-	title = "BAG",
+	id = "Money",
+	title = "MONEY",
 	set = "A city parking spot at night",
 	setModel = "CityStreet", -- Larp.Assets.Sets model the round plays in (Screen mode)
 

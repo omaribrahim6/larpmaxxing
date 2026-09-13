@@ -18,7 +18,7 @@ local CENTER = Enum.TextXAlignment.Center
 local WHITE = Color3.new(1, 1, 1)
 -- where each stat's place sits on the drawn map (the city's layout, north up)
 local ZONES = {
-	Bag = Vector2.new(0.87, 0.52),
+	Money = Vector2.new(0.87, 0.52),
 	Aesthetic = Vector2.new(0.13, 0.52),
 	Drip = Vector2.new(0.5, 0.8),
 	Gains = Vector2.new(0.72, 0.17),

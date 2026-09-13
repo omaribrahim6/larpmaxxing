@@ -1,5 +1,5 @@
 -- Plays one larp-off round in CCTV scene mode from the server's package: the beat
--- timeline comes from Shared.StreetPlan, the scene module (e.g. Scenes.BagStreet) draws
+-- timeline comes from Shared.StreetPlan, the scene module (e.g. Scenes.MoneyStreet) draws
 -- each larper's feed, and this module does what every CCTV round shares: the title,
 -- stamps, sounds, the loser's feed cutting out, the winner's takeover and their post.
 -- ctx.monitor is the Cctv monitor (see SceneDirector.buildContext).
