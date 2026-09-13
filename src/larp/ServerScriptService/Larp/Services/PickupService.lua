@@ -289,7 +289,7 @@ function PickupService:_magnetTick()
 			-- a VIP or Elite pickup is only for players of its rank
 			local rank = self.Stats:GetRankIndex(player)
 			local function allowed(tier: string?): boolean
-				return tier == nil or self.Areas == nil or self.Areas.allowed(tier, rank)
+				return tier == nil or self.Areas == nil or self.Areas.allowed(tier, rank, player:GetAttribute("Supporter") == true)
 			end
 			local at = root.Position
 			local reachSquared = reach * reach

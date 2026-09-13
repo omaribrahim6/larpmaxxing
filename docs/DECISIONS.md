@@ -92,5 +92,9 @@
 - 2026-09-13 (Claude): frequent notices live in one bottom-left feed instead of mid-screen.
   - The rank promotion keeps its full-screen moment, because it's rare.
   - Everything frequent (toasts, scene upgrades, Legendary drops, stat rushes) is a line in the feed.
+- 2026-09-13 (owner): the VIP++ Arena is for anyone who's bought anything.
+  - Any pass or product sets the saved `supporter` flag. The Arena checks it, not a rank, so paying progresses faster without touching larp-off results.
+  - A locked Arena door opens the shop.
+  - The Mega Bundle is priced below its three passes, so it's the obvious buy.
 - 2026-09-13 (Claude): the owner picked the music takes. A zone rotates through its takes rather than looping one, so the long sessions don't repeat a single loop.
 - 2026-09-12 (Claude): one zone track plays at a time (Config.Music), crossfading on ZoneBounds. Anywhere without its own track plays the Street main theme. Music ducks to 35% while any larp-off plays near the player, so stamps and stings stay clear.

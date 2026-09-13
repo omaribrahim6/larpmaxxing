@@ -21,7 +21,7 @@ function Store.new(root, deps)
 	local self = setmetatable({ deps = deps, root = root, open = false, rows = {}, prices = {}, order = {} }, Store)
 	-- dims the game and keeps clicks off the HUD underneath
 	self.backdrop = new("Frame", root, { Name = "StoreBackdrop", BackgroundColor3 = Color3.new(0, 0, 0), BackgroundTransparency = 0.45, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1), Active = true, ZIndex = 11, Visible = false })
-	self.frame = Theme.panel(root, { name = "Store", anchor = MID, position = UDim2.fromScale(0.5, 0.5), box = UDim2.fromOffset(480, 420), z = 11, edge = c.Accent, edgeWidth = 3 })
+	self.frame = Theme.panel(root, { name = "Store", anchor = MID, position = UDim2.fromScale(0.5, 0.5), box = UDim2.fromOffset(480, 460), z = 11, edge = c.Accent, edgeWidth = 3 })
 	self.frame.Visible = false
 	self.frame.SelectionGroup = true
 	Theme.text(self.frame, { name = "Title", font = Theme.Display, text = "🛒 " .. words.ShopTitle, size = 28, color = c.Accent, position = UDim2.fromOffset(18, 10), box = UDim2.new(1, -90, 0, 42), stroke = 2.5 })
@@ -29,10 +29,12 @@ function Store.new(root, deps)
 		self:Close()
 	end)
 
+	-- what any purchase also gets you
+	Theme.text(self.frame, { name = "Perk", text = words.ShopPerk, size = 15, color = Color3.fromRGB(255, 92, 180), position = UDim2.fromOffset(18, 52), box = UDim2.new(1, -36, 0, 20), scaled = true, maxSize = 15, stroke = 1.5 })
 	local list = new("ScrollingFrame", self.frame, {
 		Name = "Items",
-		Position = UDim2.fromOffset(14, 60),
-		Size = UDim2.new(1, -28, 1, -150),
+		Position = UDim2.fromOffset(14, 78),
+		Size = UDim2.new(1, -28, 1, -168),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		ScrollBarThickness = 4,
@@ -141,7 +143,7 @@ function Store:Open()
 	end
 	self.open = true
 	local size = self.root.AbsoluteSize
-	self.frame.Size = UDim2.fromOffset(math.max(300, math.min(size.X - 24, 480)), math.max(260, math.min(size.Y - 20, 420)))
+	self.frame.Size = UDim2.fromOffset(math.max(300, math.min(size.X - 24, 480)), math.max(260, math.min(size.Y - 20, 460)))
 	self.frame.Visible = true
 	self.backdrop.Visible = true
 	self:Refresh()

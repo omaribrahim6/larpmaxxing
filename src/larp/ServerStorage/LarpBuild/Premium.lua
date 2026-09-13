@@ -413,9 +413,14 @@ local function eliteRoof(model: Instance, home: string, spec, zoneName: string, 
 	pickupZone(m, at, -W / 2 + 4, -D / 2 + 12, W / 2 - 4, D / 2 - 6, 0.4, cfg.spawns)
 end
 
+-- shared with LarpBuild.Arena
+Premium.door = door
+Premium.pickupZone = pickupZone
+
 function Premium.build(): string
 	local map = workspace:WaitForChild("Larp"):WaitForChild("Map")
-	local root = Kit.fresh(map, "Premium", "Folder")
+	-- only its own zones are replaced: the VIP++ Arena (LarpBuild.Arena) lives here too
+	local root = Kit.folder(map, "Premium", "Folder")
 	local out = {}
 	for home, spec in Premium.config.zones do
 		local names = Areas.zones[home]
@@ -426,9 +431,7 @@ function Premium.build(): string
 				zoneName = stat.zoneName
 			end
 		end
-		local model = Instance.new("Model")
-		model.Name = home
-		model.Parent = root
+		local model = Kit.fresh(root, home, "Model")
 		entrance(model, home, spec, names)
 		vipRoom(model, home, spec, zoneName, names)
 		eliteRoof(model, home, spec, zoneName, names)

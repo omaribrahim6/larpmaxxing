@@ -29,6 +29,7 @@ Net.Names = {
 	"UpdateSetting", -- key, value
 	"RedeemCode", -- code (the shop's codes box)
 	"TouchGrass", -- (no args) the player confirms Touch Grass
+	"OpenShop", -- (no args) the server opens a player's shop (they tried a locked VIP++ door)
 	"ClientReady", -- (no args) client listeners are connected; server replies with ProfileSync
 }
 

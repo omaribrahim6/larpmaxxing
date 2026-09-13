@@ -1,5 +1,44 @@
 # Handoff
-## LATEST: Claude, 2026-09-13 (Car Lot show cars)
+## LATEST: Claude, 2026-09-13 (more to buy, and the VIP++ Arena)
+- **The shop (`Config.Store`)**, where every id is still 0 until you create the item:
+  - Game passes:
+    - 🎁 **Mega Bundle** (R$299): 2× Points, 2× Magnet and 2× Speed in one.
+    - ✨ **2× Points** (R$199).
+    - 🧲 **2× Magnet** (R$149).
+    - 👟 **2× Speed** (R$149): walking and sprinting.
+  - Developer products:
+    - ⚡ **2× Boost**, 15 minutes (R$29).
+    - ⚡ **1-Hour 2× Boost** (R$79).
+    - 📣 **Summon a Stat Rush** (R$49).
+  - A bundle owns each pass it includes, so their rows show OWNED too.
+  - The shop's top line says any purchase also opens the VIP++ Arena.
+- **The VIP++ Arena** (owner request: "a huge place for anyone who bought anything"):
+  - Any purchase, pass or product, makes the buyer a **supporter**, saved in the profile (`supporter`) and shown as the `Supporter` attribute.
+  - The Arena opens for supporters rather than by rank.
+  - Its door is a pink portal on the Plaza's west side, marked 💖 on the map.
+  - Non-supporters who try the door are refused, and the shop opens for them, so the way in is right there.
+  - The Arena itself is a 260-stud open-air arena past the skyline to the north: a neon grid, the VIP++ emblem, stands, light towers and a big sign.
+  - It has 140 spawn points (420 props), with weights averaging about 4× the open zones' points.
+  - Anyone who isn't a supporter is sent back out by the same sweep as the VIP and Elite areas.
+- **Code:**
+  - `Config.Areas`: the `Arena` tier (`supporter = true`) and Plaza's names.
+  - `AreaService.allowed(tier, rank, supporter)`.
+  - `MonetizationService`: bundles, `SpeedMultiplier` and `MakeSupporter`.
+  - `SprintKit`: applies `SpeedMultiplier`.
+  - `LarpBuild.Arena` (new), with `Build.all()` running it too.
+  - `Premium` now only replaces its own zones, and shares its door and pickup-zone helpers.
+  - A new remote, `OpenShop`.
+  - The Studio debug command `LarpDebug:Invoke("supporter", userId)`.
+- **Tested in a play session:**
+  - The rules tests pass 21/21.
+  - The Arena holds 420 props.
+  - A non-supporter was refused at the door and the shop opened.
+  - After the supporter debug command, the door led into the Arena with the 💖 welcome.
+  - `SpeedMultiplier` 2 gave walk speed 32.
+- **For you (Creator Dashboard):** create the 4 passes and 3 products, then paste their ids into `Config.Store`. Until then the shop shows "opens soon", nothing can be bought, and the Arena stays closed.
+- **Save the place (Ctrl+S):** the Arena lives in the place file.
+
+## Claude, 2026-09-13 (Car Lot show cars)
 - **The Car Lot now shows the expensive cars** (owner: larping Money means going to the lot to take selfies with them).
   - The six plain parked cars are now three T5 Supercars and three T4 Sports Cars, taking turns. They're the Money scene's own models (`Larp.Assets.Scenes.Money`).
   - The cars are longer than the old spots, so each slides along its length toward the lot's middle until it clears the fences and lamps. Checked: all six are clear.

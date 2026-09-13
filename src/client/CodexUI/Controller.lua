@@ -219,6 +219,8 @@ function Controller.start()
 		ChallengeClosed=function(id) self.model:Close(id) self.view:Render(self.model) end,
 		MatchAborted=function() self.model.onboarding:ResetTransient() end,
 		Notice=notice, Announce=function(message) notice(message,"info") end,
+		-- a locked VIP++ door opens the shop, so the way in is right there
+		OpenShop=function() self.view.store:Open() self.view:Render(self.model) end,
 		-- a rebirth is a full-screen moment too
 		TouchedGrass=function(count,multiplier)
 			if finite(count) and finite(multiplier) then self.view.celebrate:Push({kind="grass",count=count,multiplier=multiplier}) end

@@ -18,10 +18,21 @@ for i, rank in Catalog.ranks do
 	rankOf[rank.name] = i
 end
 
--- Whether a player at rank index `rank` may be in `tier` (nil: an open area).
-function AreaService.allowed(tier: string?, rank: number): boolean
+-- Whether a player at rank index `rank`, a `supporter` or not, may be in `tier` (nil: an
+-- open area). The VIP++ Arena goes by supporter, the others by rank.
+function AreaService.allowed(tier: string?, rank: number, supporter: boolean?): boolean
 	local spec = tier and Areas.tiers[tier]
-	return spec == nil or rank >= (rankOf[spec.rank] or math.huge)
+	if spec == nil then
+		return true
+	end
+	if spec.supporter then
+		return supporter == true
+	end
+	return rank >= (rankOf[spec.rank] or math.huge)
+end
+
+local function isSupporter(player: Player): boolean
+	return player:GetAttribute("Supporter") == true
 end
 
 function AreaService:Init(services)
@@ -53,7 +64,14 @@ local function inside(part: BasePart, position: Vector3): boolean
 end
 
 function AreaService:_locked(player: Player, home: string, tier: string)
-	Net.get("Notice"):FireClient(player, Areas.words.locked:format(areaName(home, tier), Areas.tiers[tier].rank), "warning")
+	local spec = Areas.tiers[tier]
+	if spec.supporter then
+		-- the shop opens, so the way in is right there
+		Net.get("Notice"):FireClient(player, Areas.words.supporterOnly:format(areaName(home, tier)), "warning")
+		Net.get("OpenShop"):FireClient(player)
+	else
+		Net.get("Notice"):FireClient(player, Areas.words.locked:format(areaName(home, tier), spec.rank), "warning")
+	end
 end
 
 function AreaService:_use(player: Player, prompt: ProximityPrompt)
@@ -63,7 +81,7 @@ function AreaService:_use(player: Player, prompt: ProximityPrompt)
 		return
 	end
 	if Areas.tiers[to] then
-		if not AreaService.allowed(to, self.Stats:GetRankIndex(player)) then
+		if not AreaService.allowed(to, self.Stats:GetRankIndex(player), isSupporter(player)) then
 			self:_locked(player, home, to)
 			return
 		end
@@ -81,7 +99,7 @@ function AreaService:_sweep()
 		if root then
 			local rank = self.Stats:GetRankIndex(player)
 			for _, v in self.volumes do
-				if not AreaService.allowed(v.tier, rank) and inside(v.part, root.Position) then
+				if not AreaService.allowed(v.tier, rank, isSupporter(player)) and inside(v.part, root.Position) then
 					moveTo(player, arrival(v.zone:FindFirstChild("Entrance")))
 					self:_locked(player, v.zone.Name, v.tier)
 					break

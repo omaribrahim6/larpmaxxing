@@ -16,11 +16,17 @@ local player = Players.LocalPlayer
 local sprinting = false
 local ui = nil -- the CodexUI controller, whose Sprint button shows the toggle
 
+local applied = nil -- the WalkSpeed this last set, so a scene's own speed is left alone
+
 local function apply()
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	if humanoid and (humanoid.WalkSpeed == M.walkSpeed or humanoid.WalkSpeed == M.sprintSpeed) then
-		humanoid.WalkSpeed = if sprinting then M.sprintSpeed else M.walkSpeed
+	-- the 2x Speed pass (MonetizationService sets SpeedMultiplier)
+	local boost = player:GetAttribute("SpeedMultiplier")
+	boost = if type(boost) == "number" then math.clamp(boost, 1, 3) else 1
+	if humanoid and (humanoid.WalkSpeed == applied or humanoid.WalkSpeed == M.walkSpeed or humanoid.WalkSpeed == M.sprintSpeed) then
+		applied = (if sprinting then M.sprintSpeed else M.walkSpeed) * boost
+		humanoid.WalkSpeed = applied
 	end
 	local camera = workspace.CurrentCamera
 	if camera and camera.CameraType == Enum.CameraType.Custom then
@@ -56,6 +62,7 @@ function SprintKit.start(controller)
 		end
 		return Enum.ContextActionResult.Sink
 	end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL3)
+	player:GetAttributeChangedSignal("SpeedMultiplier"):Connect(apply)
 	player.CharacterAdded:Connect(function(character)
 		character:WaitForChild("Humanoid", 10)
 		apply()

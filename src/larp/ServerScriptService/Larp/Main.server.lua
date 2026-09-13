@@ -60,6 +60,9 @@ if game:GetService("RunService"):IsStudio() then
 		elseif command == "demo" then
 			-- NPC vs NPC larp-off the target can watch as a spectator (stand near the stage)
 			return services.PracticeNpcService:_demo(...)
+		elseif command == "supporter" then
+			-- the VIP++ Arena without buying anything (Studio only)
+			return services.MonetizationService:MakeSupporter(target)
 		elseif command == "rush" then
 			-- a stat rush now (a Config.Events id, e.g. "GoldenHour")
 			return services.EventService:Begin(...)

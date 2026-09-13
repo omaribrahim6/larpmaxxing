@@ -95,7 +95,7 @@ function MapView:_draw()
 				local center, size = place:GetAttribute("center"), place:GetAttribute("size")
 				local box = UDim2.fromScale(size.X / self.span, size.Z / self.span)
 				if kind == "door" then
-					local marker = Theme.text(self.area, { name = "Door", text = "💎", size = 14, align = CENTER, anchor = MID, position = self:_at(center.X, center.Z), box = UDim2.fromOffset(18, 18), stroke = 1.5 })
+					local marker = Theme.text(self.area, { name = "Door", text = tostring(place:GetAttribute("icon") or "💎"), size = 14, align = CENTER, anchor = MID, position = self:_at(center.X, center.Z), box = UDim2.fromOffset(18, 18), stroke = 1.5 })
 					marker.ZIndex = 12 + layer
 				else
 					local statId = place:GetAttribute("stat")

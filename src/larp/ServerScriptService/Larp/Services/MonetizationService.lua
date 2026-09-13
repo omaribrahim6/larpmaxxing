@@ -1,7 +1,9 @@
--- The shop (spec "Monetization", Config.Store): game passes (2x Pickups, Magnet), developer
--- products (a 2x boost, Summon a Stat Rush) and codes (Config.Codes, server-only). What a
--- player has shows as attributes the client reads: Owns<key> for each pass they own, and
--- BoostEndsAt (server time) while a boost runs. Nothing sold here touches a larp-off result.
+-- The shop (spec "Monetization", Config.Store): game passes (a Mega Bundle, 2x Points, 2x
+-- Magnet, 2x Speed), developer products (boosts, Summon a Stat Rush) and codes (Config.Codes,
+-- server-only). What a player has shows as attributes the client reads: Owns<key> for each
+-- pass they own (a bundle owns what it includes), MagnetMultiplier, SpeedMultiplier,
+-- BoostEndsAt (server time) while a boost runs, and Supporter once they've bought anything
+-- (the VIP++ Arena opens). Nothing sold here touches a larp-off result.
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -20,6 +22,10 @@ local MAX_RECEIPTS = 50 -- purchase ids kept per profile, so a retried receipt i
 local passById: { [number]: any } = {}
 local productById: { [number]: any } = {}
 local owned: { [Player]: { [string]: boolean } } = {}
+local passByKey: { [string]: any } = {}
+for _, pass in Store.passes do
+	passByKey[pass.key] = pass
+end
 local limiter = nil
 
 function MonetizationService:Init(services)
@@ -59,6 +65,7 @@ function MonetizationService:_grant(player: Player, data, reward)
 	if reward.boostMinutes then
 		data.boostUntil = math.max(os.time(), data.boostUntil or 0) + reward.boostMinutes * 60
 		showBoost(player, data)
+		player:SetAttribute("Supporter", if data.supporter then true else nil)
 		notice(player, Text.Store.boost:format(reward.boostMinutes))
 	end
 	if reward.rush and self.Events then
@@ -74,6 +81,27 @@ local function applyPass(player: Player, pass)
 	if pass.magnet then
 		player:SetAttribute("MagnetMultiplier", pass.magnet)
 	end
+	if pass.speed then
+		player:SetAttribute("SpeedMultiplier", pass.speed)
+	end
+	-- a bundle owns each pass it includes
+	for _, key in pass.bundle or {} do
+		if passByKey[key] and not owned[player][key] then
+			applyPass(player, passByKey[key])
+		end
+	end
+end
+
+-- Anyone who has bought anything is a supporter: the VIP++ Arena opens for them. Kept in the
+-- profile and shown as the Supporter attribute.
+function MonetizationService:MakeSupporter(player: Player): boolean
+	local data = self.Data:Get(player)
+	if not data then
+		return false
+	end
+	data.supporter = true
+	player:SetAttribute("Supporter", true)
+	return true
 end
 
 function MonetizationService:_checkPasses(player: Player)
@@ -82,6 +110,7 @@ function MonetizationService:_checkPasses(player: Player)
 			local ok, has = pcall(MarketplaceService.UserOwnsGamePassAsync, MarketplaceService, player.UserId, pass.id)
 			if ok and has and player.Parent then
 				applyPass(player, pass)
+				self:MakeSupporter(player)
 			end
 		end
 	end
@@ -101,6 +130,7 @@ function MonetizationService:_receipt(info)
 		return Enum.ProductPurchaseDecision.PurchaseGranted
 	end
 	self:_grant(player, data, product)
+	self:MakeSupporter(player)
 	data.receipts[info.PurchaseId] = os.time()
 	local list = {}
 	for id, at in data.receipts do
@@ -168,6 +198,7 @@ function MonetizationService:Start()
 		local pass = passById[passId]
 		if purchased and pass then
 			applyPass(player, pass)
+			self:MakeSupporter(player)
 			notice(player, Text.Store.thanks)
 		end
 	end)

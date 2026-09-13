@@ -90,6 +90,7 @@ return {
 		-- the shop
 		Shop = "Shop", ShopTitle = "SHOP", Codes = "CODES", EnterCode = "Enter a code", Redeem = "Redeem", Owned = "OWNED",
 		ComingSoon = "The shop opens soon. Check back later!", BoostLeft = "⚡ 2x BOOST  %d:%02d",
+		ShopPerk = "💖 Anything you buy also opens the VIP++ Arena: props worth about 4x",
 		-- Touch Grass
 		TouchGrass = "Touch Grass", GrassTitle = "TOUCH GRASS?", NotYet = "Not yet",
 		GrassBody = "Start a new run: every stat goes back to 0 and your rank back to NPC, but you farm faster forever. You keep your Wins and cosmetics.\n\nFarming bonus: %s now → %s after.",

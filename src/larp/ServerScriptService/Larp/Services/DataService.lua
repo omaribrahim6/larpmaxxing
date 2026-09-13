@@ -47,6 +47,7 @@ function DataService.defaults()
 		receipts = {}, -- developer product purchase id -> when it was granted
 		rebirths = 0, -- times this player has touched grass
 		bestRank = 1, -- the highest rank reached, kept through Touch Grass (rank cosmetics)
+		supporter = false, -- has bought something (the VIP++ Arena opens)
 		settings = table.clone(SETTINGS_DEFAULTS),
 	}
 end

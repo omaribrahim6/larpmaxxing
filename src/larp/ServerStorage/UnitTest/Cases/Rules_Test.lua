@@ -106,7 +106,15 @@ return function(t)
 				expect.falsy(seen[item.key])
 				seen[item.key] = true
 				expect.truthy(type(item.id) == "number" and item.id >= 0)
-				expect.truthy(item.multiplier or item.magnet or item.boostMinutes or item.rush)
+				expect.truthy(item.multiplier or item.magnet or item.boostMinutes or item.rush or item.speed or item.bundle)
+				-- a bundle only includes passes that exist
+				for _, key in item.bundle or {} do
+					local found = false
+					for _, pass in Store.passes do
+						found = found or pass.key == key
+					end
+					expect.truthy(found)
+				end
 			end
 		end
 		for code, reward in require(game.ServerScriptService.Larp.Config.Codes) do
@@ -188,8 +196,12 @@ return function(t)
 			rankOf[rank.name] = i
 		end
 		for _, tier in Areas.tiers do
-			expect.truthy(rankOf[tier.rank])
+			expect.truthy(tier.supporter or rankOf[tier.rank])
 		end
+		-- the VIP++ Arena: supporters only, whatever their rank, with the richest props
+		expect.falsy(AreaService.allowed("Arena", #Catalog.ranks, false))
+		expect.truthy(AreaService.allowed("Arena", 1, true))
+		expect.truthy(average(Areas.tiers.Arena.weights) / open > 3.5)
 		expect.falsy(AreaService.allowed("VIP", rankOf.Poser - 1))
 		expect.truthy(AreaService.allowed("VIP", rankOf.Poser))
 		expect.falsy(AreaService.allowed("Elite", rankOf.Poser))
