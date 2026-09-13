@@ -1,7 +1,7 @@
 --!strict
 -- Touch Grass (rebirth) numbers: the farming bonus after `count` rebirths. Each rebirth adds
 -- its entry in `config.bonuses` (later ones add nothing), up to `config.cap` in total:
--- spec 1.25x, 1.45x, 1.60x, 1.70x, 1.80x, then +0.05 each until 2x.
+-- 1.10x, 1.25x, 1.45x, 1.70x, then 2x (owner 2026-09-13: +10%, +15%, +20%, ...).
 local RebirthMath = {}
 
 function RebirthMath.multiplier(count: number, config: { bonuses: { number }, cap: number }): number

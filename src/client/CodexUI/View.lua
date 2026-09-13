@@ -14,6 +14,7 @@ local Celebrate = require(script.Parent.Celebrate)
 local Tutorial = require(script.Parent.Tutorial)
 local Store = require(script.Parent.Store)
 local Rebirth = require(script.Parent.Rebirth)
+local Feed = require(script.Parent.Feed)
 local View = {}
 View.__index = View
 local new = Theme.new
@@ -45,13 +46,30 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 	self.celebrate = Celebrate.new(playerGui, {config = config, catalog = catalog, format = format, play = play, cosmetics = extras.cosmetics or {},
 		floors = extras.floors or {}, reduce = extras.reduce or function() return false end,
 		scene = extras.scene or function() return nil end})
+	-- the notice feed, bottom left: toasts, scene upgrades, legendary drops, stat rushes
+	self.feed = Feed.new(self.root, {config = config})
+	-- a stat's new tier as a feed line: "⬆️ 💰 MONEY · TIER 4  <its flex line>"
+	local function tierUp(statId, tier)
+		local stat = catalog.statsById[statId]
+		if not stat then return end
+		local maxTier = #(extras.floors or {}) + 1
+		local tierName = if tier >= maxTier then words.Maxxed else words.Tier:format(tier)
+		local scene = extras.scene and extras.scene(statId)
+		local flex = scene and scene.tiers and scene.tiers[tier] and scene.tiers[tier].flex
+		local line = ("⬆️ %s %s"):format(config.StatIcons[statId] or "", words.TierLine:format(stat.displayName:upper(), tierName))
+		if flex then
+			line ..= '  <font transparency="0.2">' .. flex:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;") .. "</font>"
+		end
+		self.feed:Push(line, stat.color, false, 6)
+		play("Equip", 0.5)
+	end
 	self.hud = Hud.new(self.root, self.fx, {config = config, catalog = catalog, rankMath = rankMath, format = format,
 		tiers = extras.tiers, floors = extras.floors or {}, play = play, button = button,
 		settingsOpen = function() callbacks.settingsOpen() end,
 		helpOpen = function() callbacks.helpOpen() end,
 		shopOpen = function() callbacks.shopOpen() end,
 		grassOpen = function() callbacks.grassOpen() end,
-		onTierUp = function(statId, tier) self.celebrate:Push({kind = "tier", statId = statId, tier = tier}) end})
+		onTierUp = tierUp})
 	self.settingsOpen = self.hud.settingsButton
 	self.helpOpen = self.hud.helpButton
 	-- the How to play book (over the HUD, under Settings and the challenge popup)
@@ -187,6 +205,7 @@ function View:Render(model)
 	-- a first-time player reads How to play before the step-by-step guide appears
 	local unread = model.loaded and model.settings.tutorialSeen == false
 	if model.inMatch and self.tutorial:IsOpen() then self.tutorial:Close() end
+	self.feed:SetVisible(not model.inMatch)
 	self.guide.Visible = guide ~= nil and guide:Visible(model.inMatch or model.incoming ~= nil or self.settings.Visible or model.rematch ~= nil
 		or unread or self.tutorial:IsOpen())
 	self.hud:SetHelpHighlight(unread and not model.inMatch and not self.tutorial:IsOpen())
@@ -380,13 +399,10 @@ function View:Toast(text, kind, now)
 	if victim then table.remove(self.toasts, victim).frame:Destroy() end
 	local c = self.config.Colors
 	local bad = kind == "warning" or kind == "error"
-	-- outlined text, no card: notices come often and shouldn't cover the screen
-	local frame = new("Frame", self.toastRoot, {Name = "Notice", AnchorPoint = Vector2.new(0,1), Size = UDim2.new(1,0,0,40), BackgroundTransparency = 1})
+	-- a line in the feed (bottom left): notices come often and shouldn't cover the screen
 	local icon = if bad then "⚠️ " elseif kind == "success" then "✅ " else ""
-	Theme.text(frame, {name = "Message", text = icon..text, size = 18, color = if bad then c.Negative elseif kind == "success" then c.Positive else c.Text, align = CENTER, position = UDim2.fromOffset(12,2), box = UDim2.new(1,-24,1,-4), wrap = true, stroke = 2})
-	Juice.punch(frame, 0.85, 0.3)
-	table.insert(self.toasts, ToastPolicy.insertionIndex(self.toasts, kind), {frame = frame, text = text, kind = kind, createdAt = now, deadline = now + ToastPolicy.duration(text, self.config.ToastSeconds)})
-	self:Tick(now)
+	local safe = (icon .. text):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")
+	self.feed:Push(safe, if bad then c.Negative elseif kind == "success" then c.Positive else c.Text, false, math.max(4, ToastPolicy.duration(text, self.config.ToastSeconds)))
 end
 
 function View:Tick(now)
@@ -435,6 +451,7 @@ function View:Destroy()
 	self.tutorial:Destroy()
 	self.store:Destroy()
 	self.rebirth:Destroy()
+	self.feed:Destroy()
 	self.gui:Destroy()
 end
 return View

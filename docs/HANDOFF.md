@@ -1,5 +1,31 @@
 # Handoff
-## LATEST: Claude, 2026-09-13 (VIP rooms, Elite rooftops, music playlists)
+## LATEST: Claude, 2026-09-13 (owner playtest: slower progression, rarer Legendaries, the feed)
+- **Progression ×5** (owner: LARP Maxxer came in 5–10 minutes; a first run should take 30–40):
+  - Ranks: Normie 2,500 · Wannabe 15,000 · Poser 60,000 · Main Character 200,000 · Aura Farmer 600,000 · LARP Maxxer 1,500,000.
+  - Scene-tier floors: 1,000 · 10,000 · 50,000 · 200,000 · 500,000.
+  - Nothing about pickups was cut: same density, same points except the two changes below.
+- **Rarities:**
+  - Epic: 300 points (was 150).
+  - Legendary: 1,500 points (was 500) and 5× rarer (weight 0.2). The VIP and Elite Legendary weights were divided by 5 too; those areas still average about 2× and 3× the open zones.
+- **Touch Grass:** +10%, +15%, +20%, +25%, +30%, so 1.10×, 1.25×, 1.45×, 1.70×, 2×.
+- **Sounds:**
+  - Only Legendary pickups play the special sound; Epics play the normal one.
+  - Combo-milestone callouts click (UiSelect) instead of reusing that sound.
+- **The Epic/Legendary screen-edge glow is gone.**
+- **The feed (new `CodexUI.Feed`)**, bottom left, like a kill feed but bigger:
+  - It carries toasts, scene upgrades, Legendary drops and stat rushes as short outlined lines. It shows at most 4, each stays about 5 s, and it hides during larp-offs.
+  - On phones it sits above the thumbstick.
+  - Gone from mid-screen: the toast stack, the Announcer banners and Celebrate's scene-upgrade moment.
+  - The combo meter is smaller, and its milestone words moved from mid-screen to just above it.
+  - `ui:Feed(text, color, big, seconds)` is the Controller API.
+- **Touch Grass explained:** a TOUCH GRASS page in How to play, and a clearer prompt ("start a new run… farm faster forever").
+- **Tested in a play session:**
+  - 57/57 unit tests pass.
+  - The rank card read 10,000 / 15,000.
+  - The feed showed a Tier 3 upgrade, a notice, a Legendary drop and a Golden Hour rush, stacked bottom left.
+- **Left in place:** `Announcer` now only does SceneDirector's `setBusy`, and Celebrate's `tier` moment is no longer used.
+
+## Claude, 2026-09-13 (VIP rooms, Elite rooftops, music playlists)
 - **Every home zone now has a VIP room (open from Poser) and an Elite rooftop (open from Aura Farmer)** (spec "Map"):
   - Just inside each zone's gate stand two glowing doors, gold VIP and purple ELITE, each with its rank on the sign.
   - Using a door (E, or a tap) checks the rank on the server and moves the player there. Too low a rank shows "🔒 The Pro Gym opens at Poser".

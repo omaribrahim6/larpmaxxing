@@ -132,29 +132,16 @@ function Hud.new(root, fx, deps)
 	self.grassButton = deps.button(self.dock, { name = "TouchGrass", text = "🌱  " .. words.TouchGrass, size = 15, color = Color3.fromRGB(52, 160, 72), position = UDim2.fromOffset(68, 244), box = UDim2.fromOffset(136, 46) }, deps.grassOpen)
 	self.grassButton.Visible = false
 
-	-- the combo meter, bottom centre above the rematch button
-	self.comboGroup = Theme.new("CanvasGroup", self.frame, { Name = "Combo", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -84), Size = UDim2.fromOffset(280, 92), GroupTransparency = 1 })
-	self.comboCount = Theme.text(self.comboGroup, { name = "Count", font = Theme.Display, size = 46, align = CENTER, position = UDim2.fromOffset(0, 4), box = UDim2.new(1, 0, 0, 54), stroke = 3 })
-	self.comboLabel = Theme.text(self.comboGroup, { name = "Label", size = 18, align = CENTER, position = UDim2.fromOffset(0, 58), box = UDim2.new(1, 0, 0, 26), stroke = 2 })
-	-- big words at combo milestones ("ON A ROLL!")
-	self.callout = Theme.text(self.frame, { name = "Callout", font = Theme.Display, size = 54, align = CENTER, anchor = MID, position = UDim2.fromScale(0.5, 0.32), box = UDim2.new(0.9, 0, 0, 70), scaled = true, maxSize = 60, stroke = 3.5 })
+	-- the combo meter, bottom centre above the rematch button (small: it's up a lot)
+	self.comboGroup = Theme.new("CanvasGroup", self.frame, { Name = "Combo", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -84), Size = UDim2.fromOffset(220, 68), GroupTransparency = 1 })
+	self.comboCount = Theme.text(self.comboGroup, { name = "Count", font = Theme.Display, size = 34, align = CENTER, position = UDim2.fromOffset(0, 2), box = UDim2.new(1, 0, 0, 40), stroke = 2.5 })
+	self.comboLabel = Theme.text(self.comboGroup, { name = "Label", size = 15, align = CENTER, position = UDim2.fromOffset(0, 42), box = UDim2.new(1, 0, 0, 22), stroke = 2 })
+	-- words at combo milestones ("ON A ROLL!"), just above the meter, not mid-screen
+	self.callout = Theme.text(self.frame, { name = "Callout", font = Theme.Display, size = 30, align = CENTER, anchor = MID, position = UDim2.new(0.5, 0, 1, -176), box = UDim2.new(0.6, 0, 0, 40), scaled = true, maxSize = 34, stroke = 3 })
 	self.callout.Visible = false
 	-- a running 2x boost counts down under the event timer (text, no card)
 	self.boost = Theme.text(self.frame, { name = "Boost", font = Theme.Display, size = 22, color = c.Accent, align = CENTER, anchor = Vector2.new(0.5, 0), position = UDim2.new(0.5, 0, 0, 48), box = UDim2.new(0.5, 0, 0, 30), stroke = 2.5 })
 	self.boost.Visible = false
-
-	-- the screen's edges glow in the rarity's colour for Epic and Legendary pickups
-	self.edges = {}
-	for _, e in {
-		{ UDim2.fromScale(0, 0), UDim2.fromScale(0.14, 1), 0 },
-		{ UDim2.fromScale(0.86, 0), UDim2.fromScale(0.14, 1), 180 },
-		{ UDim2.fromScale(0, 0), UDim2.fromScale(1, 0.2), 90 },
-		{ UDim2.fromScale(0, 0.8), UDim2.fromScale(1, 0.2), 270 },
-	} do
-		local edge = Theme.new("Frame", fx, { Name = "Edge", Position = e[1], Size = e[2], BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 1, BorderSizePixel = 0 })
-		Theme.new("UIGradient", edge, { Rotation = e[3], Transparency = NumberSequence.new(0, 1) })
-		table.insert(self.edges, edge)
-	end
 
 	self.connections = {
 		root:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
@@ -289,10 +276,6 @@ function Hud:Collected(statId, points, rarity, position)
 	if self.combo >= 2 then
 		self:_combo()
 	end
-	if rarity == "Epic" or rarity == "Legendary" then
-		local info = self.deps.catalog.rarities[rarity]
-		self:_edge(if info then info.color else Color3.new(1, 1, 1), rarity == "Legendary")
-	end
 	self:_fly(statId, points, rarity, position)
 	return self.combo
 end
@@ -318,19 +301,11 @@ function Hud:_callout(text, color)
 	label.Visible = true
 	label.TextTransparency = 0
 	label.UIStroke.Transparency = 0
-	label.Position = UDim2.fromScale(0.5, 0.32)
-	Juice.punch(label, 2.2, 0.45)
-	Juice.tween(label, 0.6, { TextTransparency = 1, Position = UDim2.fromScale(0.5, 0.26) }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 1)
+	label.Position = UDim2.new(0.5, 0, 1, -176)
+	Juice.punch(label, 1.5, 0.4)
+	Juice.tween(label, 0.6, { TextTransparency = 1, Position = UDim2.new(0.5, 0, 1, -196) }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 1)
 	Juice.tween(label.UIStroke, 0.6, { Transparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 1)
-	self.deps.play("PickupRare", 0.55)
-end
-
-function Hud:_edge(color, big)
-	for _, edge in self.edges do
-		edge.BackgroundColor3 = color
-		edge.BackgroundTransparency = if big then 0 else 0.3
-		Juice.tween(edge, if big then 1.1 else 0.7, { BackgroundTransparency = 1 })
-	end
+	self.deps.play("UiSelect", 0.5)
 end
 
 function Hud:_fly(statId, points, rarity, position)

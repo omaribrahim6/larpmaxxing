@@ -2,19 +2,20 @@
 -- Elite rooftop, open from Aura Farmer, reached by doors just inside the zone's gate
 -- (LarpBuild.Premium builds them; AreaService runs the doors). Their pickups are the
 -- zone's stat with richer rarity weights: about 2x and 3x the open zones' points.
+-- Legendary weights are a fifth of the spec's, like the open zones' (owner 2026-09-13).
 return {
 	tiers = {
 		VIP = {
 			rank = "Poser",
 			label = "VIP",
 			color = Color3.fromRGB(255, 198, 64),
-			weights = { Common = 40, Uncommon = 30, Rare = 18, Epic = 9, Legendary = 3 },
+			weights = { Common = 40, Uncommon = 30, Rare = 18, Epic = 9, Legendary = 0.6 },
 		},
 		Elite = {
 			rank = "Aura Farmer",
 			label = "ELITE",
 			color = Color3.fromRGB(176, 132, 255),
-			weights = { Common = 25, Uncommon = 30, Rare = 25, Epic = 14, Legendary = 6 },
+			weights = { Common = 25, Uncommon = 30, Rare = 25, Epic = 14, Legendary = 1.2 },
 		},
 	},
 	-- each home zone (a Workspace.Larp.Map child): its VIP room's and Elite rooftop's names

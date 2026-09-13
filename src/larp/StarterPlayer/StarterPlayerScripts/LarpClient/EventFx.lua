@@ -1,4 +1,4 @@
--- Shows the stat rushes (Config.Events): a banner when one starts (Announcer), its name and
+-- Shows the stat rushes (Config.Events): a line in the feed when one starts, its name and
 -- countdown on the HUD (CodexUI's event timer), and its look. A rush's `look` fades the whole
 -- sky (Golden Hour's evening light); its `zoneLook` tints the screen only while you're inside
 -- the stat's home zone (Finals Week dims the Library).
@@ -10,7 +10,6 @@ local Larp = game:GetService("ReplicatedStorage"):WaitForChild("Larp")
 local Config = require(Larp.Config.Events)
 local Catalog = require(Larp.Shared.Catalog)
 local Net = require(Larp.Shared.Net)
-local Announcer = require(script.Parent.Announcer)
 local SoundKit = require(script.Parent.SoundKit)
 
 local EventFx = {}
@@ -82,12 +81,9 @@ function EventFx.start(ui)
 		if rush and type(endsAt) == "number" then
 			local stat = Catalog.statsById[rush.stat]
 			ui:SetEvent(rush.icon .. " " .. rush.title, endsAt)
-			Announcer.push({
-				title = Config.banner,
-				text = rush.title,
-				sub = if type(by) == "string" then Config.summoned:format(by) .. " · " .. rush.line else rush.line,
-				color = stat and stat.color,
-			})
+			local sub = if type(by) == "string" then Config.summoned:format(by) .. " · " .. rush.line else rush.line
+			local color = (stat and stat.color or Color3.fromRGB(255, 198, 64)):ToHex()
+			ui:Feed(('%s <font color="#%s">%s</font>  %s'):format(Config.banner, color, rush.title:upper(), sub), nil, true, 7)
 			SoundKit.play("CrowdCheer", { volume = 0.35 })
 		else
 			ui:SetEvent(nil)

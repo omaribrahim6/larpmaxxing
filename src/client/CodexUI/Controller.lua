@@ -187,6 +187,8 @@ function Controller.start()
 		self.eventInfo={label=label:sub(1,60),endsAt=endsAt} return true
 	end
 	function self:Notify(message,kind) notice(message,kind) end
+	-- a line in the bottom-left feed (legendary drops, stat rushes): RichText, colour, big, seconds
+	function self:Feed(text,color,big,seconds) if self.view then self.view.feed:Push(text,color,big,seconds) end end
 	local function profile(packet)
 		local before=table.clone(self.model.settings)
 		local first=not self.model.loaded

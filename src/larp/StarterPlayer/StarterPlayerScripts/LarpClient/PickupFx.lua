@@ -11,7 +11,6 @@ local Catalog = require(Larp.Shared.Catalog)
 local Net = require(Larp.Shared.Net)
 local Text = require(Larp.Config.Text)
 local SoundKit = require(script.Parent.SoundKit)
-local Announcer = require(script.Parent.Announcer)
 
 local TAG = "LarpPickup"
 local ANIMATE_RANGE = 100 -- studs from the camera within which pickups spin and bob (pickups got 3x denser)
@@ -196,7 +195,7 @@ function PickupFx.start(ui)
 			-- the points fly on into the stat's HUD bar; chained pickups count a combo, and
 			-- each pickup in a chain rings a little higher
 			local combo = ui:Collected(statId, points, rarityName, at) or 1
-			local big = rarityName == "Epic" or rarityName == "Legendary"
+			local big = rarityName == "Legendary" -- only Legendaries get the big sound (owner: Epics' got annoying)
 			SoundKit.play(if big then "PickupRare" else "Pickup", {
 				volume = if rarityName == "Legendary" then 0.7 else 0.4,
 				speed = 1 + math.min(combo - 1, 16) * 0.03,
@@ -204,20 +203,15 @@ function PickupFx.start(ui)
 		end)
 	end)
 
-	-- a legendary drop gets the big banner (Announcer), not a notification card
+	-- a legendary drop gets a line in the feed (bottom left)
 	Net.get("LegendarySpawned").OnClientEvent:Connect(function(itemId, _position, place)
 		local item = Catalog.itemsById[itemId]
 		local stat = item and Catalog.statsById[item.stat]
 		if item then
 			local where = if type(place) == "string" then place else "in the " .. (stat and stat.zoneName or "map")
 			local rarity = Catalog.rarities[item.rarity]
-			Announcer.push({
-				title = Text.Legendary.title,
-				text = item.name,
-				sub = Text.Legendary.where:format(where),
-				color = rarity and rarity.color,
-				small = true, -- legendaries drop often: one line of text
-			})
+			local color = (rarity and rarity.color or Color3.new(1, 1, 1)):ToHex()
+			ui:Feed(('%s <font color="#%s">%s</font> %s'):format(Text.Legendary.title, color, item.name:upper(), Text.Legendary.where:format(where)), nil, false, 6)
 			SoundKit.play("Ping", { volume = 0.5 })
 		end
 	end)

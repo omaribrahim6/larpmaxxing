@@ -51,6 +51,9 @@ return {
 		{art = "win", color = Color3.fromRGB(104, 222, 92), title = "WIN, UPSET, REMATCH",
 			body = "A win pays bonus points and a Win. Scenes have some luck in them, so the underdog can pull off an UPSET for double the bonus. Lost? Hit Rematch and run it back.",
 			tip = "🏆 Your Wins are on the right side of the screen."},
+		{art = "ranks", color = Color3.fromRGB(122, 214, 112), title = "TOUCH GRASS",
+			body = "At LARP Maxxer you can Touch Grass: start a new run from NPC with every stat at 0, but farm faster forever. +10% the first time, then +15%, +20%, +25% and +30% (up to 2x). You keep your Wins and cosmetics.",
+			tip = "🌱 Your nameplate shows how many times you've touched grass."},
 	},
 	Settings = {
 		{key = "acceptLarpOffs", label = "Accept larp-offs", default = true, persisted = true},
@@ -89,7 +92,7 @@ return {
 		ComingSoon = "The shop opens soon. Check back later!", BoostLeft = "⚡ 2x BOOST  %d:%02d",
 		-- Touch Grass
 		TouchGrass = "Touch Grass", GrassTitle = "TOUCH GRASS?", NotYet = "Not yet",
-		GrassBody = "Log off and touch grass: every stat goes back to 0 and your rank back to NPC. You keep your Wins.\n\nFarming bonus: %s now, %s after.",
+		GrassBody = "Start a new run: every stat goes back to 0 and your rank back to NPC, but you farm faster forever. You keep your Wins and cosmetics.\n\nFarming bonus: %s now → %s after.",
 		GrassDone = "YOU TOUCHED GRASS", GrassCount = "x%d", GrassBonus = "Farming bonus: %s",
 		-- a promotion's new rank cosmetic
 		NewCosmetic = "%s  NEW: %s",

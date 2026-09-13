@@ -30,8 +30,9 @@ return {
 	Screen = { setOrigin = Vector3.new(0, 0, 3000) },
 
 	-- Rolled-value floors for Tier 2, 3, 4, 5 and Maxxed (Tier 6). Doubled on 2026-09-12
-	-- with the denser pickups (were 100, 1000, 5000, 20000, 50000).
-	Tiers = { 200, 2000, 10000, 40000, 100000 },
+	-- with the denser pickups (were 100, 1000, 5000, 20000, 50000), then x5 on 2026-09-13
+	-- with the ranks (owner: progression was too fast).
+	Tiers = { 1000, 10000, 50000, 200000, 500000 },
 
 	ExposedSeconds = 180,
 	SamePairRewardLimit = { count = 2, windowSeconds = 600 },
@@ -80,9 +81,10 @@ return {
 		upsetScale = 10, -- upsets are stored as tenths of a percent
 	},
 
-	-- Touch Grass (rebirth): each rebirth adds its bonus to the farming multiplier, up to cap
-	-- (spec: 1.25x, 1.45x, 1.60x ... 2x). Shared.RebirthMath adds them up.
-	TouchGrass = { bonuses = { 0.25, 0.20, 0.15, 0.10, 0.10, 0.05, 0.05, 0.05, 0.05 }, cap = 2.0 },
+	-- Touch Grass (rebirth): each rebirth adds its bonus to the farming multiplier, up to cap.
+	-- Owner 2026-09-13: +10%, then +15%, +20%, +25%, +30% (1.10x, 1.25x, 1.45x, 1.70x, 2x),
+	-- so the later runs speed up. Shared.RebirthMath adds them up.
+	TouchGrass = { bonuses = { 0.10, 0.15, 0.20, 0.25, 0.30 }, cap = 2.0 },
 
 	-- Sprint toggle (LarpClient.SprintKit): Left Shift, gamepad left-stick click, or the
 	-- on-screen button. walkSpeed must match StarterPlayer.CharacterWalkSpeed.
