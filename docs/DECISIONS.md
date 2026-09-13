@@ -76,4 +76,8 @@
   - Wins, the biggest upset, settings, codes and purchases stay. Touch Grass is never sold.
   - The farming bonus is a table in `Tuning.TouchGrass` (the spec's numbers), not a formula, so balancing is a config edit.
   - The requirement is the top rank's threshold, now 300,000 after the 2× progression.
+- 2026-09-13 (Claude): rank cosmetics are built from parts at runtime and welded on as plain Models, not Accessories or uploaded meshes.
+  - No asset uploads are needed, and each item sizes itself to the avatar's body parts.
+  - Players wear every item up to their best rank, so the look grows with progress and survives Touch Grass.
+  - The held matcha is kept upright by the clients instead of following the hand, because many avatars' idle animations hold the forearms forward.
 - 2026-09-12 (Claude): one zone track plays at a time (Config.Music), crossfading on ZoneBounds. Anywhere without its own track plays the Street main theme. Music ducks to 35% while any larp-off plays near the player, so stamps and stings stay clear.

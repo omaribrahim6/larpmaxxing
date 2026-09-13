@@ -26,7 +26,7 @@ function Celebrate.new(playerGui, deps)
 	return self
 end
 
--- item: { kind = "rank", index } | { kind = "tier", statId, tier }
+-- item: { kind = "rank", index, unlocked (a new cosmetic) } | { kind = "tier", statId, tier }
 --     | { kind = "reward", won, upset, bonus, rounds, against }
 function Celebrate:Push(item)
 	if item.kind == "tier" then
@@ -196,8 +196,8 @@ end
 
 -- The big moment promotions and Touch Grass share: the screen dims, a sunburst in `color`
 -- turns behind `bigText` as it slams in under `eyebrowText`, `subText` fades in below, and
--- confetti falls.
-function Celebrate:_burst(color, eyebrowText, bigText, subText)
+-- confetti falls. `extraText` (optional) is one more line under it: a new cosmetic.
+function Celebrate:_burst(color, eyebrowText, bigText, subText, extraText)
 	local d = self.deps
 	local c = d.config.Colors
 	local words = d.config.Words
@@ -238,6 +238,10 @@ function Celebrate:_burst(color, eyebrowText, bigText, subText)
 	})
 	Theme.text(content, { name = "Hint", font = Theme.Small, text = words.TapToContinue, color = c.Muted, align = CENTER, anchor = MID, position = UDim2.fromScale(0.5, 0.9), box = UDim2.fromScale(0.5, 0.03), scaled = true, maxSize = 16, stroke = false })
 
+	if extraText then
+		local extra = Theme.text(content, { name = "Unlock", font = Theme.Display, text = extraText, color = c.Accent, align = CENTER, anchor = MID, position = UDim2.fromScale(0.5, 0.67), box = UDim2.fromScale(0.7, 0.065), scaled = true, maxSize = 36, stroke = 3 })
+		Juice.punch(extra, 1.5, 0.5)
+	end
 	Juice.punch(eyebrow, 0.3, 0.45)
 	local nameScale = Juice.scaler(name)
 	if not reduce then
@@ -271,8 +275,18 @@ function SHOW.rank(self, item)
 	local rank = d.catalog.ranks[item.index]
 	assert(rank, "unknown rank " .. tostring(item.index))
 	local nextRank = d.catalog.ranks[item.index + 1]
+	-- a rank's cosmetic gets a line the first time it's earned (not again after Touch Grass)
+	local cosmetic = nil
+	if item.unlocked then
+		for _, c in d.cosmetics or {} do
+			if c.rank == rank.name then
+				cosmetic = c
+			end
+		end
+	end
 	self:_burst(rank.color or d.config.Colors.Accent, words.Promoted, rank.name:upper(),
-		if nextRank then words.NextRank:format(nextRank.name, d.format.int(nextRank.threshold)) else words.TopRank)
+		if nextRank then words.NextRank:format(nextRank.name, d.format.int(nextRank.threshold)) else words.TopRank,
+		if cosmetic then words.NewCosmetic:format(cosmetic.icon, cosmetic.name:upper()) else nil)
 end
 
 -- TOUCHED GRASS: the rebirth count in grass green, and the new farming bonus.

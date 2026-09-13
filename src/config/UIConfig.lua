@@ -91,6 +91,8 @@ return {
 		TouchGrass = "Touch Grass", GrassTitle = "TOUCH GRASS?", NotYet = "Not yet",
 		GrassBody = "Log off and touch grass: every stat goes back to 0 and your rank back to NPC. You keep your Wins.\n\nFarming bonus: %s now, %s after.",
 		GrassDone = "YOU TOUCHED GRASS", GrassCount = "x%d", GrassBonus = "Farming bonus: %s",
+		-- a promotion's new rank cosmetic
+		NewCosmetic = "%s  NEW: %s",
 		Plaza = "PLAZA", StreetsAll = "STREETS DROP ALL FIVE", You = "YOU", Vs = "VS", RoundPerStat = "ONE ROUND PER STAT",
 	},
 }

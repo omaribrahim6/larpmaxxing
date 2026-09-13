@@ -127,6 +127,29 @@ return function(t)
 		expect.near(RebirthMath.multiplier(17, grass), 2)
 	end)
 
+	-- Every rank above NPC has one cosmetic, earned up to the best rank, and each one builds.
+	t.test("rank cosmetics are well-formed and earned by best rank", function()
+		local Cosmetics = require(Larp.Config.Cosmetics)
+		local CosmeticService = require(game.ServerScriptService.Larp.Services.CosmeticService)
+		local Models = require(game.ServerScriptService.Larp.Lib.CosmeticModels)
+		local rankNames, seen = {}, {}
+		for _, rank in Catalog.ranks do
+			rankNames[rank.name] = true
+		end
+		for _, c in Cosmetics do
+			expect.truthy(rankNames[c.rank])
+			expect.falsy(seen[c.rank])
+			seen[c.rank] = true
+			local item = Models.build(c.id)
+			expect.truthy(item:IsA("Model") or item:IsA("Attachment"))
+			item:Destroy()
+		end
+		expect.equal(#Cosmetics, #Catalog.ranks - 1)
+		expect.equal(#CosmeticService.earned(1), 0)
+		expect.equal(#CosmeticService.earned(3), 2)
+		expect.equal(#CosmeticService.earned(#Catalog.ranks), #Cosmetics)
+	end)
+
 	-- Number formatting for the HUD.
 	t.test("number formatting", function()
 		expect.equal(Format.int(1234567), "1,234,567")

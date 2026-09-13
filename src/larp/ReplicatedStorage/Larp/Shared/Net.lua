@@ -8,7 +8,7 @@ Net.Names = {
 	-- server -> client
 	"ProfileSync", -- full state after load: stats, total, rankIndex, wins, settings, persistent
 	"StatsChanged", -- stats, total, rankIndex, wins
-	"RankUp", -- rankIndex
+	"RankUp", -- rankIndex, unlocked (true when it brings a new rank cosmetic)
 	"PickupCollected", -- itemId, points, statId, rarity, position
 	"LegendarySpawned", -- itemId, position
 	"ChallengeIncoming", -- id, fromUserId, fromName, fromRankIndex, seconds

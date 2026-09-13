@@ -1,8 +1,11 @@
 -- Validates and stores player settings sent from the client.
 local Larp = game:GetService("ReplicatedStorage"):WaitForChild("Larp")
 local Net = require(Larp.Shared.Net)
+local Signal = require(Larp.Shared.Signal)
 
-local SettingsService = {}
+local SettingsService = {
+	Changed = Signal.new(), -- (player, key, value) after a setting is stored
+}
 
 -- key -> expected Luau type. Anything else is ignored.
 local ALLOWED = {
@@ -43,6 +46,7 @@ function SettingsService:Start()
 		local data = self.Data:Get(player)
 		if data then
 			data.settings[key] = clean
+			self.Changed:Fire(player, key, clean)
 		end
 	end)
 end

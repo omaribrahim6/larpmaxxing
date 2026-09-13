@@ -1,5 +1,30 @@
 # Handoff
-## LATEST: Claude, 2026-09-13 (Touch Grass)
+## LATEST: Claude, 2026-09-13 (rank cosmetics)
+- **Each rank-up now gives an avatar item** (spec "Rank cosmetics"), worn from then on:
+  - Normie: 🎧 wired earbuds.
+  - Wannabe: 👜 a canvas tote on the back, printed "i ♥ matcha".
+  - Poser: 👓 lens-less glasses.
+  - Main Character: 📷 a film camera on the chest.
+  - Aura Farmer: ✨ purple-pink sparkles drifting up around the body.
+  - LARP Maxxer: 🍵 a golden matcha in the right hand.
+  - The promotion moment adds a line for the new item ("📷 NEW: FILM CAMERA").
+- **Kept through Touch Grass:** the profile's new `bestRank` decides what's worn. `RankUp` now also carries `unlocked`, so a re-promotion after Touch Grass doesn't repeat the NEW line.
+- **Settings > Show cosmetics** takes a player's items off and puts them back, through a new `SettingsService.Changed` signal.
+- **Code:**
+  - `Config.Cosmetics` holds each item's rank, attachment, name and icon.
+  - `Lib.CosmeticModels` builds each item from parts at runtime, sized from the body part, so any avatar fits.
+  - `Services.CosmeticService` puts the items on at every spawn, rank-up and setting change.
+  - The items are plain Models welded to a body part. Roblox welds an Accessory with no matching attachment to the head itself, which is why they aren't Accessories.
+  - The matcha is `upright`: the server anchors it, and every client stands it at the hand each frame (`LarpClient.CosmeticFx`). It stays upright even for avatars whose idle holds the arms forward.
+- **Tested in a play session:**
+  - The rules tests pass 19/19, including the new cosmetics test.
+  - Promotions from 500 to 300,000 added one item each, with its NEW line.
+  - Screenshots were checked on a layered-clothing avatar.
+  - Show cosmetics off left 0 items; on brought all 6 back. After Touch Grass all 6 stayed.
+  - The console is clean.
+- **Not built (spec):** separate toggles per item. One Show cosmetics toggle covers them all.
+
+## Claude, 2026-09-13 (Touch Grass)
 - **Touch Grass (the spec's rebirth) is in.** At LARP Maxxer (the top rank, 300,000 points) a green "🌱 Touch Grass" button appears at the bottom of the HUD dock.
   - It opens a confirm prompt: every stat goes back to 0 and the rank back to NPC. Wins, the biggest upset, settings, codes and purchases stay. The prompt shows the farming bonus now and after.
   - Confirming asks the server (new remote `TouchGrass`). `Services.RebirthService` checks the rank and that the player isn't in a larp-off, then `StatService:TouchGrass` zeroes the stats and counts one more rebirth.

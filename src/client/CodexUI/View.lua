@@ -42,7 +42,7 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 		return b
 	end
 	self.fx = new("Frame", self.root, {Name = "Fx", BackgroundTransparency = 1, Size = UDim2.fromScale(1,1), ZIndex = 5})
-	self.celebrate = Celebrate.new(playerGui, {config = config, catalog = catalog, format = format, play = play,
+	self.celebrate = Celebrate.new(playerGui, {config = config, catalog = catalog, format = format, play = play, cosmetics = extras.cosmetics or {},
 		floors = extras.floors or {}, reduce = extras.reduce or function() return false end,
 		scene = extras.scene or function() return nil end})
 	self.hud = Hud.new(self.root, self.fx, {config = config, catalog = catalog, rankMath = rankMath, format = format,

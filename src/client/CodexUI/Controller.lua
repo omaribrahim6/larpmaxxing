@@ -118,7 +118,7 @@ function Controller.start()
 			grassOpen=function() self.view.rebirth:Open(self.model.rebirths or 0) self.view:Render(self.model) end,
 			touchGrass=function() if not self.adapter:Send("TouchGrass") then notice(Config.Words.Unavailable,"warning") end end,
 		},{
-			play=play,tiers=require(larp.Shared.Tiers),floors=tuning.Tiers,store=require(larp.Config.Store),rebirthMath=require(larp.Shared.RebirthMath),touchGrass=tuning.TouchGrass,
+			play=play,tiers=require(larp.Shared.Tiers),floors=tuning.Tiers,store=require(larp.Config.Store),rebirthMath=require(larp.Shared.RebirthMath),touchGrass=tuning.TouchGrass,cosmetics=require(larp.Config.Cosmetics),
 			reduce=function() return self.model.settings.reduceEffects==true end,
 			scene=function(statId)
 				local stat=catalog.statsById[statId]
@@ -217,8 +217,8 @@ function Controller.start()
 			if finite(count) and finite(multiplier) then self.view.celebrate:Push({kind="grass",count=count,multiplier=multiplier}) end
 		end,
 		-- a promotion is a full-screen moment (Celebrate), not a toast
-		RankUp=function(index)
-			if catalog.ranks[index] then self.view.celebrate:Push({kind="rank",index=index}) end
+		RankUp=function(index,unlocked)
+			if catalog.ranks[index] then self.view.celebrate:Push({kind="rank",index=index,unlocked=unlocked==true}) end
 		end,
 		-- PickupFx owns floating pickup text; do not duplicate it with a toast card.
 	})

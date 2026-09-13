@@ -60,8 +60,13 @@ function StatService:_refresh(player: Player, data)
 
 	local old = rankCache[player]
 	rankCache[player] = snap.rankIndex
+	-- the best rank reached survives Touch Grass; a rank above it unlocks its cosmetic
+	local best = data.bestRank or 1
+	if snap.rankIndex > best then
+		data.bestRank = snap.rankIndex
+	end
 	if old and snap.rankIndex > old then
-		Net.get("RankUp"):FireClient(player, snap.rankIndex)
+		Net.get("RankUp"):FireClient(player, snap.rankIndex, snap.rankIndex > best)
 		self.RankChanged:Fire(player, snap.rankIndex, old)
 	end
 	Net.get("StatsChanged"):FireClient(player, snap)
@@ -164,6 +169,15 @@ end
 function StatService:GetRebirths(player: Player): number
 	local data = self.Data:Get(player)
 	return if data then data.rebirths or 0 else 0
+end
+
+-- The highest rank index the player has ever reached (rank cosmetics).
+function StatService:GetBestRank(player: Player): number
+	local data = self.Data:Get(player)
+	if not data then
+		return 1
+	end
+	return math.max(data.bestRank or 1, RankMath.indexFor(Catalog.total(data.stats), Catalog.ranks))
 end
 
 -- Touch Grass: every stat back to 0 and one more rebirth; Wins and everything else stay.
