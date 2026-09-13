@@ -70,12 +70,15 @@ local function build(model: Model)
 	return plate
 end
 
-local function render(plate, rankIndex: number, name: string, wins: number?, exposed: boolean)
+-- Line 3 shows EXPOSED while it lasts, otherwise the Touch Grass count once there is one.
+local function render(plate, rankIndex: number, name: string, wins: number?, exposed: boolean, rebirths: number?)
 	local rank = Catalog.ranks[rankIndex] or Catalog.ranks[1]
 	plate.rank.Text = rank.name
 	plate.rank.TextColor3 = rank.color or Color3.new(1, 1, 1)
 	plate.name.Text = if wins then ("%s   W %d"):format(name, wins) else name
-	plate.tag.Visible = exposed
+	plate.tag.Visible = exposed or (rebirths or 0) > 0
+	plate.tag.Text = if exposed then Text.Stamps.Exposed else Text.TouchGrass.plate:format(rebirths or 0)
+	plate.tag.TextColor3 = if exposed then Color3.fromRGB(255, 94, 82) else Color3.fromRGB(122, 214, 112)
 end
 
 function NameplateService:Init(services)
@@ -91,7 +94,7 @@ function NameplateService:Refresh(player: Player)
 	local plate = build(character)
 	if plate then
 		local exposed = (exposedUntil[player] or 0) > now()
-		render(plate, self.Stats:GetRankIndex(player), player.DisplayName, self.Stats:GetWins(player), exposed)
+		render(plate, self.Stats:GetRankIndex(player), player.DisplayName, self.Stats:GetWins(player), exposed, self.Stats:GetRebirths(player))
 	end
 end
 

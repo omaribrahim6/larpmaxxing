@@ -105,7 +105,7 @@ function Hud.new(root, fx, deps)
 	self.note = Theme.text(self.left, { name = "SaveStatus", font = Theme.Small, size = 11, color = c.Muted, position = UDim2.fromOffset(6, y), box = UDim2.new(1, -12, 0, 16), stroke = false })
 
 	-- right edge, middle (clear of the player list): Wins, Settings, Help
-	self.dock = Theme.new("Frame", self.frame, { Name = "Dock", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -12, 0.5, -30), Size = UDim2.fromOffset(136, 218) })
+	self.dock = Theme.new("Frame", self.frame, { Name = "Dock", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -12, 0.5, -30), Size = UDim2.fromOffset(136, 272) })
 	self.dockScale = Theme.new("UIScale", self.dock, { Name = "Fit" })
 	local wins = Theme.panel(self.dock, { name = "Wins", anchor = MID, position = UDim2.fromOffset(68, 24), box = UDim2.fromOffset(136, 48), color = Color3.fromRGB(124, 90, 26) })
 	self.winsChip = wins
@@ -128,6 +128,9 @@ function Hud.new(root, fx, deps)
 	local bubble = Theme.panel(self.hint, { name = "Bubble", color = c.Accent, radius = 12 })
 	Theme.text(bubble, { name = "Text", font = Theme.Display, text = words.NewHere, size = 18, color = c.Ink, align = CENTER, position = UDim2.fromOffset(8, 2), box = UDim2.new(1, -16, 1, -4), scaled = true, maxSize = 18, stroke = false })
 	self.shopButton = deps.button(self.dock, { name = "Shop", text = "🛒  " .. words.Shop, size = 16, color = c.Accent, position = UDim2.fromOffset(68, 190), box = UDim2.fromOffset(136, 46) }, deps.shopOpen)
+	-- Touch Grass, once a player reaches the top rank
+	self.grassButton = deps.button(self.dock, { name = "TouchGrass", text = "🌱  " .. words.TouchGrass, size = 15, color = Color3.fromRGB(52, 160, 72), position = UDim2.fromOffset(68, 244), box = UDim2.fromOffset(136, 46) }, deps.grassOpen)
+	self.grassButton.Visible = false
 
 	-- the combo meter, bottom centre above the rematch button
 	self.comboGroup = Theme.new("CanvasGroup", self.frame, { Name = "Combo", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -84), Size = UDim2.fromOffset(280, 92), GroupTransparency = 1 })
@@ -196,10 +199,13 @@ function Hud:Render(model)
 		return
 	end
 	local p = d.rankMath.progress(model.total, d.catalog.ranks)
-	if p.index ~= self.rankIndex then
+	self.grassButton.Visible = p.nextRank == nil -- Touch Grass opens at the top rank
+	local rebirths = model.rebirths or 0
+	if p.index ~= self.rankIndex or rebirths ~= self.rebirths then
 		local promoted = self.rankIndex ~= nil and p.index > self.rankIndex
 		self.rankIndex = p.index
-		self.rankName.Text = p.rank.name
+		self.rebirths = rebirths
+		self.rankName.Text = if rebirths > 0 then p.rank.name .. "  🌱" .. rebirths else p.rank.name
 		self.rankName.TextColor3 = p.rank.color or c.Text
 		self.nextThreshold = p.nextRank and p.nextRank.threshold
 		-- the bar fills in the colour of the rank it's heading to

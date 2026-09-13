@@ -45,6 +45,7 @@ function DataService.defaults()
 		boostUntil = 0, -- os.time() a bought or redeemed 2x boost runs until
 		redeemedCodes = {}, -- code -> when it was redeemed
 		receipts = {}, -- developer product purchase id -> when it was granted
+		rebirths = 0, -- times this player has touched grass
 		settings = table.clone(SETTINGS_DEFAULTS),
 	}
 end

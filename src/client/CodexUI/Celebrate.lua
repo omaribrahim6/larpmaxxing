@@ -10,7 +10,7 @@ local Juice = require(script.Parent.Juice)
 local Celebrate = {}
 Celebrate.__index = Celebrate
 
-local PRIORITY = { reward = 1, rank = 2, tier = 3 }
+local PRIORITY = { reward = 1, rank = 2, grass = 2, tier = 3 }
 local MAX_QUEUE = 6
 local CENTER = Enum.TextXAlignment.Center
 local MID = Vector2.new(0.5, 0.5)
@@ -194,16 +194,13 @@ local function holder(parent, anchorY, y, height)
 	return group
 end
 
--- PROMOTED: the screen dims, a sunburst in the rank's colour turns behind the new rank's
--- name as it slams in, and confetti falls.
-function SHOW.rank(self, item)
+-- The big moment promotions and Touch Grass share: the screen dims, a sunburst in `color`
+-- turns behind `bigText` as it slams in under `eyebrowText`, `subText` fades in below, and
+-- confetti falls.
+function Celebrate:_burst(color, eyebrowText, bigText, subText)
 	local d = self.deps
 	local c = d.config.Colors
 	local words = d.config.Words
-	local rank = d.catalog.ranks[item.index]
-	assert(rank, "unknown rank " .. tostring(item.index))
-	local nextRank = d.catalog.ranks[item.index + 1]
-	local color = rank.color or c.Accent
 	local reduce = d.reduce()
 	local connections = {}
 	local root, backdrop, content = self:_stage(0.55, true)
@@ -231,12 +228,12 @@ function SHOW.rank(self, item)
 		end))
 	end
 
-	local eyebrow = Theme.text(content, { name = "Eyebrow", font = Theme.Display, text = words.Promoted, color = c.Accent, align = CENTER, anchor = MID, position = UDim2.fromScale(0.5, 0.3), box = UDim2.fromScale(0.6, 0.08), scaled = true, maxSize = 44, stroke = 3 })
-	local name = Theme.text(content, { name = "RankName", font = Theme.Display, text = rank.name:upper(), align = CENTER, anchor = MID, position = UDim2.fromScale(0.5, 0.45), box = UDim2.fromScale(0.86, 0.18), scaled = true, maxSize = 100, stroke = 5 })
+	local eyebrow = Theme.text(content, { name = "Eyebrow", font = Theme.Display, text = eyebrowText, color = c.Accent, align = CENTER, anchor = MID, position = UDim2.fromScale(0.5, 0.3), box = UDim2.fromScale(0.6, 0.08), scaled = true, maxSize = 44, stroke = 3 })
+	local name = Theme.text(content, { name = "RankName", font = Theme.Display, text = bigText, align = CENTER, anchor = MID, position = UDim2.fromScale(0.5, 0.45), box = UDim2.fromScale(0.86, 0.18), scaled = true, maxSize = 100, stroke = 5 })
 	shimmer(name, color, connections)
 	local sub = Theme.text(content, {
 		name = "Next",
-		text = if nextRank then words.NextRank:format(nextRank.name, d.format.int(nextRank.threshold)) else words.TopRank,
+		text = subText,
 		align = CENTER, anchor = MID, position = UDim2.fromScale(0.5, 0.58), box = UDim2.fromScale(0.7, 0.05), scaled = true, maxSize = 28, stroke = 2,
 	})
 	Theme.text(content, { name = "Hint", font = Theme.Small, text = words.TapToContinue, color = c.Muted, align = CENTER, anchor = MID, position = UDim2.fromScale(0.5, 0.9), box = UDim2.fromScale(0.5, 0.03), scaled = true, maxSize = 16, stroke = false })
@@ -265,6 +262,24 @@ function SHOW.rank(self, item)
 	self:_confetti(root, 90, colors)
 	self:_confetti(root, 30, colors, Vector2.new(0.5, 0.45))
 	self:_run(root, backdrop, content, d.config.CelebrateSeconds.rank, connections)
+end
+
+-- PROMOTED: the new rank's name in its colour, and the next rank to aim for.
+function SHOW.rank(self, item)
+	local d = self.deps
+	local words = d.config.Words
+	local rank = d.catalog.ranks[item.index]
+	assert(rank, "unknown rank " .. tostring(item.index))
+	local nextRank = d.catalog.ranks[item.index + 1]
+	self:_burst(rank.color or d.config.Colors.Accent, words.Promoted, rank.name:upper(),
+		if nextRank then words.NextRank:format(nextRank.name, d.format.int(nextRank.threshold)) else words.TopRank)
+end
+
+-- TOUCHED GRASS: the rebirth count in grass green, and the new farming bonus.
+function SHOW.grass(self, item)
+	local words = self.deps.config.Words
+	self:_burst(Color3.fromRGB(122, 214, 112), words.GrassDone, words.GrassCount:format(item.count),
+		words.GrassBonus:format(("%.2fx"):format(item.multiplier)))
 end
 
 -- SCENE UPGRADE: outlined text under the top of the screen naming the stat's new tier and

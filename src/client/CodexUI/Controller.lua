@@ -115,8 +115,10 @@ function Controller.start()
 			rematch=function() self:RequestRematch() end,
 			shopOpen=function() self.view.store:Open() self.view:Render(self.model) end,
 			redeem=function(code) if not self.adapter:Send("RedeemCode",code) then notice(Config.Words.Unavailable,"warning") end end,
+			grassOpen=function() self.view.rebirth:Open(self.model.rebirths or 0) self.view:Render(self.model) end,
+			touchGrass=function() if not self.adapter:Send("TouchGrass") then notice(Config.Words.Unavailable,"warning") end end,
 		},{
-			play=play,tiers=require(larp.Shared.Tiers),floors=tuning.Tiers,store=require(larp.Config.Store),
+			play=play,tiers=require(larp.Shared.Tiers),floors=tuning.Tiers,store=require(larp.Config.Store),rebirthMath=require(larp.Shared.RebirthMath),touchGrass=tuning.TouchGrass,
 			reduce=function() return self.model.settings.reduceEffects==true end,
 			scene=function(statId)
 				local stat=catalog.statsById[statId]
@@ -143,7 +145,7 @@ function Controller.start()
 		self.model.inMatch=isActive==true
 		if isActive then
 			self.model.onboarding:MatchStarted()
-			self:Respond(false) self.model.rematch=nil self.view:SetSettings(false) self.view.tutorial:Close() self.view.store:Close()
+			self:Respond(false) self.model.rematch=nil self.view:SetSettings(false) self.view.tutorial:Close() self.view.store:Close() self.view.rebirth:Close()
 		else self.view:ClearRound() end
 		-- promotions and tier-ups wait until the larp-off is off screen
 		self.view.celebrate:SetPaused(self.model.inMatch)
@@ -210,6 +212,10 @@ function Controller.start()
 		ChallengeClosed=function(id) self.model:Close(id) self.view:Render(self.model) end,
 		MatchAborted=function() self.model.onboarding:ResetTransient() end,
 		Notice=notice, Announce=function(message) notice(message,"info") end,
+		-- a rebirth is a full-screen moment too
+		TouchedGrass=function(count,multiplier)
+			if finite(count) and finite(multiplier) then self.view.celebrate:Push({kind="grass",count=count,multiplier=multiplier}) end
+		end,
 		-- a promotion is a full-screen moment (Celebrate), not a toast
 		RankUp=function(index)
 			if catalog.ranks[index] then self.view.celebrate:Push({kind="rank",index=index}) end

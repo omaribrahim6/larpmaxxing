@@ -55,4 +55,11 @@ return {
 		usedCode = "You've already used that code",
 		slow = "Slow down a little",
 	},
+	-- Touch Grass (RebirthService, and the nameplate's third line)
+	TouchGrass = {
+		notYet = "Touch Grass unlocks at %s",
+		busy = "Finish your larp-off first",
+		announce = "🌱 %s touched grass (x%d)!",
+		plate = "🌱 Touched Grass x%d",
+	},
 }

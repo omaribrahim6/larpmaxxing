@@ -1,5 +1,26 @@
 # Handoff
-## LATEST: Claude, 2026-09-13 (shop and codes)
+## LATEST: Claude, 2026-09-13 (Touch Grass)
+- **Touch Grass (the spec's rebirth) is in.** At LARP Maxxer (the top rank, 300,000 points) a green "🌱 Touch Grass" button appears at the bottom of the HUD dock.
+  - It opens a confirm prompt: every stat goes back to 0 and the rank back to NPC. Wins, the biggest upset, settings, codes and purchases stay. The prompt shows the farming bonus now and after.
+  - Confirming asks the server (new remote `TouchGrass`). `Services.RebirthService` checks the rank and that the player isn't in a larp-off, then `StatService:TouchGrass` zeroes the stats and counts one more rebirth.
+  - The player gets a full-screen "YOU TOUCHED GRASS ×N" moment with the new farming bonus (Celebrate's sunburst, now shared with promotions through `Celebrate:_burst`). Everyone else sees a "🌱 <name> touched grass (×N)!" toast.
+- **Farming bonus:** pickup points × `Shared.RebirthMath.multiplier(rebirths, Tuning.TouchGrass)`. That's 1.25×, 1.45×, 1.60×, 1.70×, 1.80×, then +0.05 a rebirth up to the 2× cap at ×9. It stacks with rushes, the pass and boosts; points round to whole numbers.
+- **What others see:**
+  - The nameplate's third line reads "🌱 Touched Grass ×N" (EXPOSED takes the line while it lasts).
+  - The HUD rank reads "NPC  🌱3".
+  - The leaderboard wall has a fifth board, Touched Grass (`LarpTopGrass_v1`). The wall was rebuilt and is now about 60 studs wide; nothing overlaps it.
+- **Saved:** `rebirths` in the profile.
+- **Not built (spec):** the milestone prestige rewards (titles, auras, entrances, poses) and the Hall of Grass. The count isn't on the challenge popup yet.
+- **Studio:** `ServerStorage.LarpDebug:Invoke("addPoints", userId, "Money", 300000)` reaches the top rank.
+- **Tested in a play session:**
+  - 54/54 unit tests pass (new: the bonus table and its cap).
+  - At 300,000 the dock button shows. Firing the request reset the stats to 0 and showed "YOU TOUCHED GRASS" and "Farming bonus: 1.25x". The rank reads "NPC 🌱1", and the nameplate reads "🌱 Touched Grass x1".
+  - A Common pickup (5) then gave 6 points.
+  - The console is clean apart from Studio's DataStore notices.
+- **Rounding:** points are whole numbers, so small pickups round (5 × 1.25 = 6.25 → 6).
+- **Save the place (Ctrl+S):** the wall changed.
+
+## Claude, 2026-09-13 (shop and codes)
 - **The spec's monetization is wired, and dormant until you create the items.**
   - `Config.Store` lists the 2× Pickups and Magnet game passes and the 2× Boost (15 min) and Summon a Stat Rush developer products, with the spec's suggested prices.
   - **Every id is 0.** An item with id 0 is hidden in the shop and never granted.
@@ -66,7 +87,7 @@
     - A leaving player's final numbers are stored from their released profile.
     - Upsets are stored as tenths of a percent, because OrderedDataStores only keep integers.
 - **Studio has no DataStore access,** so the all-time boards show this server's players, subtitled "THIS SERVER FOR NOW". On a live game they fill from the stores.
-- **The Touch Grass board** from the spec comes when rebirth exists: add a board entry to `Config.Leaderboards` and rebuild the wall.
+- **The Touched Grass board** was added with Touch Grass (2026-09-13); the wall now has five boards.
 - **Save the place (Ctrl+S):** the wall lives in the place file.
 
 ## Claude, 2026-09-12 (3x pickup density, 2x progression)

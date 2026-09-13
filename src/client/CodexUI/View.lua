@@ -13,6 +13,7 @@ local Hud = require(script.Parent.Hud)
 local Celebrate = require(script.Parent.Celebrate)
 local Tutorial = require(script.Parent.Tutorial)
 local Store = require(script.Parent.Store)
+local Rebirth = require(script.Parent.Rebirth)
 local View = {}
 View.__index = View
 local new = Theme.new
@@ -49,6 +50,7 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 		settingsOpen = function() callbacks.settingsOpen() end,
 		helpOpen = function() callbacks.helpOpen() end,
 		shopOpen = function() callbacks.shopOpen() end,
+		grassOpen = function() callbacks.grassOpen() end,
 		onTierUp = function(statId, tier) self.celebrate:Push({kind = "tier", statId = statId, tier = tier}) end})
 	self.settingsOpen = self.hud.settingsButton
 	self.helpOpen = self.hud.helpButton
@@ -59,6 +61,9 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 	-- the shop and codes box
 	self.store = Store.new(self.root, {config = config, store = extras.store or {passes = {}, products = {}}, play = play, button = button,
 		redeem = function(code) callbacks.redeem(code) end})
+	-- Touch Grass's confirm prompt
+	self.rebirth = Rebirth.new(self.root, {config = config, play = play, button = button, rebirthMath = extras.rebirthMath, tuning = extras.touchGrass,
+		confirm = function() callbacks.touchGrass() end})
 
 	self.guide = Theme.panel(self.root, {name = "Guide", anchor = MID, box = UDim2.fromOffset(440,128), z = 10, edge = c.Accent})
 	self.guide.Visible = false
@@ -342,6 +347,7 @@ function View:FocusTargets()
 	end
 	if self.tutorial:IsOpen() then return self.tutorial:FocusTargets() end
 	if self.store:IsOpen() then return self.store:FocusTargets() end
+	if self.rebirth:IsOpen() then return self.rebirth:FocusTargets() end
 	return {}
 end
 
@@ -428,6 +434,7 @@ function View:Destroy()
 	self.celebrate:Destroy()
 	self.tutorial:Destroy()
 	self.store:Destroy()
+	self.rebirth:Destroy()
 	self.gui:Destroy()
 end
 return View

@@ -115,6 +115,18 @@ return function(t)
 		end
 	end)
 
+	-- Touch Grass's farming bonus follows the spec's table and stops at the cap.
+	t.test("touch grass bonus grows then caps", function()
+		local RebirthMath = require(Larp.Shared.RebirthMath)
+		local grass = Tuning.TouchGrass
+		expect.near(RebirthMath.multiplier(0, grass), 1)
+		expect.near(RebirthMath.multiplier(1, grass), 1.25)
+		expect.near(RebirthMath.multiplier(2, grass), 1.45)
+		expect.near(RebirthMath.multiplier(5, grass), 1.8)
+		expect.near(RebirthMath.multiplier(9, grass), 2)
+		expect.near(RebirthMath.multiplier(17, grass), 2)
+	end)
+
 	-- Number formatting for the HUD.
 	t.test("number formatting", function()
 		expect.equal(Format.int(1234567), "1,234,567")

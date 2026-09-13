@@ -25,6 +25,7 @@ local function snapshot(data)
 		total = Catalog.total(data.stats),
 		rankIndex = RankMath.indexFor(Catalog.total(data.stats), Catalog.ranks),
 		wins = data.wins,
+		rebirths = data.rebirths or 0,
 	}
 end
 
@@ -158,6 +159,27 @@ end
 function StatService:GetWins(player: Player): number
 	local data = self.Data:Get(player)
 	return if data then data.wins else 0
+end
+
+function StatService:GetRebirths(player: Player): number
+	local data = self.Data:Get(player)
+	return if data then data.rebirths or 0 else 0
+end
+
+-- Touch Grass: every stat back to 0 and one more rebirth; Wins and everything else stay.
+-- Returns the new rebirth count, or nil if the profile isn't loaded.
+function StatService:TouchGrass(player: Player): number?
+	local data = self.Data:Get(player)
+	if not data then
+		return nil
+	end
+	for _, id in Catalog.statIds do
+		data.stats[id] = 0
+	end
+	data.rebirths = (data.rebirths or 0) + 1
+	rankCache[player] = nil -- dropping back to the first rank isn't a promotion
+	self:_refresh(player, data)
+	return data.rebirths
 end
 
 return StatService

@@ -37,6 +37,8 @@ local function valueFrom(board, data): number
 		return data.wins or 0
 	elseif board.value == "upset" then
 		return math.floor((data.biggestUpsetPct or 0) * T.upsetScale + 0.5)
+	elseif board.value == "rebirths" then
+		return data.rebirths or 0
 	end
 	return Catalog.total(data.stats)
 end

@@ -21,12 +21,14 @@ Net.Names = {
 	"MatchAborted", -- matchId, reason
 	"Announce", -- server-wide banner text
 	"EventChanged", -- a stat rush: id, endsAt (server time), summonedBy?; no args when it ends
+	"TouchedGrass", -- count, farming multiplier (after a rebirth)
 	-- client -> server
 	"RequestChallenge", -- targetUserId, { rematch = bool }
 	"RespondChallenge", -- id, accept
 	"RequestPractice", -- { rematch = bool }
 	"UpdateSetting", -- key, value
 	"RedeemCode", -- code (the shop's codes box)
+	"TouchGrass", -- (no args) the player confirms Touch Grass
 	"ClientReady", -- (no args) client listeners are connected; server replies with ProfileSync
 }
 

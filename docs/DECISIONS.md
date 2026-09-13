@@ -72,4 +72,8 @@
   - The codes box sits in the Shop panel, not Settings (easier to find).
   - A boost and the 2× pass stack multiplicatively with a stat rush.
   - Nothing in the shop touches larp-off results, per the spec's "never sold" rule.
+- 2026-09-13 (Claude): Touch Grass resets only the five stats.
+  - Wins, the biggest upset, settings, codes and purchases stay. Touch Grass is never sold.
+  - The farming bonus is a table in `Tuning.TouchGrass` (the spec's numbers), not a formula, so balancing is a config edit.
+  - The requirement is the top rank's threshold, now 300,000 after the 2× progression.
 - 2026-09-12 (Claude): one zone track plays at a time (Config.Music), crossfading on ZoneBounds. Anywhere without its own track plays the Street main theme. Music ducks to 35% while any larp-off plays near the player, so stamps and stings stay clear.

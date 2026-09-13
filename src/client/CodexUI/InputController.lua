@@ -18,11 +18,11 @@ function InputController.new(controller)
 	end
 	-- the button a gamepad lands on when each modal opens
 	local function entry(modal)
-		return if modal==view.challenge then view.decline elseif modal==view.settings then view.settingsClose elseif modal==view.tutorial.frame then view.tutorial.nextButton else view.store.closeButton
+		return if modal==view.challenge then view.decline elseif modal==view.settings then view.settingsClose elseif modal==view.tutorial.frame then view.tutorial.nextButton elseif modal==view.store.frame then view.store.closeButton else view.rebirth.no
 	end
 	local function context()
 		return {typing=UIS:GetFocusedTextBox()~=nil,menu=GuiService.MenuIsOpen,
-			inMatch=controller.model.inMatch,challenge=controller.model.incoming~=nil,settings=view.settings.Visible,tutorial=view.tutorial:IsOpen(),store=view.store:IsOpen()}
+			inMatch=controller.model.inMatch,challenge=controller.model.incoming~=nil,settings=view.settings.Visible,tutorial=view.tutorial:IsOpen(),store=view.store:IsOpen(),rebirth=view.rebirth:IsOpen()}
 	end
 	local actionName="CodexUI.Navigation"
 	CAS:BindAction(actionName,function(_,state,input)
@@ -43,6 +43,7 @@ function InputController.new(controller)
 			elseif action=="pagePrevious" then view.tutorial:Previous()
 			elseif action=="closeTutorial" then view.tutorial:Close()
 			elseif action=="closeStore" then view.store:Close()
+			elseif action=="closeRebirth" then view.rebirth:Close()
 			elseif action=="accept" then controller:Respond(true)
 			elseif action=="decline" then controller:Respond(false)
 			else view:SetSettings(action=="settings") view:Render(controller.model) end
@@ -51,7 +52,7 @@ function InputController.new(controller)
 	end,false,Enum.KeyCode.G,Enum.KeyCode.Y,Enum.KeyCode.N,Enum.KeyCode.ButtonY,Enum.KeyCode.ButtonB,Enum.KeyCode.Tab,Enum.KeyCode.Return,Enum.KeyCode.Up,Enum.KeyCode.Down,Enum.KeyCode.Left,Enum.KeyCode.Right,Enum.KeyCode.DPadLeft,Enum.KeyCode.DPadRight)
 	local function refresh()
 		local modal=if view.challenge.Visible then view.challenge elseif view.settings.Visible then view.settings
-			elseif view.tutorial:IsOpen() then view.tutorial.frame elseif view.store:IsOpen() then view.store.frame else nil
+			elseif view.tutorial:IsOpen() then view.tutorial.frame elseif view.store:IsOpen() then view.store.frame elseif view.rebirth:IsOpen() then view.rebirth.frame else nil
 		local ctx=context()
 		if modal~=previousModal then
 			if not previousModal then previousSelection=GuiService.SelectedObject end

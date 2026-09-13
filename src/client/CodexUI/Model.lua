@@ -7,7 +7,7 @@ local function validId(id)
 end
 function Model.new(config, clock)
 	local self = setmetatable({config = config, clock = clock or os.clock, settings = {},
-		loaded = false, stats = {}, total = 0, wins = 0, incoming = nil, rematch = nil,
+		loaded = false, stats = {}, total = 0, wins = 0, rebirths = 0, incoming = nil, rematch = nil,
 		inMatch = false, seen = {}, seenOrder = {}}, Model)
 	for _, def in config.Settings do self.settings[def.key] = def.default end
 	return self
@@ -21,6 +21,7 @@ function Model:SetProfile(profile)
 		stats[id] = n
 	end
 	self.stats, self.total, self.wins, self.loaded = stats, profile.total, profile.wins, true
+	if finite(profile.rebirths) and profile.rebirths >= 0 then self.rebirths = profile.rebirths end
 	if type(profile.persistent) == "boolean" then self.persistent = profile.persistent end
 	-- Partial StatsChanged packets never reset settings.
 	if type(profile.settings) == "table" then

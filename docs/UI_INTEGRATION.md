@@ -60,7 +60,7 @@ end)
 connection:Disconnect() -- when consumer ends
 ```
 Reduce Effects already removes stamp motion. Clip Mode and Show Cosmetics expose values/listeners; their camera/world behavior belongs to Claude's future scene/cosmetic renderer. Music/SFX/cosmetics are explicitly session-only. No sound assets were fabricated and existing sounds are not reassigned.
-Settings volume buttons cycle 100% -> 0% -> 25% -> 50% -> 75% -> 100%. Touch Grass count omitted from challenge because neither profiles nor remote carries it and rebirth is out of scope.
+Settings volume buttons cycle 100% -> 0% -> 25% -> 50% -> 75% -> 100%. Touch Grass count omitted from the challenge popup: profiles now carry `rebirths`, but the challenge remote doesn't yet. Touch Grass itself is `CodexUI.Rebirth` (the confirm prompt), opened by the HUD dock's Touch Grass button at the top rank; the result is Celebrate's "grass" moment.
 
 ## Future timer API
 ui:SetEvent(label, workspace:GetServerTimeNow()+duration) displays a countdown; ui:SetEvent(nil) clears it. Caller supplies server time; no events are scheduled by this package.
