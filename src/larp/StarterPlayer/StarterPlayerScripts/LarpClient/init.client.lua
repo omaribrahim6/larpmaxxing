@@ -14,6 +14,7 @@ require(script:WaitForChild("SoundKit")).init(ui)
 require(script:WaitForChild("MusicKit")).start(ui)
 require(script:WaitForChild("SprintKit")).start(ui)
 require(script:WaitForChild("PickupFx")).start(ui)
+require(script:WaitForChild("PickupWorld")).start() -- after PickupFx, which decorates its models
 require(script:WaitForChild("EventFx")).start(ui)
 require(script:WaitForChild("CosmeticFx")).start()
 require(script:WaitForChild("Drive")).start()

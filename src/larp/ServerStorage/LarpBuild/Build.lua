@@ -26,6 +26,8 @@ function Build.all(): string
 	table.insert(out, "VIP++ Arena: " .. require(script.Parent.Arena).build())
 	table.insert(out, "LARP to Reality: " .. require(script.Parent.Reality).build())
 	table.insert(out, "Leaderboard wall: " .. require(script.Parent.LeaderboardWall).build())
+	-- last: keep what was just built light to draw and simulate
+	table.insert(out, "Optimize: " .. require(script.Parent.Optimize).run())
 	return table.concat(out, "\n")
 end
 

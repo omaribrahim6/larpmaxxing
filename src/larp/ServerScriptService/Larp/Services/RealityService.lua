@@ -472,6 +472,14 @@ function RealityService:Start()
 		self.boards[venue] = label and label.Text
 	end
 	local volume = self.world:FindFirstChild("Volume") :: BasePart
+	-- the audiences only stand and cheer (LarpClient.Reality moves their joints): no Humanoid
+	-- state machine running for them on the server
+	for _, model in game:GetService("CollectionService"):GetTagged("RealityAudience") do
+		local humanoid = model:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			humanoid.EvaluateStateMachine = false
+		end
+	end
 	ProximityPromptService.PromptTriggered:Connect(function(prompt, player)
 		if prompt.Name == "RealityPrompt" and prompt:IsDescendantOf(self.world) then
 			self:_prompt(player, prompt)

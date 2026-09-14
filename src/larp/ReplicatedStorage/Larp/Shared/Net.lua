@@ -9,7 +9,9 @@ Net.Names = {
 	"ProfileSync", -- full state after load: stats, total, rankIndex, wins, settings, persistent
 	"StatsChanged", -- stats, total, rankIndex, wins
 	"RankUp", -- rankIndex, unlocked (true when it brings a new rank cosmetic)
-	"PickupCollected", -- itemId, points, statId, rarity, position
+	"PickupCollected", -- itemId, points, statId, rarity, position, pickupId
+	"PickupDelta", -- spawned ids, item ids, positions, taken ids, taken-by user ids (batched; Shared.PickupWire)
+	"PickupSnapshot", -- ids, item ids, positions (every pickup; a client asks with no args)
 	"LegendarySpawned", -- itemId, position
 	"ChallengeIncoming", -- id, fromUserId, fromName, fromRankIndex, seconds
 	"ChallengeClosed", -- id (the incoming popup should close)

@@ -68,6 +68,12 @@ return {
 		magnetTick = 0.1,
 		flySeconds = 0.3, -- how long a collected pickup takes to fly into the player
 		maxPerSecond = 12,
+		-- Pickups are data on the server; clients build models only near the player
+		-- (LarpClient.PickupWorld). Changes go out in one packet every syncSeconds.
+		syncSeconds = 0.15,
+		renderRadius = 110, -- studs around the player with pickup models (~280 in the busiest spot)
+		renderSeconds = 0.25, -- how often a client updates which ones have models
+		renderPerTick = 60, -- models built per update at most (walking into a full area)
 	},
 
 	Spectate = { radius = 90 },

@@ -1,5 +1,19 @@
 # Handoff
-## LATEST: Claude, 2026-09-14 (friend invites, larp-off clips, Touch Grass rewards, quiet servers)
+## LATEST: Claude, 2026-09-14 (publish pass: performance)
+- Owner: "whatever is left for this game to be ready to publish ... more optimized / what should be client side".
+- **Measured first** (Studio playtest): the server held 46,990 parts, 35,714 of them pickups (3,768 pickups at ~9.5 parts each, three times the whole city), all replicated to every client (38,079 parts streamed in). Server loops were already light (no per-frame work; the magnet uses a grid).
+- **Pickups are client-rendered now:**
+  - `PickupService` keeps them as data: id, item, position. Clients ask for a snapshot (`PickupSnapshot`, at most one per player every 3 s) and get everything spawned and taken in one packet every 0.15 s (`PickupDelta`), as parallel arrays (`Shared.PickupWire`, which also drops malformed or unknown entries).
+  - `LarpClient.PickupWorld` (new) builds a model only for pickups within `Tuning.Pickup.renderRadius` (110 studs) of the player, up to 60 per update, tagged `LarpPickup` so `PickupFx` spins, lights and flies them as before. A collected one flies into whoever took it on every client; your own flies at once (`PickupCollected` now carries the pickup id).
+  - Collecting stays fully server-side (distances, rank tiers, rate limit, multipliers).
+  - After: server 11,276 parts (physics step 1.5 ms to 0.74 ms, primitives 50k to 14k); client 11,641 parts. Checked in play: standing on a pickup collected 8 (750 points) and their models flew in and went.
+- **LARP to Reality's 68 audience rigs** no longer run the Humanoid state machine (`RealityService` at start and `LarpBuild.Reality.Venue`); their cheers still work (the client moves their joints).
+- **`LarpBuild.Optimize`** (new, runs last in `Build.all`): parts smaller than 4 studs on every side cast no shadows (3,078 of them) and audience rigs don't simulate.
+- Audited: every client-to-server remote checks its arguments and is rate-limited; the always-on client loops only touch what's visible.
+- Removed the empty `Workspace.Larp.Pickups` folder saved in the place.
+- 59/59 tests (new: pickup packets round-trip and reject junk).
+
+## Claude, 2026-09-14 (friend invites, larp-off clips, Touch Grass rewards, quiet servers)
 - From the owner's pick of ChatGPT's growth ideas: the cheap, real ones first.
 - **Quiet servers always have someone to larp** (`PracticeNpcService`):
   - The HUD dock has a **⚔ Larp-off** button (under Shop; Touch Grass moved below it): a practice larp-off from anywhere, no walking to the Practice Larper. The stage takes you and MatchService puts you back where you were. Not from a car seat or mid LARP to Reality activity/skating (`RealityService:IsBusy`); a notice says why.

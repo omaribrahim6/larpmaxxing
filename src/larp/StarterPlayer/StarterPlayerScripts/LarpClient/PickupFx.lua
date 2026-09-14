@@ -1,6 +1,6 @@
 -- Client-side look of pickups: spin and bob, rarity glow, a light beam over legendaries,
 -- floating "+15 Money" text and a sparkle burst when you collect one. Purely visual; the
--- server owns spawning and collection.
+-- server owns spawning and collection, and PickupWorld builds the models near the player.
 local CollectionService = game:GetService("CollectionService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")

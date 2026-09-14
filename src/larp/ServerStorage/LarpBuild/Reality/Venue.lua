@@ -109,6 +109,9 @@ function Venue.audience(parent: Instance, venue: string, spots: { CFrame }, kind
 					d.CanTouch = false
 				end
 			end
+			-- they only stand (or sit) and cheer (LarpClient.Reality moves their joints): no
+			-- Humanoid state machine running for every audience rig on the server
+			humanoid.EvaluateStateMachine = false
 			model:PivotTo(spot * CFrame.new(0, lift, 0) * offset)
 			model:SetAttribute("Venue", venue)
 			CollectionService:AddTag(model, "RealityAudience")

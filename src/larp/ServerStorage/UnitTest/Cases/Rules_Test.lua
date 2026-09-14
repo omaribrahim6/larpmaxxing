@@ -161,6 +161,19 @@ return function(t)
 		end
 	end)
 
+	-- Pickups go to clients as parallel arrays; malformed entries and unknown items are dropped.
+	t.test("pickup packets round-trip and reject junk", function()
+		local PickupWire = require(Larp.Shared.PickupWire)
+		local ids, items, positions = PickupWire.pack({ { id = 7, item = "Matcha", position = Vector3.new(1, 2, 3) } })
+		local back = PickupWire.unpack(ids, items, positions, Catalog.itemsById)
+		expect.equal(#back, 1)
+		expect.equal(back[1].id, 7)
+		expect.equal(back[1].item, "Matcha")
+		expect.equal(#PickupWire.unpack({ 1, 2, "3" }, { "Matcha", "NotAnItem", "Matcha" }, { Vector3.zero, Vector3.zero, Vector3.zero }, Catalog.itemsById), 1)
+		expect.equal(#PickupWire.unpack(nil, {}, {}, Catalog.itemsById), 0)
+		expect.near(PickupWire.yaw(5), PickupWire.yaw(5))
+	end)
+
 	-- Touch Grass's farming bonus follows the spec's table and stops at the cap.
 	t.test("touch grass bonus grows then caps", function()
 		local RebirthMath = require(Larp.Shared.RebirthMath)
