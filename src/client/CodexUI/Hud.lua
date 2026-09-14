@@ -104,8 +104,9 @@ function Hud.new(root, fx, deps)
 	end
 	self.note = Theme.text(self.left, { name = "SaveStatus", font = Theme.Small, size = 11, color = c.Muted, position = UDim2.fromOffset(6, y), box = UDim2.new(1, -12, 0, 16), stroke = false })
 
-	-- right edge, middle (clear of the player list): Wins, Settings, Help
-	self.dock = Theme.new("Frame", self.frame, { Name = "Dock", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -12, 0.5, -30), Size = UDim2.fromOffset(136, 272) })
+	-- right edge, middle (clear of the player list): Wins, Settings, Help, Shop, Larp-off, and
+	-- Touch Grass at the top rank
+	self.dock = Theme.new("Frame", self.frame, { Name = "Dock", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -12, 0.5, -30), Size = UDim2.fromOffset(136, 326) })
 	self.dockScale = Theme.new("UIScale", self.dock, { Name = "Fit" })
 	local wins = Theme.panel(self.dock, { name = "Wins", anchor = MID, position = UDim2.fromOffset(68, 24), box = UDim2.fromOffset(136, 48), color = Color3.fromRGB(124, 90, 26) })
 	self.winsChip = wins
@@ -128,8 +129,10 @@ function Hud.new(root, fx, deps)
 	local bubble = Theme.panel(self.hint, { name = "Bubble", color = c.Accent, radius = 12 })
 	Theme.text(bubble, { name = "Text", font = Theme.Display, text = words.NewHere, size = 18, color = c.Ink, align = CENTER, position = UDim2.fromOffset(8, 2), box = UDim2.new(1, -16, 1, -4), scaled = true, maxSize = 18, stroke = false })
 	self.shopButton = deps.button(self.dock, { name = "Shop", text = "🛒  " .. words.Shop, size = 16, color = c.Accent, position = UDim2.fromOffset(68, 190), box = UDim2.fromOffset(136, 46) }, deps.shopOpen)
+	-- a practice larp-off from anywhere, so a quiet server always has someone to larp
+	self.larpOffButton = deps.button(self.dock, { name = "LarpOff", text = "⚔  " .. words.LarpOff, size = 16, color = Color3.fromRGB(196, 64, 112), position = UDim2.fromOffset(68, 244), box = UDim2.fromOffset(136, 46) }, deps.larpOffNow)
 	-- Touch Grass, once a player reaches the top rank
-	self.grassButton = deps.button(self.dock, { name = "TouchGrass", text = "🌱  " .. words.TouchGrass, size = 15, color = Color3.fromRGB(52, 160, 72), position = UDim2.fromOffset(68, 244), box = UDim2.fromOffset(136, 46) }, deps.grassOpen)
+	self.grassButton = deps.button(self.dock, { name = "TouchGrass", text = "🌱  " .. words.TouchGrass, size = 15, color = Color3.fromRGB(52, 160, 72), position = UDim2.fromOffset(68, 298), box = UDim2.fromOffset(136, 46) }, deps.grassOpen)
 	self.grassButton.Visible = false
 
 	-- bottom right: the Invite, Clip, Map and Sprint buttons (above the jump button on touch screens)

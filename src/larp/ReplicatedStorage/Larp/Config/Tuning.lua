@@ -100,6 +100,7 @@ return {
 		rookie = { statMin = 0.45, statMax = 0.6 },
 		floor = 1,
 		rematchWindowSeconds = 60,
+		maxStandIns = 6, -- extra Practice Larpers at once while the real one is mid larp-off
 	},
 
 	Data = {

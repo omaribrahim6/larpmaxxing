@@ -297,8 +297,10 @@ function MatchService:_settle(match, result)
 	end
 	outcome.upset = result.upset
 
-	local allowed = limiter:allow(A.key, B.key)
-	limiter:record(A.key, B.key)
+	-- a stand-in Practice Larper counts as the Practice Larper (PracticeNpcService)
+	local keyA, keyB = A.limitKey or A.key, B.limitKey or B.key
+	local allowed = limiter:allow(keyA, keyB)
+	limiter:record(keyA, keyB)
 	outcome.limited = not allowed
 
 	if W.kind == "Player" and W.player.Parent and allowed then

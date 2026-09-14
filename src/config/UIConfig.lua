@@ -117,6 +117,7 @@ return {
 		ShopPerk = "💖 Anything you buy also opens the VIP++ Arena: props worth about 4x",
 		ShopInfo = "ABOUT", GotIt = "GOT IT", Soon = "SOON",
 		-- the Invite and Clip buttons (Config.Referral; LarpClient.Clips)
+		LarpOff = "Larp-off", -- the dock's quick larp-off against a Practice Larper
 		Invite = "Invite", InvitePrompt = "Larp-off your friends! You both get 2x points for 15 minutes",
 		InviteUnavailable = "Invites aren't available right now",
 		Clip = "Clip", ClipArmed = "REC NEXT", ClipReady = "🎥 Your next larp-off's ending will be recorded",

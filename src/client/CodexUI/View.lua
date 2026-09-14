@@ -74,6 +74,7 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 		sprintToggle = function() callbacks.sprintToggle() end,
 		clipToggle = function() callbacks.clipToggle() end,
 		inviteOpen = function() callbacks.inviteOpen() end,
+		larpOffNow = function() callbacks.larpOffNow() end,
 		onTierUp = tierUp})
 	self.settingsOpen = self.hud.settingsButton
 	self.helpOpen = self.hud.helpButton

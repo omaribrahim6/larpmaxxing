@@ -120,6 +120,8 @@ function Controller.start()
 			sprintToggle=function() if self.sprintToggle then self.sprintToggle() end end,
 			clipToggle=function() if self.clipToggle then self.clipToggle() end end,
 			inviteOpen=function() self:Invite() end,
+			-- a practice larp-off from anywhere (PracticeNpcService)
+			larpOffNow=function() if not self.adapter:Send("RequestPractice",{quick=true}) then notice(Config.Words.Unavailable,"warning") end end,
 			touchGrass=function() if not self.adapter:Send("TouchGrass") then notice(Config.Words.Unavailable,"warning") end end,
 		},{
 			play=play,tiers=require(larp.Shared.Tiers),floors=tuning.Tiers,store=require(larp.Config.Store),rebirthMath=require(larp.Shared.RebirthMath),touchGrass=tuning.TouchGrass,cosmetics=require(larp.Config.Cosmetics),

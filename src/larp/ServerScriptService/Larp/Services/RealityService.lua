@@ -62,6 +62,12 @@ local function characterOf(player: Player): (Model?, BasePart?)
 	return character, root
 end
 
+-- True while `player` is on an activity here or skating (the HUD's Larp-off button waits).
+function RealityService:IsBusy(player: Player): boolean
+	local s = state[player]
+	return s ~= nil and (s.activity ~= nil or s.pending ~= nil or s.skating == true)
+end
+
 function RealityService:_marker(venue: string, name: string): BasePart?
 	local v = self.world:FindFirstChild(venue)
 	return v and v:FindFirstChild(name, true) :: BasePart?

@@ -2,6 +2,10 @@
 -- challenger's own, scaled by a random factor, so every fight is close enough for
 -- upsets. Until the challenger's first Win it plays weaker (Tuning.Practice.rookie).
 -- Also lets a single player test the whole larp-off loop.
+-- Quiet servers (the owner's pick of the growth ideas, 2026-09-14): it's never "busy" (while
+-- it's mid larp-off a stand-in Practice Larper takes the next challenger and leaves after),
+-- and the HUD's Larp-off button asks for one from anywhere (RequestPractice { quick = true }):
+-- the stage takes the player and MatchService puts them back where they were.
 local Players = game:GetService("Players")
 
 local Larp = game:GetService("ReplicatedStorage"):WaitForChild("Larp")
@@ -19,9 +23,19 @@ local rng = Random.new()
 local npc: Model? = nil
 local home: CFrame = CFrame.new(-22, 0.2, -30)
 local updatePlate = nil
+local standIns = 0 -- stand-in Practice Larpers out now
 
 local function notice(player: Player, text: string)
 	Net.get("Notice"):FireClient(player, text, "info")
+end
+
+-- Stands an NPC on `spot`.
+local function standAt(model: Model, spot: CFrame)
+	local root = model:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local humanoid = model:FindFirstChildOfClass("Humanoid")
+	if root and humanoid then
+		model:PivotTo(spot * CFrame.new(0, humanoid.HipHeight + root.Size.Y / 2, 0))
+	end
 end
 
 local function spawnNpc()
@@ -46,8 +60,7 @@ local function spawnNpc()
 	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 	humanoid.BreakJointsOnDeath = false
 
-	local height = humanoid.HipHeight + root.Size.Y / 2
-	model:PivotTo(home * CFrame.new(0, height, 0))
+	standAt(model, home)
 	model.Parent = workspace.Larp
 
 	local prompt = Instance.new("ProximityPrompt")
@@ -62,11 +75,17 @@ local function spawnNpc()
 	return model, prompt
 end
 
+-- The key a player's stand-in Practice Larper fights under.
+local function standInKey(player: Player): string
+	return PracticeNpcService.KEY .. ":" .. player.UserId
+end
+
 function PracticeNpcService:Init(services)
 	self.Stats = services.StatService
 	self.Data = services.DataService
 	self.Matches = services.MatchService
 	self.Nameplate = services.NameplateService
+	self.Reality = services.RealityService
 end
 
 -- Stats for a practice fight against a player with `playerStats`. `rookie` picks the
@@ -86,8 +105,49 @@ function PracticeNpcService.statsFor(playerStats: { [string]: number }, random: 
 	return out
 end
 
--- `skipChecks` is only passed by the Studio debug hook in Main.
-function PracticeNpcService:_start(player: Player, isRematch: boolean, skipChecks: boolean?)
+-- A stand-in Practice Larper for `player` while the real one is mid larp-off: it waits beside
+-- the real one until its larp-off and is gone after, however that ends. nil if there are
+-- Tuning.Practice.maxStandIns out already.
+function PracticeNpcService:_standIn(player: Player, stats, rankIndex: number)
+	if standIns >= Tuning.Practice.maxStandIns then
+		return nil
+	end
+	local model, prompt = spawnNpc()
+	if not model then
+		return nil
+	end
+	prompt:Destroy()
+	standIns += 1
+	standAt(model, home * CFrame.new(-4 * standIns, 0, 0))
+	local plate = self.Nameplate:AttachNpc(model, Text.Practice.name, rankIndex)
+	local key = standInKey(player)
+	local opponent = Combatant.fromNpc(model, key, Text.Practice.name, stats, rankIndex)
+	opponent.limitKey = PracticeNpcService.KEY -- same-pair reward limits count it as the real one
+	local released = false
+	opponent.release = function()
+		if not released then
+			released = true
+			standIns -= 1
+			model:Destroy()
+		end
+	end
+	opponent.onExposed = function()
+		plate(rankIndex, true)
+	end
+	opponent.onFinished = opponent.release
+	-- MatchService drops a queued larp-off whose challenger left without calling back
+	task.spawn(function()
+		repeat
+			task.wait(2)
+		until released or not self.Matches:IsBusy(key)
+		opponent.release()
+	end)
+	return opponent
+end
+
+-- `skipChecks` is only passed by the Studio debug hook in Main; `quick` is the HUD's
+-- Larp-off button (no walking over, but not from a car or a LARP to Reality activity).
+function PracticeNpcService:_start(player: Player, isRematch: boolean, skipChecks: boolean?, quick: boolean?)
 	if not npc or not npc.Parent or not self.Data:IsLoaded(player) then
 		return
 	end
@@ -96,14 +156,21 @@ function PracticeNpcService:_start(player: Player, isRematch: boolean, skipCheck
 		notice(player, Text.Challenge.youAreBusy)
 		return
 	end
-	if self.Matches:IsBusy(PracticeNpcService.KEY) then
-		notice(player, Text.Practice.busy)
-		return
-	end
 	if skipChecks then
 		-- debug hook: no distance or rematch-window checks
 	elseif isRematch then
-		if not self.Matches:WereRecentOpponents(playerKey, PracticeNpcService.KEY, Tuning.Practice.rematchWindowSeconds) then
+		local window = Tuning.Practice.rematchWindowSeconds
+		if not (self.Matches:WereRecentOpponents(playerKey, PracticeNpcService.KEY, window) or self.Matches:WereRecentOpponents(playerKey, standInKey(player), window)) then
+			return
+		end
+	elseif quick then
+		local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+		if not humanoid or humanoid.SeatPart then
+			notice(player, Text.Practice.seated)
+			return
+		end
+		if self.Reality and self.Reality:IsBusy(player) then
+			notice(player, Text.Practice.activity)
 			return
 		end
 	else
@@ -126,30 +193,37 @@ function PracticeNpcService:_start(player: Player, isRematch: boolean, skipCheck
 	end
 	local stats = PracticeNpcService.statsFor(challenger.stats, rng, self.Stats:GetWins(player) == 0)
 	local rankIndex = RankMath.indexFor(Catalog.total(stats), Catalog.ranks)
-	local opponent = Combatant.fromNpc(npc, PracticeNpcService.KEY, Text.Practice.name, stats, rankIndex)
-	if updatePlate then
-		updatePlate(rankIndex, false)
-	end
-	opponent.onExposed = function()
+	local opponent
+	if self.Matches:IsBusy(PracticeNpcService.KEY) then
+		opponent = self:_standIn(player, stats, rankIndex)
+		if not opponent then
+			notice(player, Text.Practice.busy)
+			return
+		end
+	else
+		opponent = Combatant.fromNpc(npc, PracticeNpcService.KEY, Text.Practice.name, stats, rankIndex)
 		if updatePlate then
-			updatePlate(rankIndex, true)
+			updatePlate(rankIndex, false)
 		end
-	end
-	opponent.onFinished = function()
-		if npc and npc.Parent then
-			local root = npc:FindFirstChild("HumanoidRootPart")
-			local humanoid = npc:FindFirstChildOfClass("Humanoid")
-			if root and humanoid then
-				npc:PivotTo(home * CFrame.new(0, humanoid.HipHeight + root.Size.Y / 2, 0))
-			end
-		end
-		task.delay(6, function()
+		opponent.onExposed = function()
 			if updatePlate then
-				updatePlate(1, false)
+				updatePlate(rankIndex, true)
 			end
-		end)
+		end
+		opponent.onFinished = function()
+			if npc and npc.Parent then
+				standAt(npc, home)
+			end
+			task.delay(6, function()
+				if updatePlate then
+					updatePlate(1, false)
+				end
+			end)
+		end
 	end
-	self.Matches:Enqueue(challenger, opponent)
+	if not self.Matches:Enqueue(challenger, opponent) and opponent.release then
+		opponent.release()
+	end
 end
 
 -- Studio-only (the LarpDebug hook's "demo" command): the Practice Larper vs a temporary
@@ -174,11 +248,7 @@ function PracticeNpcService:_demo(bag: number?)
 	local a = combatant(npc, PracticeNpcService.KEY, Text.Practice.name)
 	local b = combatant(rival, "npc:demo", "Demo Larper")
 	a.onFinished = function()
-		local root = npc:FindFirstChild("HumanoidRootPart")
-		local humanoid = npc:FindFirstChildOfClass("Humanoid")
-		if root and humanoid then
-			npc:PivotTo(home * CFrame.new(0, humanoid.HipHeight + root.Size.Y / 2, 0))
-		end
+		standAt(npc, home)
 	end
 	b.onFinished = function()
 		rival:Destroy()
@@ -211,8 +281,13 @@ function PracticeNpcService:Start()
 			return
 		end
 		lastRequest[player] = now
-		if type(options) == "table" and options.rematch == true then
+		if type(options) ~= "table" then
+			return
+		end
+		if options.rematch == true then
 			self:_start(player, true)
+		elseif options.quick == true then
+			self:_start(player, false, false, true)
 		end
 	end)
 end

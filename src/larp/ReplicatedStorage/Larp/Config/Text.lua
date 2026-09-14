@@ -24,7 +24,9 @@ return {
 	PromptAction = "Larp-off",
 	Practice = {
 		name = "Practice Larper",
-		busy = "The Practice Larper is mid larp-off. Try again in a few seconds.",
+		busy = "Every Practice Larper is mid larp-off. Try again in a few seconds.",
+		seated = "Hop out first, then larp-off",
+		activity = "Finish what you're doing first, then larp-off",
 		noStats = "You've got nothing to larp with yet. Grab some Money in the Car Lot first.",
 	},
 	Challenge = {
