@@ -474,14 +474,9 @@ function DripStreet.walk(ctx, key: string, duration: number)
 		table.insert(points, st.markers.Out.Position)
 	end
 	if def.strut then
-		-- crossed steps down the middle of the runway
+		-- straight down the middle of the runway (the old side-to-side sway read as a zigzag,
+		-- owner 2026-09-14); the Strut pose does the attitude
 		Poses.apply(kit, avatar, "Strut", 0.2)
-		local from = points[#points]
-		local across = SK.flat(st.poseCF.RightVector)
-		local n = math.max(2, math.floor((pose - from).Magnitude / 2.2))
-		for i = 1, n - 1 do
-			table.insert(points, from:Lerp(pose, i / n) + across * (if i % 2 == 0 then 0.3 else -0.3))
-		end
 	end
 	table.insert(points, pose)
 	if def.slowmo then

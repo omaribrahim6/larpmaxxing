@@ -10,6 +10,7 @@ local ProximityPromptService = game:GetService("ProximityPromptService")
 
 local Larp = game:GetService("ReplicatedStorage"):WaitForChild("Larp")
 local Cars = require(Larp.Config.Cars)
+local Sounds = require(Larp.Config.Sounds)
 local Net = require(Larp.Shared.Net)
 local CarRig = require(script.Parent.Parent.Lib.CarRig)
 
@@ -65,6 +66,8 @@ function CarService:Enter(player: Player): boolean
 	end
 	humanoid.Sit = false
 	seat:Sit(humanoid)
+	-- the car stays still until the driver is in and owns it (Drive's springs hold it up)
+	CarRig.release(car)
 	for _, d in car:GetDescendants() do
 		if d:IsA("BasePart") and not d.Anchored and d:CanSetNetworkOwnership() then
 			d:SetNetworkOwner(player)
@@ -94,8 +97,14 @@ function CarService:Spawn(player: Player, id: string, cframe: CFrame): Model?
 	prompt.RequiresLineOfSight = false
 	prompt.Enabled = false
 	prompt.Parent = seat
+	local horn = Instance.new("Sound")
+	horn.Name = "Horn"
+	horn.SoundId = "rbxassetid://" .. tostring(Sounds.CarHorn)
+	horn.Volume = 0.9
+	horn.RollOffMinDistance = 15
+	horn.RollOffMaxDistance = 220
+	horn.Parent = car.PrimaryPart
 	car.Parent = self.folder
-	CarRig.release(car)
 	cars[player] = car
 
 	-- only the owner drives; an empty car waits a while, then it's towed
@@ -115,6 +124,16 @@ function CarService:Spawn(player: Player, id: string, cframe: CFrame): Model?
 		left += 1
 		local mine = left
 		if occupant == nil then
+			-- parked where they left it, once the driver's springs have let it settle
+			task.delay(1.2, function()
+				if left == mine and cars[player] == car and seat.Occupant == nil then
+					for _, d in car:GetDescendants() do
+						if d:IsA("BasePart") then
+							d.Anchored = true
+						end
+					end
+				end
+			end)
 			task.delay(Cars.leaveSeconds, function()
 				if left == mine and cars[player] == car and seat.Occupant == nil then
 					self:Despawn(player)
@@ -155,6 +174,24 @@ function CarService:Start()
 	end
 	Players.PlayerRemoving:Connect(function(player)
 		self:Despawn(player)
+	end)
+
+	-- the horn: played from the driver's car on the server, so everyone nearby hears it
+	local honked: { [Player]: number } = {}
+	Net.get("CarHorn").OnServerEvent:Connect(function(player)
+		local car = cars[player]
+		local seat = car and car:FindFirstChild("DriverSeat") :: VehicleSeat?
+		if not seat or seat.Occupant ~= humanoidOf(player) or os.clock() - (honked[player] or 0) < 0.6 then
+			return
+		end
+		honked[player] = os.clock()
+		local horn = car.PrimaryPart and car.PrimaryPart:FindFirstChild("Horn") :: Sound?
+		if horn then
+			horn:Play()
+		end
+	end)
+	Players.PlayerRemoving:Connect(function(player)
+		honked[player] = nil
 	end)
 
 	ProximityPromptService.PromptTriggered:Connect(function(prompt, player)

@@ -240,6 +240,23 @@ function DataService:IsPersistent(player: Player): boolean
 	return profile ~= nil and profile.persistent
 end
 
+-- Saves `player`'s profile now (a purchase was just granted onto it). Returns whether it's
+-- stored; a session-only profile counts as stored (there's nowhere else to put it).
+function DataService:SaveNow(player: Player): boolean
+	local profile = profiles[player]
+	if not profile then
+		return false
+	end
+	if not (profile.persistent and store) then
+		return true
+	end
+	local ok, err = store:save(profile.key, profile.data, false)
+	if not ok then
+		warn(("[Larp] Immediate save failed for %s: %s"):format(player.Name, tostring(err)))
+	end
+	return ok == true
+end
+
 function DataService:MemoryReason(): string?
 	return memoryReason
 end

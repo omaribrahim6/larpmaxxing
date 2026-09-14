@@ -11,7 +11,7 @@ return {
 	boostMultiplier = 2, -- a boost doubles pickup points while it lasts
 	-- bundle: the keys of the passes it includes (owning it owns each of them)
 	passes = {
-		{ key = "Reality", id = 1975281737, icon = "🌆", name = "Turn LARP to Reality", line = "Your own world: drive the T5, walk a runway, bench 500, win a Nobel", price = 999, reality = true, book = "Reality" },
+		{ key = "Reality", id = 1975281737, icon = "🌆", name = "Turn LARP to Reality", line = "Your own world: drive the T5, walk a runway, bench 500, win a Nobel", price = 299, reality = true, book = "Reality" }, -- owner 2026-09-14: 999 was too much
 		{ key = "MegaBundle", id = 1979337527, icon = "🎁", name = "Mega Bundle", line = "2x Points, 2x Magnet and 2x Speed in one: save 40%", price = 299, bundle = { "DoublePickups", "Magnet", "Speed" },
 			about = "All three passes in one: every pickup is worth double, props come to you from twice as far, and you walk and sprint twice as fast. It costs less than buying the three on their own. Passes are yours forever." },
 		{ key = "DoublePickups", id = 1979631445, icon = "✨", name = "2x Points", line = "Every pickup is worth double, forever", price = 199, multiplier = 2,

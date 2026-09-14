@@ -170,6 +170,12 @@ function MonetizationService:_receipt(info)
 			data.receipts[list[i].id] = nil
 		end
 	end
+	-- only tell Roblox it's done once it's saved: if this server went down before the next
+	-- autosave, Roblox retries and the purchase is granted again on the next server (a retry
+	-- here finds the receipt and grants nothing twice)
+	if not self.Data:SaveNow(player) then
+		return Enum.ProductPurchaseDecision.NotProcessedYet
+	end
 	return Enum.ProductPurchaseDecision.PurchaseGranted
 end
 

@@ -47,5 +47,9 @@ return {
 	Switch = 9120100153, -- PSE: Toggle Switch Metal Industrial Equipment 90 (spotlights, the LIVE sign)
 	Chalk = 9113781512, -- PSE: Chalkboard 8
 	ChairScrape = 9113776775, -- PSE: Chair Scrape 3
-	-- Not yet sourced from the licensed library: SadTrombone, EngineRev. Add ids here when found.
+	-- Cars (LarpClient.CarFx, Services.CarService)
+	EngineLoop = 80317022777602, -- Roblox Resources: Car-Engine-Loop (pitched up with speed)
+	TyreSkid = 9126158715, -- PSE: Vehicle Skidding Maneuvers Many Tire Squeals 1 (looped under a slide)
+	CarHorn = 9114402335, -- PSE: Car Honking Dual Air Horns 4 (a short double honk)
+	-- Not yet sourced from the licensed library: SadTrombone. Add ids here when found.
 }

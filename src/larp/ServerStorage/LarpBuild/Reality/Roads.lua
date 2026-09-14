@@ -107,7 +107,7 @@ function Roads.build(ctx)
 	for x = -800, 800, 90 do
 		Kit.lamp(lamps, C + Vector3.new(x, 0, north - 4), Vector3.zAxis)
 	end
-	for x = -470, 470, 70 do
+	for x = -420, 420, 70 do -- clear of the avenues (x ±458..502), which the ring sidewalk stops at
 		Kit.lamp(lamps, C + Vector3.new(x, WALK_TOP, 335), -Vector3.zAxis)
 		Kit.lamp(lamps, C + Vector3.new(x, WALK_TOP, 265), Vector3.zAxis)
 	end

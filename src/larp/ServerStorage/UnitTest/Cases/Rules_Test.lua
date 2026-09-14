@@ -132,22 +132,28 @@ return function(t)
 		end
 	end)
 
-	-- Every car in Config.Cars builds into a drivable rig: a chassis, a driver's seat and at
-	-- least three wheels, each on a spring, a steering strut and a motor, with real strengths.
+	-- Every car in Config.Cars builds into a drivable rig: a chassis carrying the weight, a
+	-- driver's seat, and at least three wheels (two at the front), each on an Axle Motor6D
+	-- with its resting spot for the suspension rays; and its handling numbers make sense.
 	t.test("cars build into drivable rigs", function()
 		local Cars = require(Larp.Config.Cars)
 		local CarRig = require(game.ServerScriptService.Larp.Lib.CarRig)
-		for id in Cars.cars do
+		for id, spec in Cars.cars do
+			expect.truthy(spec.topSpeed > spec.reverseSpeed and spec.acceleration > 0 and spec.brake > 0 and spec.grip > 0)
+			expect.truthy(spec.steer.lowRadius > 0 and spec.steer.highRadius >= spec.steer.lowRadius)
+			expect.truthy(spec.suspension.droop > 0 and spec.suspension.bump > 0)
 			local car = CarRig.build(id, CFrame.new(0, -400, 0))
-			expect.truthy(car.PrimaryPart ~= nil and car.PrimaryPart.Name == "Chassis")
+			expect.truthy(car.PrimaryPart ~= nil and car.PrimaryPart.Name == "Chassis" and not car.PrimaryPart.Massless)
 			expect.truthy(car:FindFirstChild("DriverSeat") ~= nil)
-			local wheels = car.Wheels:GetChildren()
+			local wheels, fronts = car.Wheels:GetChildren(), 0
 			expect.truthy(#wheels >= 3)
-			for _, rig in wheels do
-				expect.truthy(rig:FindFirstChild("Spring") and rig:FindFirstChild("Strut") and rig:FindFirstChild("Motor"))
-				expect.truthy(rig.Spring.Stiffness > 0 and rig.Spring.Damping > 0)
+			for _, wheel in wheels do
+				local axle = wheel:FindFirstChild("Axle")
+				expect.truthy(axle and axle:IsA("Motor6D") and axle.Part0 == car.PrimaryPart)
+				expect.truthy(typeof(wheel:GetAttribute("Mount")) == "Vector3" and wheel:GetAttribute("Radius") > 0)
+				fronts += if wheel:GetAttribute("Front") then 1 else 0
 			end
-			expect.truthy(car:GetAttribute("DriveTorque") > 0 and car:GetAttribute("BrakeTorque") > 0)
+			expect.truthy(fronts >= 1 and fronts < #wheels)
 			car:Destroy()
 		end
 	end)

@@ -1,10 +1,31 @@
 # Handoff
-## LATEST: Claude, 2026-09-14 (LARP to Reality, the shop's ? pages, music and shop ids)
+## LATEST: Claude, 2026-09-14 (arcade cars with sound, skating that pushes, fits only)
+- **Cars, rebuilt** (owner: "steering is horrible, doesn't feel like you're controlling it"; "no car sound effects"):
+  - Arcade handling in `LarpClient.Drive`: a raycast spring and damper under each wheel hold the chassis up; grip cancels sideways sliding; the steering sets a turning circle (15 studs when slow, 75 at top speed), easing in and back; springs are capped at 3x the car's weight so nothing launches. Tuning is all in `Config.Cars` (topSpeed 150, acceleration, brake, coast, steer, grip, suspension, downforce, engine pitch).
+  - A chase camera follows behind (C switches to the free camera and back), wider at speed.
+  - `Lib.CarRig` no longer uses wheel constraints: the wheels are looks on `Axle` Motor6Ds, with `Mount`/`Radius`/`Front` attributes.
+  - `LarpClient.CarFx` (new) animates every car on every client (wheels spin, steer and ride the ground) and voices it: an engine loop pitched with speed (Roblox Resources "Car-Engine-Loop"), tyre squeal when sliding (PSE) and the horn (PSE), which `CarService` plays from the car on the server (new remote `CarHorn`) so everyone hears it.
+  - A spawned car stays still until its driver is seated and owns it; a car left empty brakes, settles and is parked (anchored) until its driver hops back in or it's towed.
+  - Checked in play: 58/58 tests; W drove the T5 about 115 studs forward level; W+D turned it right with almost no sideways slide; engine sound and chase camera on.
+- **Skating** (owner): Space (or PUSH on touch) pushes off with a kick pose everyone sees (`SkatePush`); each push adds 16 speed from a 22 roll up to 64 (over twice sprint), easing back when you stop pushing (`Config.Reality.skate`).
+- **Fits are the only outfit** (owner): while a Reality fit is on (skate or runway), the avatar's own shirt, pants, t-shirt, layered clothing, shoes and rank cosmetics wait in `ServerStorage.LarpWardrobe` and go back on when the fit comes off (`Lib.Fits` stash/unstash). Hair, hats and faces stay.
+- **Clogs, not Birkenstocks** (owner, to avoid a brand name), everywhere players see it.
+- **Fixed:** the bench's PUSH card drew over its own text, bar and button (and the fit picker's cards were under their panel): the Reality screen now layers children over their panel.
+- **Owner playtest fixes (later the same day):**
+  - Cars jittered moving and standing still: the springs and the engine/grip were per-frame impulses; they're steady VectorForces now (`Spring<i>` at each wheel's mount and `Push` through the middle, built by `CarRig`, set by `Drive`), which the physics applies smoothly across its substeps. The chase camera eases its heading too.
+  - Fashion Week's runway glared up at the walker: it's dark and glossy now, with thin neon edges and softer spotlights.
+  - Two Boulevard lamps stood in the avenues: the row now stops at the ring sidewalk.
+  - The golden matcha (LARP Maxxer cosmetic) is in the left hand, so the larp-offs' selfies (phone in the right) no longer have it in the middle of the picture.
+  - The Drip scene's strut swayed side to side down the carpet (read as a zigzag): it walks straight now.
+  - **Turn LARP to Reality is R$299** (owner), on Roblox (Open Cloud PATCH) and in `Config.Store`.
+  - **Purchases are saved before Roblox is told they went through** (`DataService:SaveNow`; a failed save returns NotProcessedYet so Roblox retries, and the receipt id stops a double grant). A server crash can no longer lose a developer-product purchase.
+
+## Claude, 2026-09-14 (LARP to Reality, the shop's ? pages, music and shop ids)
 - **LARP to Reality** (owner request, the Shop's top item at R$999, `Config.Store` "Reality"):
   - One world inside this place, 2,600 studs south of the city (`Workspace.Larp.Map.Premium.Plaza.Reality`, built by `LarpBuild.Reality`). Its door is the blue one next to the VIP++ Arena's in the Plaza (`Entrance.RealityDoor`). Without the pass the door says so and opens the shop at the Reality tour.
   - The world: a street loop round a middle block, a six-lane highway with turnarounds and sign gantries, sidewalks (the skate loop), a skyline, and the arrival plaza with a LARP TO REALITY sign, a fountain and an EXIT door.
   - **Drive:** two valets on the Boulevard hand out a drivable T5 or T4 in the lane in front. W/S drive, A/D steer, Space gets out, H honks, a speedometer shows mph. An empty car is towed after 20 s; the owner can hop back in with the car's Drive prompt; friends can take the passenger seat.
-  - **Skate:** the SK8 & MATCHA cart kits you out (board under the feet, white tee, jorts, wired earbuds, Birkenstocks, an iced matcha held upright) at walk speed 34. Use the cart again to stop.
+  - **Skate:** the SK8 & MATCHA cart kits you out (board under the feet, white tee, jorts, wired earbuds, clogs, an iced matcha held upright) at walk speed 34. Use the cart again to stop.
   - **Runway (Fashion Week):** the backstage mirror opens a fit picker (Old Money, Streetwear, Designer, Y2K). The player walks the runway on a photographers'-view camera, poses at the end while the crowd cheers and flashes pop, gets ATE, and walks back. The fit stays on in Reality.
   - **Bench (Iron Paradise):** lie down, tap Space or PUSH to fill the meter, three reps; the 500 LB CLUB board shows the lift, the gym bros cheer, then 500 LB PR.
   - **Prize (the Prize Hall):** the gold pedestal starts a Nobel ceremony: the laureate on stage, their name and a random discovery on the banner, the medal (kept in Reality), applause and confetti.

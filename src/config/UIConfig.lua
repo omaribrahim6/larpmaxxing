@@ -66,7 +66,7 @@ return {
 				body = "Grab the keys from a valet and drive the T5 Supercar or the T4 Sports Car round the city streets and down a six-lane highway: real suspension, real steering, up to 120 mph.",
 				tip = "🏎️ W/S drive, A/D steer, Space gets out, H honks."},
 			{art = "item", icon = "🛹", color = Color3.fromRGB(132, 196, 96), title = "SKATE WITH A MATCHA",
-				body = "The SK8 & MATCHA cart kits you out: a board, a white tee, jorts, wired earbuds, Birkenstocks and an iced matcha. The sidewalks are yours.",
+				body = "The SK8 & MATCHA cart kits you out: a board, a white tee, jorts, wired earbuds, clogs and an iced matcha. The sidewalks are yours.",
 				tip = "🍵 Walk back to the cart to stop skating."},
 			{art = "item", icon = "👗", color = Color3.fromRGB(255, 120, 190), title = "WALK THE RUNWAY",
 				body = "Fashion Week: pick a fit backstage (Old Money, Streetwear, Designer or Y2K) and walk the runway while the crowd cheers and the photographers go off.",

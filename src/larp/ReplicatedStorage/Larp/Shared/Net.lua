@@ -32,6 +32,7 @@ Net.Names = {
 	"TouchGrass", -- (no args) the player confirms Touch Grass
 	"OpenShop", -- item key? the server opens a player's shop (a locked door), at that item's info
 	"RealityAction", -- action, arg: a LARP to Reality activity step (the fit picked, a bench rep...)
+	"CarHorn", -- (no args) the driver honks; CarService plays it from their car for everyone
 	"ClientReady", -- (no args) client listeners are connected; server replies with ProfileSync
 }
 

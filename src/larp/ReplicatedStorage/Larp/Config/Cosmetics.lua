@@ -13,5 +13,6 @@ return {
 	{ id = "Glasses", rank = "Poser", name = "Lens-less glasses", icon = "👓", attach = "FaceFrontAttachment" },
 	{ id = "FilmCamera", rank = "Main Character", name = "Film camera", icon = "📷", attach = "BodyFrontAttachment" },
 	{ id = "Aura", rank = "Aura Farmer", name = "Aura", icon = "✨", attach = "RootAttachment" },
-	{ id = "GoldenMatcha", rank = "LARP Maxxer", name = "Golden matcha", icon = "🍵", attach = "RightGripAttachment", upright = true },
+	-- the left hand: the right one holds the phone in the larp-offs' selfies (owner 2026-09-14)
+	{ id = "GoldenMatcha", rank = "LARP Maxxer", name = "Golden matcha", icon = "🍵", attach = "LeftGripAttachment", upright = true },
 }

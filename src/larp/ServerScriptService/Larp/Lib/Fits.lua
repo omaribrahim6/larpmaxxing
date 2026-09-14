@@ -1,10 +1,11 @@
 -- Outfits and props for LARP to Reality (Config.Reality fits): box shells over the body in the
 -- fit's colours, and props welded on: the Drip scene's blazer, chain, shades and jorts
--- (Larp.Assets.Scenes.Drip), Birkenstocks, the Normie earbuds and an iced matcha
+-- (Larp.Assets.Scenes.Drip), clogs, the Normie earbuds and an iced matcha
 -- (Lib.CosmeticModels; the matcha stays upright in the hand through LarpClient.CosmeticFx).
 -- Everything is named RealityFit..., so undress() takes it all off. Also the skateboard
 -- (under the feet; the humanoid stands taller by Config.Reality.boardLift) and the medal.
 local CollectionService = game:GetService("CollectionService")
+local ServerStorage = game:GetService("ServerStorage")
 local Larp = game:GetService("ReplicatedStorage"):WaitForChild("Larp")
 local CosmeticModels = require(script.Parent.CosmeticModels)
 
@@ -95,8 +96,8 @@ local function wear(folder: Instance, character: Model, template: string, partNa
 	model.Parent = folder
 end
 
--- Birkenstocks: a cork sole under each foot and two leather straps over it.
-local function birks(folder: Instance, character: Model)
+-- Clogs: a cork sole under each foot and two leather straps over it.
+local function clogs(folder: Instance, character: Model)
 	local cork, leather, buckle = Color3.fromRGB(201, 164, 112), Color3.fromRGB(96, 62, 36), Color3.fromRGB(214, 180, 90)
 	for _, name in { "LeftFoot", "RightFoot" } do
 		local foot = character:FindFirstChild(name)
@@ -148,13 +149,73 @@ local function matcha(character: Model)
 	item.Parent = character -- CosmeticFx finds the root next to it
 end
 
--- Takes off the current fit (the medal stays).
+-- While a fit is on, it's the only outfit (owner 2026-09-14): the avatar's own clothes (shirt,
+-- pants, t-shirt, layered clothing and shoes) and rank cosmetics wait in ServerStorage and go
+-- back on when the fit comes off. Hair, hats and faces stay.
+local CLOTHING = {
+	[Enum.AccessoryType.Shirt] = true,
+	[Enum.AccessoryType.TShirt] = true,
+	[Enum.AccessoryType.Pants] = true,
+	[Enum.AccessoryType.Jacket] = true,
+	[Enum.AccessoryType.Sweater] = true,
+	[Enum.AccessoryType.Shorts] = true,
+	[Enum.AccessoryType.DressSkirt] = true,
+	[Enum.AccessoryType.LeftShoe] = true,
+	[Enum.AccessoryType.RightShoe] = true,
+}
+local stashes: { [Model]: { Instance } } = {}
+
+local function wardrobe(): Folder
+	local folder = ServerStorage:FindFirstChild("LarpWardrobe")
+	if not folder then
+		folder = Instance.new("Folder")
+		folder.Name = "LarpWardrobe"
+		folder.Parent = ServerStorage
+	end
+	return folder :: Folder
+end
+
+local function stash(character: Model)
+	if stashes[character] then
+		return
+	end
+	local list = {}
+	for _, child in character:GetChildren() do
+		if child:IsA("Shirt") or child:IsA("Pants") or child:IsA("ShirtGraphic")
+			or (child:IsA("Accessory") and CLOTHING[child.AccessoryType])
+			or child.Name:sub(1, 13) == "LarpCosmetic_" then
+			table.insert(list, child)
+			child.Parent = wardrobe()
+		end
+	end
+	stashes[character] = list
+	-- a character that's gone (a respawn) takes its stash with it
+	character.AncestryChanged:Connect(function(_, parent)
+		if not parent and stashes[character] then
+			for _, item in stashes[character] do
+				item:Destroy()
+			end
+			stashes[character] = nil
+		end
+	end)
+end
+
+local function unstash(character: Model)
+	local list = stashes[character]
+	stashes[character] = nil
+	for _, item in list or {} do
+		item.Parent = character
+	end
+end
+
+-- Takes off the current fit (the medal stays) and puts the avatar's own clothes back.
 local function strip(character: Model)
 	for _, child in character:GetChildren() do
 		if child.Name == FIT or child.Name:sub(1, #FIT + 1) == FIT .. "_" then
 			child:Destroy()
 		end
 	end
+	unstash(character)
 end
 
 Fits.strip = strip
@@ -171,6 +232,7 @@ end
 -- Puts on `fit` (Config.Reality fits / skateFit), replacing any other Reality fit.
 function Fits.dress(character: Model, fit)
 	strip(character)
+	stash(character)
 	local folder = Instance.new("Model")
 	folder.Name = FIT
 	shell(folder, character, "UpperTorso", fit.top, 1.07)
@@ -194,8 +256,8 @@ function Fits.dress(character: Model, fit)
 		for _, w in WORN[prop] or {} do
 			wear(folder, character, w[1], w[2], w[3], w[4])
 		end
-		if prop == "Birks" then
-			birks(folder, character)
+		if prop == "Clogs" then
+			clogs(folder, character)
 		elseif prop == "Earbuds" then
 			earbuds(folder, character)
 		elseif prop == "Matcha" then

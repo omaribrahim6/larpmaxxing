@@ -4,7 +4,7 @@
 -- (Config.Areas tier "Reality").
 --   drive:  valets on the boulevard hand you a T5 or a T4 (Config.Cars) for the roads and
 --           the highway
---   skate:  the SK8 & MATCHA cart: a board, a white tee, jorts, wired earbuds, Birkenstocks
+--   skate:  the SK8 & MATCHA cart: a board, a white tee, jorts, wired earbuds, clogs
 --           and a matcha, for the sidewalk ring
 --   runway: Fashion Week: pick a fit backstage and walk the runway past the crowd and the
 --           photographers
@@ -20,7 +20,7 @@ return {
 	color = rgb(80, 200, 255),
 
 	-- the outfits: shells over the body in these colours (sleeves/legs "long" or "short"), and
-	-- props (LarpServer Lib.Fits: Blazer, Chain, Shades, Jorts, Birks, Earbuds, Matcha)
+	-- props (LarpServer Lib.Fits: Blazer, Chain, Shades, Jorts, Clogs, Earbuds, Matcha)
 	fits = {
 		{ id = "OldMoney", name = "Old Money", icon = "🧥", top = rgb(236, 228, 208), sleeves = "long", bottom = rgb(40, 52, 84), legs = "long", shoes = rgb(110, 70, 40), props = {} },
 		{ id = "Streetwear", name = "Streetwear", icon = "🧢", top = rgb(28, 28, 34), sleeves = "long", bottom = rgb(96, 104, 70), legs = "long", shoes = rgb(242, 242, 238), props = { "Chain" } },
@@ -28,8 +28,11 @@ return {
 		{ id = "Y2K", name = "Y2K", icon = "💖", top = rgb(255, 120, 190), sleeves = "short", bottom = rgb(140, 170, 220), legs = "long", shoes = rgb(245, 245, 245), props = { "Shades" } },
 	},
 	-- the skate kit's outfit
-	skateFit = { id = "Skate", name = "Skate", top = rgb(245, 245, 240), sleeves = "short", props = { "Jorts", "Birks", "Earbuds", "Matcha" } },
-	skateSpeed = 34, -- walk speed on the board
+	skateFit = { id = "Skate", name = "Skate", top = rgb(245, 245, 240), sleeves = "short", props = { "Jorts", "Clogs", "Earbuds", "Matcha" } },
+	-- on the board (owner 2026-09-14: push with Space, and go at least twice sprint speed):
+	-- rolling speed, what each push adds, the top speed, how fast it eases off (per second),
+	-- and the least time between pushes
+	skate = { cruise = 22, push = 16, top = 64, decay = 7, cooldown = 0.28 },
 	boardLift = 0.55, -- how much higher the board stands you
 
 	bench = { reps = 3, pushes = 7, weight = 500, repSeconds = 0.6, timeout = 45 },
@@ -54,6 +57,7 @@ return {
 	-- forward; +X on Waist/Neck tilts back)
 	stances = {
 		Skate = { Waist = { 0, 65, 0 }, Neck = { 0, -55, 0 }, LeftHip = { 22, 0, 0 }, RightHip = { -18, 0, 0 }, LeftKnee = { -22, 0, 0 }, RightKnee = { -14, 0, 0 }, RightShoulder = { 30, 0, -8 }, RightElbow = { 70, 0, 0 }, LeftShoulder = { 0, 0, -40 } },
+		SkatePush = { Waist = { 8, 40, 0 }, Neck = { 0, -35, 0 }, LeftHip = { 8, 0, 0 }, LeftKnee = { -35, 0, 0 }, RightHip = { -55, 0, 0 }, RightKnee = { -15, 0, 0 }, RightShoulder = { 40, 0, -8 }, RightElbow = { 70, 0, 0 }, LeftShoulder = { -25, 0, -30 } },
 		BenchLow = { RightShoulder = { 70, 0, -22 }, LeftShoulder = { 70, 0, 22 }, RightElbow = { 95, 0, 0 }, LeftElbow = { 95, 0, 0 }, RightHip = { 10, 0, 0 }, LeftHip = { 10, 0, 0 }, RightKnee = { -80, 0, 0 }, LeftKnee = { -80, 0, 0 } },
 		BenchPress = { RightShoulder = { 90, 0, -12 }, LeftShoulder = { 90, 0, 12 }, RightElbow = { 5, 0, 0 }, LeftElbow = { 5, 0, 0 }, RightHip = { 10, 0, 0 }, LeftHip = { 10, 0, 0 }, RightKnee = { -80, 0, 0 }, LeftKnee = { -80, 0, 0 } },
 		Serve = { RightShoulder = { 8, 0, 36 }, RightElbow = { 80, 0, 0 }, LeftShoulder = { 0, 0, -8 }, Waist = { 0, 12, -5 }, Neck = { 8, -14, 6 } },
@@ -79,6 +83,6 @@ return {
 		prizeLines = { "And the Nobel Prize in %s goes to…", "%s!", "for %s." },
 		board = { runway = "NOW WALKING: %s in %s", bench = "%s · %d LB · REP %d/%d", pr = "%s · %d LB · NEW PR!", prize = "THE NOBEL PRIZE IN %s\n%s\nfor %s" },
 		carReady = "🏎️ Your %s is ready. W/S to drive, A/D to steer, Space to get out",
-		skateOn = "🛹 Skating! Sidewalks are yours. Walk back to the cart to stop",
+		skateOn = "🛹 Skating! Space pushes: keep pushing to go faster. Back to the cart to stop",
 	},
 }

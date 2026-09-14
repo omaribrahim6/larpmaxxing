@@ -27,18 +27,19 @@ function Runway.build(ctx)
 		sign = "FASHION WEEK · MAISON LARP", signColor = PINK, light = Color3.fromRGB(255, 226, 240),
 	})
 
-	-- the runway, with neon edges and spotlights down it
-	Kit.block(m, "Runway", at(0, F + 1.5, 7), Vector3.new(10, 3, 74), Color3.fromRGB(240, 238, 244), Enum.Material.Marble, { Reflectance = 0.12 })
+	-- the runway, dark and glossy so the fit is what's lit (owner 2026-09-14: the white one
+	-- glared up at the walker), with thin neon edges and soft spotlights down it
+	Kit.block(m, "Runway", at(0, F + 1.5, 7), Vector3.new(10, 3, 74), Color3.fromRGB(34, 30, 42), Enum.Material.SmoothPlastic, { Reflectance = 0.06 })
 	for _, s in { -1, 1 } do
-		Kit.detail(m, "Edge", at(s * 5.05, TOP - 0.12, 7), Vector3.new(0.15, 0.25, 74), PINK, Enum.Material.Neon)
+		Kit.detail(m, "Edge", at(s * 5.02, TOP - 0.08, 7), Vector3.new(0.08, 0.16, 74), PINK, Enum.Material.Neon)
 	end
 	for z = -26, 40, 11 do
 		local lamp = Kit.detail(m, "Spot", at(0, H - 1, z), Vector3.new(2, 1, 2), Color3.fromRGB(255, 240, 250), Enum.Material.Neon)
 		local spot = Instance.new("SpotLight")
 		spot.Face = Enum.NormalId.Bottom
-		spot.Angle = 50
-		spot.Range = 40
-		spot.Brightness = 3
+		spot.Angle = 45
+		spot.Range = 32
+		spot.Brightness = 1.1
 		spot.Color = if (z // 11) % 2 == 0 then Color3.fromRGB(255, 200, 230) else Color3.fromRGB(255, 255, 255)
 		spot.Parent = lamp
 	end
