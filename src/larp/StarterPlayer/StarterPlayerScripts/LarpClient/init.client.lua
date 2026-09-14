@@ -19,6 +19,7 @@ require(script:WaitForChild("CosmeticFx")).start()
 require(script:WaitForChild("Drive")).start()
 require(script:WaitForChild("CarFx")).start(ui)
 require(script:WaitForChild("Reality")).start(ui)
+require(script:WaitForChild("Clips")).start(ui)
 require(script:WaitForChild("ChallengePrompts")).start()
 require(script:WaitForChild("SceneDirector")).start(ui)
 

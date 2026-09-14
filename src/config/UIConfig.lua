@@ -116,6 +116,12 @@ return {
 		ComingSoon = "The shop opens soon. Check back later!", BoostLeft = "⚡ 2x BOOST  %d:%02d",
 		ShopPerk = "💖 Anything you buy also opens the VIP++ Arena: props worth about 4x",
 		ShopInfo = "ABOUT", GotIt = "GOT IT", Soon = "SOON",
+		-- the Invite and Clip buttons (Config.Referral; LarpClient.Clips)
+		Invite = "Invite", InvitePrompt = "Larp-off your friends! You both get 2x points for 15 minutes",
+		InviteUnavailable = "Invites aren't available right now",
+		Clip = "Clip", ClipArmed = "REC NEXT", ClipReady = "🎥 Your next larp-off's ending will be recorded",
+		ClipTitle = "🎬 YOUR LARP-OFF CLIP", ClipShare = "SHARE", ClipSave = "SAVE",
+		ClipUnsupported = "This device can't record clips",
 		-- Touch Grass
 		TouchGrass = "Touch Grass", GrassTitle = "TOUCH GRASS?", NotYet = "Not yet",
 		GrassBody = "Start a new run: every stat goes back to 0 and your rank back to NPC, but you farm faster forever. You keep your Wins and cosmetics.\n\nFarming bonus: %s now → %s after.",

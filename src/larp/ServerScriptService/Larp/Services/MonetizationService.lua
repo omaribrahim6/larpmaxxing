@@ -75,6 +75,17 @@ function MonetizationService:_grant(player: Player, data, reward)
 	end
 end
 
+-- A code-style reward (a boost and/or a stat rush) given from outside the shop: friend
+-- referrals (ReferralService). Returns whether the player's profile was there to take it.
+function MonetizationService:Grant(player: Player, reward): boolean
+	local data = self.Data:Get(player)
+	if not data then
+		return false
+	end
+	self:_grant(player, data, reward)
+	return true
+end
+
 local function applyPass(player: Player, pass)
 	owned[player] = owned[player] or {}
 	owned[player][pass.key] = true

@@ -72,6 +72,8 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 		grassOpen = function() callbacks.grassOpen() end,
 		mapOpen = function() callbacks.mapOpen() end,
 		sprintToggle = function() callbacks.sprintToggle() end,
+		clipToggle = function() callbacks.clipToggle() end,
+		inviteOpen = function() callbacks.inviteOpen() end,
 		onTierUp = tierUp})
 	self.settingsOpen = self.hud.settingsButton
 	self.helpOpen = self.hud.helpButton

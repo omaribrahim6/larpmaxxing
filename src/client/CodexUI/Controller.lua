@@ -118,6 +118,8 @@ function Controller.start()
 			grassOpen=function() self.view.rebirth:Open(self.model.rebirths or 0) self.view:Render(self.model) end,
 			mapOpen=function() self.view.map:Toggle() self.view:Render(self.model) end,
 			sprintToggle=function() if self.sprintToggle then self.sprintToggle() end end,
+			clipToggle=function() if self.clipToggle then self.clipToggle() end end,
+			inviteOpen=function() self:Invite() end,
 			touchGrass=function() if not self.adapter:Send("TouchGrass") then notice(Config.Words.Unavailable,"warning") end end,
 		},{
 			play=play,tiers=require(larp.Shared.Tiers),floors=tuning.Tiers,store=require(larp.Config.Store),rebirthMath=require(larp.Shared.RebirthMath),touchGrass=tuning.TouchGrass,cosmetics=require(larp.Config.Cosmetics),
@@ -157,7 +159,9 @@ function Controller.start()
 		local stat=catalog.statsById[statId]
 		if not stat or type(index)~="number" or type(count)~="number" or count<1 or count>20
 			or index<1 or index>count or index%1~=0 or count%1~=0 then return false end
-		self.view:SetRound(stat,index,count) return true
+		self.view:SetRound(stat,index,count)
+		if self.roundListener then task.spawn(self.roundListener,index,count) end
+		return true
 	end
 	-- The round chip goes once the rounds are over (SceneDirector, at the verdict).
 	function self:ClearRound() self.view:ClearRound() end
@@ -194,6 +198,22 @@ function Controller.start()
 	-- the Sprint button drives SprintKit (LarpClient), which reports back so the button shows it
 	function self:BindSprint(toggle) self.sprintToggle=toggle end
 	function self:SetSprinting(on) if self.view then self.view.hud:SetSprinting(on) end end
+	-- the Clip button drives LarpClient.Clips, which reports back so the button shows it's armed
+	function self:BindClip(toggle) self.clipToggle=toggle end
+	function self:SetClipArmed(on) if self.view then self.view.hud:SetClipArmed(on) end end
+	-- each larp-off round as it starts (LarpClient.Clips records the last one)
+	function self:OnRound(listener) self.roundListener=listener end
+	-- the Invite button: Roblox's own invite prompt (ReferralService rewards whoever it brings)
+	function self:Invite()
+		task.spawn(function()
+			local SocialService=game:GetService("SocialService")
+			local ok,can=pcall(SocialService.CanSendGameInviteAsync,SocialService,player)
+			if not (ok and can) then notice(Config.Words.InviteUnavailable,"warning") return end
+			local options=Instance.new("ExperienceInviteOptions")
+			options.PromptMessage=Config.Words.InvitePrompt
+			pcall(SocialService.PromptGameInvite,SocialService,player,options)
+		end)
+	end
 	local function profile(packet)
 		local before=table.clone(self.model.settings)
 		local first=not self.model.loaded

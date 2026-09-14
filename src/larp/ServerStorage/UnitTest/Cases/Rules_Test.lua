@@ -119,6 +119,9 @@ return function(t)
 				end
 			end
 		end
+		-- friend referrals reward a boost, capped while an inviter is away
+		local Referral = require(Larp.Config.Referral)
+		expect.truthy(Referral.reward.boostMinutes > 0 and Referral.maxWaiting >= 1)
 		-- Config.Owners only grants passes that exist
 		for userId, keys in require(game.ServerScriptService.Larp.Config.Owners) do
 			expect.truthy(type(userId) == "number")

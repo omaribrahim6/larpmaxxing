@@ -49,6 +49,8 @@ function DataService.defaults()
 		bestRank = 1, -- the highest rank reached, kept through Touch Grass (rank cosmetics)
 		supporter = false, -- has bought something (the VIP++ Arena opens)
 		granted = {}, -- pass keys this account owns without buying (Config.Owners)
+		referredBy = 0, -- the user id whose invite brought this player (rewarded once; ReferralService)
+		invites = 0, -- friends who joined from this player's invites and were rewarded
 		settings = table.clone(SETTINGS_DEFAULTS),
 	}
 end

@@ -1,5 +1,13 @@
 # Handoff
-## LATEST: Claude, 2026-09-14 (arcade cars with sound, skating that pushes, fits only)
+## LATEST: Claude, 2026-09-14 (friend invites and larp-off clips)
+- From the owner's pick of ChatGPT's growth ideas: the cheap, real ones first.
+- **Invite a friend** (`Config.Referral`, `Services.ReferralService`, new): the HUD's new Invite button opens Roblox's invite prompt (`SocialService:PromptGameInvite`, message "You both get 2x points for 15 minutes"). Anyone who joins from a player's invite (any kind: the button, a shared link, Roblox's own invite; `Player:GetJoinData().ReferredByPlayerId`) gets a 15-minute 2x boost once, saved as `referredBy`, and so does the inviter: at once if they're in the server, otherwise on their next visit (DataStore `LarpReferrals_v1`, up to 4 waiting). Profiles count `invites` for later rewards. `MonetizationService:Grant` pays it.
+- **Clip it** (`LarpClient.Clips`, new): the HUD's Clip button arms recording (red, "REC NEXT"); the next larp-off records from its last round through the verdict (CaptureService, 30 s max), then a card offers SHARE (the device's share sheet, with a link back into the game) or SAVE. Devices that can't record say so. CaptureService doesn't record in Studio: check it on a phone or the Roblox app.
+- The HUD's bottom-right corner is Invite, Clip, Map, Sprint (312 wide; it still scales down on small screens).
+- Checked in play: 58/58 tests; the four corner buttons in place. Studio can't write DataStores here, so the referral store only warns (pcall'd).
+- **Owner, after launch:** turn on Roblox's Referral Rewards banner (Creator Dashboard, Engagement, Referral Rewards; available once the game has been public about a day), so Roblox's invite sheet advertises the reward.
+
+## Claude, 2026-09-14 (arcade cars with sound, skating that pushes, fits only)
 - **Cars, rebuilt** (owner: "steering is horrible, doesn't feel like you're controlling it"; "no car sound effects"):
   - Arcade handling in `LarpClient.Drive`: a raycast spring and damper under each wheel hold the chassis up; grip cancels sideways sliding; the steering sets a turning circle (15 studs when slow, 75 at top speed), easing in and back; springs are capped at 3x the car's weight so nothing launches. Tuning is all in `Config.Cars` (topSpeed 150, acceleration, brake, coast, steer, grip, suspension, downforce, engine pitch).
   - A chase camera follows behind (C switches to the free camera and back), wider at speed.
