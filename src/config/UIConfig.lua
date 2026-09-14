@@ -27,8 +27,8 @@ return {
 	StatIcons = { Money = "💰", Aesthetic = "🍵", Drip = "👟", Gains = "💪", BigBrain = "🧠" },
 	-- the pickup combo meter: pickups less than `window` seconds apart chain
 	Combo = { window = 2.2, milestones = { [10] = "ON A ROLL!", [25] = "UNSTOPPABLE!", [50] = "LARP FRENZY!", [100] = "MAXXED OUT!" } },
-	-- how long each full-screen moment holds (Celebrate)
-	CelebrateSeconds = { rank = 3.4, tier = 2.8, reward = 3.4 },
+	-- how long each moment holds (Celebrate); a promotion's banner is gone in about 3 s with its fade
+	CelebrateSeconds = { rank = 2.6, tier = 2.8, reward = 3.4 },
 	-- the How to play book (Tutorial): one page per mechanic. `art` picks the picture
 	-- TutorialArt draws from the game's own models; `image` (an uploaded screenshot's
 	-- rbxassetid) replaces it when set.

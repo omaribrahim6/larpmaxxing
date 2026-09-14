@@ -16,6 +16,7 @@ require(script:WaitForChild("SprintKit")).start(ui)
 require(script:WaitForChild("PickupFx")).start(ui)
 require(script:WaitForChild("EventFx")).start(ui)
 require(script:WaitForChild("CosmeticFx")).start()
+require(script:WaitForChild("Drive")).start(ui)
 require(script:WaitForChild("ChallengePrompts")).start()
 require(script:WaitForChild("SceneDirector")).start(ui)
 

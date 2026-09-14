@@ -203,10 +203,12 @@ function DripFx.carpet(ctx, st, from: Vector3, dir: Vector3, who: Model, length:
 		local mid = from + dir * (len / 2) + Vector3.new(0, 0.05, 0)
 		rug.Size = Vector3.new(3.4, 0.08, len)
 		rug.CFrame = CFrame.lookAt(mid, mid + dir)
+		-- the roll lies across the carpet (a cylinder's axis is its X, which lookAt points
+		-- sideways), sitting on the carpet's leading edge
 		local d = math.max(0.35, 1.1 - len * 0.035)
-		local tip = from + dir * len + Vector3.new(0, d / 2, 0)
+		local tip = from + dir * (len + d * 0.4) + Vector3.new(0, d / 2, 0)
 		roll.Size = Vector3.new(3.5, d, d)
-		roll.CFrame = CFrame.lookAt(tip, tip + dir) * CFrame.Angles(0, math.rad(90), 0)
+		roll.CFrame = CFrame.lookAt(tip, tip + dir)
 		roll.Transparency = if len >= length - 0.05 then 1 else 0
 	end
 	place(0.5)

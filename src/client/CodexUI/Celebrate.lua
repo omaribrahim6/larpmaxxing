@@ -194,77 +194,39 @@ local function holder(parent, anchorY, y, height)
 	return group
 end
 
--- The big moment promotions and Touch Grass share: the screen dims, a sunburst in `color`
--- turns behind `bigText` as it slams in under `eyebrowText`, `subText` fades in below, and
--- confetti falls. `extraText` (optional) is one more line under it: a new cosmetic.
+-- The moment promotions and Touch Grass share, kept small and quick (owner 2026-09-13: the
+-- full-screen one was too big and too long): a banner in the top third with `bigText`
+-- popping in under `eyebrowText` with a shine in `color`, `subText` under it, a small puff
+-- of confetti, and it's gone in about 3 seconds. Nothing dims and clicks pass through, so
+-- play carries on. `extraText` (optional) is one more line under it: a new cosmetic.
 function Celebrate:_burst(color, eyebrowText, bigText, subText, extraText)
 	local d = self.deps
 	local c = d.config.Colors
-	local words = d.config.Words
-	local reduce = d.reduce()
 	local connections = {}
-	local root, backdrop, content = self:_stage(0.55, true)
+	local root, backdrop, content = self:_stage(0, false)
 
-	local rays = new("Frame", content, { Name = "Rays", BackgroundTransparency = 1, AnchorPoint = MID, Position = UDim2.fromScale(0.5, 0.46), Size = UDim2.fromScale(1.5, 1.5) })
-	new("UIAspectRatioConstraint", rays, { AspectRatio = 1 })
-	for i = 0, 7 do
-		local ray = new("Frame", rays, { Name = "Ray", BackgroundColor3 = color, BorderSizePixel = 0, AnchorPoint = MID, Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.07, 1), Rotation = i * 22.5 })
-		new("UIGradient", ray, {
-			Rotation = 90,
-			Transparency = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 1),
-				NumberSequenceKeypoint.new(0.3, 0.75),
-				NumberSequenceKeypoint.new(0.5, 0.35),
-				NumberSequenceKeypoint.new(0.7, 0.75),
-				NumberSequenceKeypoint.new(1, 1),
-			}),
-		})
-	end
-	local raysScale = new("UIScale", rays, { Scale = 0.2 })
-	Juice.tween(raysScale, 0.6, { Scale = 1 }, Enum.EasingStyle.Back)
-	if not reduce then
-		table.insert(connections, RunService.RenderStepped:Connect(function(dt)
-			rays.Rotation += dt * 12
-		end))
-	end
-
-	local eyebrow = Theme.text(content, { name = "Eyebrow", font = Theme.Display, text = eyebrowText, color = c.Accent, align = CENTER, anchor = MID, position = UDim2.fromScale(0.5, 0.3), box = UDim2.fromScale(0.6, 0.08), scaled = true, maxSize = 44, stroke = 3 })
-	local name = Theme.text(content, { name = "RankName", font = Theme.Display, text = bigText, align = CENTER, anchor = MID, position = UDim2.fromScale(0.5, 0.45), box = UDim2.fromScale(0.86, 0.18), scaled = true, maxSize = 100, stroke = 5 })
+	local group = holder(content, 0, 0.13, 146)
+	Theme.text(group, { name = "Eyebrow", font = Theme.Display, text = eyebrowText, color = c.Accent, align = CENTER, box = UDim2.new(1, 0, 0, 24), scaled = true, maxSize = 22, stroke = 2 })
+	local name = Theme.text(group, { name = "RankName", font = Theme.Display, text = bigText, align = CENTER, position = UDim2.fromOffset(0, 26), box = UDim2.new(1, 0, 0, 54), scaled = true, maxSize = 50, stroke = 3.5 })
 	shimmer(name, color, connections)
-	local sub = Theme.text(content, {
-		name = "Next",
-		text = subText,
-		align = CENTER, anchor = MID, position = UDim2.fromScale(0.5, 0.58), box = UDim2.fromScale(0.7, 0.05), scaled = true, maxSize = 28, stroke = 2,
-	})
-	Theme.text(content, { name = "Hint", font = Theme.Small, text = words.TapToContinue, color = c.Muted, align = CENTER, anchor = MID, position = UDim2.fromScale(0.5, 0.9), box = UDim2.fromScale(0.5, 0.03), scaled = true, maxSize = 16, stroke = false })
-
+	local sub = Theme.text(group, { name = "Next", text = subText, align = CENTER, position = UDim2.fromOffset(0, 82), box = UDim2.new(1, 0, 0, 24), scaled = true, maxSize = 20, stroke = 2 })
 	if extraText then
-		local extra = Theme.text(content, { name = "Unlock", font = Theme.Display, text = extraText, color = c.Accent, align = CENTER, anchor = MID, position = UDim2.fromScale(0.5, 0.67), box = UDim2.fromScale(0.7, 0.065), scaled = true, maxSize = 36, stroke = 3 })
-		Juice.punch(extra, 1.5, 0.5)
+		local extra = Theme.text(group, { name = "Unlock", font = Theme.Display, text = extraText, color = c.Accent, align = CENTER, position = UDim2.fromOffset(0, 110), box = UDim2.new(1, 0, 0, 28), scaled = true, maxSize = 24, stroke = 2.5 })
+		Juice.punch(extra, 1.2, 0.4)
 	end
-	Juice.punch(eyebrow, 0.3, 0.45)
-	local nameScale = Juice.scaler(name)
-	if not reduce then
-		nameScale.Scale = 3
-		name.Rotation = -10
-		Juice.tween(nameScale, 0.45, { Scale = 1 }, Enum.EasingStyle.Back)
-		Juice.tween(name, 0.45, { Rotation = -3 }, Enum.EasingStyle.Back)
-		local flash = new("Frame", root, { Name = "Flash", BackgroundColor3 = WHITE, BackgroundTransparency = 0.25, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1) })
-		Juice.tween(flash, 0.45, { BackgroundTransparency = 1 })
+	if not d.reduce() then
+		local nameScale = Juice.scaler(name)
+		nameScale.Scale = 1.5
+		Juice.tween(nameScale, 0.3, { Scale = 1 }, Enum.EasingStyle.Back)
 	end
 	sub.TextTransparency = 1
 	sub.UIStroke.Transparency = 1
-	Juice.tween(sub, 0.4, { TextTransparency = 0 }, nil, nil, 0.35)
-	Juice.tween(sub.UIStroke, 0.4, { Transparency = 0 }, nil, nil, 0.35)
+	Juice.tween(sub, 0.3, { TextTransparency = 0 }, nil, nil, 0.2)
+	Juice.tween(sub.UIStroke, 0.3, { Transparency = 0 }, nil, nil, 0.2)
 
-	d.play("Slam", 0.8)
-	d.play("PickupRare", 0.7)
-	task.delay(0.2, function()
-		d.play("CrowdCheer", 0.35)
-	end)
-	local colors = { color, c.Accent, WHITE, Color3.fromRGB(110, 200, 255), Color3.fromRGB(255, 120, 170) }
-	self:_confetti(root, 90, colors)
-	self:_confetti(root, 30, colors, Vector2.new(0.5, 0.45))
+	d.play("Slam", 0.45)
+	d.play("PickupRare", 0.5)
+	self:_confetti(root, 24, { color, c.Accent, WHITE }, Vector2.new(0.5, 0.2))
 	self:_run(root, backdrop, content, d.config.CelebrateSeconds.rank, connections)
 end
 
