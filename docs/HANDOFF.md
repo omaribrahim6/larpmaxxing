@@ -1,5 +1,25 @@
 # Handoff
-## LATEST: Claude, 2026-09-14 (publish pass: performance)
+## LATEST: Claude, 2026-09-14 (drip, LarpCoins and skateboards everywhere)
+- Owner: a wardrobe system (a Drip tab in the shop bought with LarpCoins from larp-offs; larp clothes like baggy jeans, fleece, baggy hoodies, jorts; base clothes for everyone instead of their own avatar; a Wardrobe button; accessories), and skateboards in the regular world with a better push (a foot really pushing off the ground) and camera effects per push.
+- **LarpCoins** (`Services.CoinService`): the profile's `coins` (new players start with 200, enough for a first piece), shown on the player as the `LarpCoins` attribute. Larp-offs pay (`Config.Drip.earn`): a win 40, an upset +40, a loss or draw 12, half against the Practice Larper, nothing when the same pair's reward limit is hit. The HUD shows them in a row under the stat bars (a drawn coin: Roblox has no coin emoji).
+- **Drip** (`Config.Drip`, `Services.DripService`, `CodexUI.DripView`):
+  - 9 slots: Tops, Outerwear, Bottoms, Shoes, Hats, Shades, Chains, Bags, Boards. Tops, Bottoms, Shoes and Boards are always worn (their starters: oversized white tee, baggy jeans, triple white trainers, a plain deck). 4 tiers: Starter, Fresh (150-500), Hype (450-950), Grail (1,500-2,500). 57 pieces.
+  - Clothes and accessories are Roblox catalog pieces (popular, brand-free UGC layered clothing, hats, shades, chains, bags, layered shoe pairs), put on through a HumanoidDescription built from the avatar's own body, face and hair; the avatar's own clothes and other accessories come off. The larp-off scenes copy the character, so they show the drip too. Boards are `Lib.Board` decks.
+  - The Robux shop's 👟 Drip button opens the Drip panel on SHOP (every piece; tap the price, then BUY? to buy; it goes straight on); the dock's Wardrobe button opens it on WARDROBE (what you own; tap to wear, tap ON to take off a piece in a slot that can be empty). Chips filter by slot; cards show the catalog thumbnail (or a drawn deck).
+  - Server-authoritative: `DripBuy`/`DripEquip` are rate-limited and checked, ownership lives in the profile's `drip`, and a purchase saves at once. A LARP to Reality fit still takes over while it's on (Lib.Fits keeps the drip aside; DripService dresses again after).
+  - Studio test hook: `ServerStorage.LarpDebug:Invoke("coins", userId, amount)`.
+  - Checked in play: the starters on at spawn (hair kept); +1,000 coins, then buying the beanie and the black hoodie through the real remotes: 1,200 to 650 coins and both on. The panel built 57 cards.
+- **Skateboards anywhere** (`Config.Skate`, `Services.SkateService`, `Lib.Board`, `LarpClient.Skate` / `SkateFx`):
+  - B or the corner's Skate button hops on and off (off by itself in a car seat or a larp-off). Space / A / PUSH pushes: +16 per push from 22 up to 64 studs/s (over twice sprint), easing back.
+  - Every client animates every rider: side-on over the board, knees bent, arms out; each push opens the hips to the front, plants the back foot on the ground beside the board (fitted in Studio so it really meets the ground while the front foot stays on the deck), drags it back, lifts it off behind and steps back on, with a dust puff and a scrape where it drags; the wheels roll louder and higher with speed (PSE sounds). Your camera punches with each push (the view widens, dips, nods and rolls a touch), widens with speed and hums near the top.
+  - Joints turn through `Attachment0` on the new AnimationConstraint avatar joints (Motor6D.C0 on older rigs), as Poses does.
+  - LARP to Reality's skate kit uses the same board and pushes (its outfit comes off when you hop off); the old server-held Skate/SkatePush stances are gone.
+  - Checked in play: B put the board on and stopped the walk animation; two pushes took it to 45 studs/s; no errors.
+- HUD: the dock is Wins, Settings, How to play, Shop, Wardrobe, Larp-off (and Touch Grass at the top rank); the corner is Invite, Clip, Map, Sprint, Skate. How to play has a DRIP & BOARDS page.
+- 60/60 tests (new: drip pieces, slots and payouts are well-formed; skating tops out over twice sprint).
+- If a catalog piece is ever taken down by its creator or moderation, swap its id in `Config.Drip`.
+
+## Claude, 2026-09-14 (publish pass: performance)
 - Owner: "whatever is left for this game to be ready to publish ... more optimized / what should be client side".
 - **Measured first** (Studio playtest): the server held 46,990 parts, 35,714 of them pickups (3,768 pickups at ~9.5 parts each, three times the whole city), all replicated to every client (38,079 parts streamed in). Server loops were already light (no per-frame work; the magnet uses a grid).
 - **Pickups are client-rendered now:**

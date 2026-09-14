@@ -51,5 +51,7 @@ return {
 	EngineLoop = 80317022777602, -- Roblox Resources: Car-Engine-Loop (pitched up with speed)
 	TyreSkid = 9126158715, -- PSE: Vehicle Skidding Maneuvers Many Tire Squeals 1 (looped under a slide)
 	CarHorn = 9114402335, -- PSE: Car Honking Dual Air Horns 4 (a short double honk)
+	SkateRoll = 9125955711, -- PSE: Skateboard Start Constant Rolling Cu Wheels (from the side; looped under a rider)
+	SkateScrape = 9125957009, -- PSE: Skateboard Tail Grinds Scrapes 1 (the push foot on the ground)
 	-- Not yet sourced from the licensed library: SadTrombone. Add ids here when found.
 }

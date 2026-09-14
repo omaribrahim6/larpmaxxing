@@ -16,6 +16,7 @@ local Store = require(script.Parent.Store)
 local Rebirth = require(script.Parent.Rebirth)
 local Feed = require(script.Parent.Feed)
 local MapView = require(script.Parent.MapView)
+local DripView = require(script.Parent.DripView)
 local View = {}
 View.__index = View
 local new = Theme.new
@@ -75,6 +76,8 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 		clipToggle = function() callbacks.clipToggle() end,
 		inviteOpen = function() callbacks.inviteOpen() end,
 		larpOffNow = function() callbacks.larpOffNow() end,
+		wardrobeOpen = function() callbacks.dripOpen("wardrobe") end,
+		skateToggle = function() callbacks.skateToggle() end,
 		onTierUp = tierUp})
 	self.settingsOpen = self.hud.settingsButton
 	self.helpOpen = self.hud.helpButton
@@ -84,7 +87,8 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 		onClose = function() callbacks.tutorialClosed() end})
 	-- the shop and codes box
 	self.store = Store.new(self.root, {config = config, store = extras.store or {passes = {}, products = {}}, play = play, button = button,
-		redeem = function(code) callbacks.redeem(code) end, info = function(item) self:ShowInfo(item) end})
+		redeem = function(code) callbacks.redeem(code) end, info = function(item) self:ShowInfo(item) end,
+		dripOpen = function() callbacks.dripOpen("shop") end})
 	-- the shop's ? pages: a second book, over the shop
 	self.info = Tutorial.new(self.root, {config = config, catalog = catalog, format = format, play = play, button = button,
 		rankIndex = function() return self.rankIndex or 1 end, pages = {}, title = words.ShopInfo})
@@ -93,6 +97,10 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 		cosmetics = extras.cosmetics or {}, confirm = function() callbacks.touchGrass() end})
 	-- the city map (the Map button, or M)
 	self.map = MapView.new(self.root, {config = config, catalog = catalog, play = play, button = button})
+	-- the shop's Drip tab and the Wardrobe: clothes and boards for LarpCoins
+	self.drip = DripView.new(self.root, {config = config, drip = extras.drip or {slots = {}, tiers = {}, items = {}}, format = format, play = play, button = button,
+		buy = function(id) callbacks.dripBuy(id) end, equip = function(slot, id) callbacks.dripEquip(slot, id) end,
+		robux = function() callbacks.robuxOpen() end})
 
 	self.guide = Theme.panel(self.root, {name = "Guide", anchor = MID, box = UDim2.fromOffset(440,128), z = 10, edge = c.Accent})
 	self.guide.Visible = false
@@ -391,6 +399,7 @@ function View:FocusTargets()
 	end
 	if self.info:IsOpen() then return self.info:FocusTargets() end
 	if self.tutorial:IsOpen() then return self.tutorial:FocusTargets() end
+	if self.drip:IsOpen() then return self.drip:FocusTargets() end
 	if self.store:IsOpen() then return self.store:FocusTargets() end
 	if self.rebirth:IsOpen() then return self.rebirth:FocusTargets() end
 	if self.map:IsOpen() then return self.map:FocusTargets() end

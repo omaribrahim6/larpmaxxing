@@ -430,39 +430,10 @@ local function watchCharacter(character: Model)
 			end
 		end
 	end
-	-- on the board: Space (or PUSH) pushes off, each push adding speed up to more than twice
-	-- sprinting, easing back to rolling speed; and the cart's prompt says Stop skating
-	local roll: RBXScriptConnection? = nil
+	-- the cart's prompt says Stop skating while you're on the board (LarpClient.Skate runs the
+	-- board itself, here as everywhere)
 	local function skating()
 		local on = character:GetAttribute("Skating") == true
-		if roll then
-			roll:Disconnect()
-			roll = nil
-		end
-		ContextActionService:UnbindAction("LarpSkatePush")
-		if on then
-			local sk = Reality.skate
-			local speed, last = sk.cruise, 0
-			ContextActionService:BindActionAtPriority("LarpSkatePush", function(_, state)
-				if state == Enum.UserInputState.Begin and os.clock() - last >= sk.cooldown then
-					last = os.clock()
-					speed = math.min(sk.top, math.max(speed, sk.cruise) + sk.push)
-					send("push")
-					sound("Whoosh", 0.25, 1.4)
-				end
-				return Enum.ContextActionResult.Sink
-			end, true, Enum.ContextActionPriority.High.Value, Enum.KeyCode.Space, Enum.KeyCode.ButtonA)
-			ContextActionService:SetTitle("LarpSkatePush", words.pushButton)
-			roll = RunService.Heartbeat:Connect(function(dt)
-				-- standing still bleeds speed faster than rolling does
-				local ease = if humanoid.MoveDirection.Magnitude < 0.1 then sk.decay * 4 else sk.decay
-				speed = math.max(sk.cruise, speed - ease * dt)
-				humanoid.WalkSpeed = speed
-			end)
-		else
-			humanoid.WalkSpeed = Tuning.Movement.walkSpeed
-			SprintKit.set(SprintKit.isSprinting())
-		end
 		local world = workspace:FindFirstChild("Larp") and workspace.Larp:FindFirstChild("Map")
 		world = world and world:FindFirstChild("Premium")
 		world = world and world:FindFirstChild("Plaza")

@@ -122,9 +122,15 @@ function Controller.start()
 			inviteOpen=function() self:Invite() end,
 			-- a practice larp-off from anywhere (PracticeNpcService)
 			larpOffNow=function() if not self.adapter:Send("RequestPractice",{quick=true}) then notice(Config.Words.Unavailable,"warning") end end,
+			-- the Drip tab / Wardrobe (DripView) and the Robux shop, one at a time
+			dripOpen=function(tab) self.view.store:Close() self.view.drip:Open(tab) self.view:Render(self.model) end,
+			robuxOpen=function() self.view.drip:Close() self.view.store:Open() self.view:Render(self.model) end,
+			dripBuy=function(id) if not self.adapter:Send("DripBuy",id) then notice(Config.Words.Unavailable,"warning") end end,
+			dripEquip=function(slot,id) if not self.adapter:Send("DripEquip",slot,id) then notice(Config.Words.Unavailable,"warning") end end,
+			skateToggle=function() if self.skateToggle then self.skateToggle() end end,
 			touchGrass=function() if not self.adapter:Send("TouchGrass") then notice(Config.Words.Unavailable,"warning") end end,
 		},{
-			play=play,tiers=require(larp.Shared.Tiers),floors=tuning.Tiers,store=require(larp.Config.Store),rebirthMath=require(larp.Shared.RebirthMath),touchGrass=tuning.TouchGrass,cosmetics=require(larp.Config.Cosmetics),
+			play=play,tiers=require(larp.Shared.Tiers),floors=tuning.Tiers,store=require(larp.Config.Store),rebirthMath=require(larp.Shared.RebirthMath),touchGrass=tuning.TouchGrass,cosmetics=require(larp.Config.Cosmetics),drip=require(larp.Config.Drip),
 			reduce=function() return self.model.settings.reduceEffects==true end,
 			scene=function(statId)
 				local stat=catalog.statsById[statId]
@@ -151,7 +157,7 @@ function Controller.start()
 		self.model.inMatch=isActive==true
 		if isActive then
 			self.model.onboarding:MatchStarted()
-			self:Respond(false) self.model.rematch=nil self.view:SetSettings(false) self.view.tutorial:Close() self.view.info:Close() self.view.store:Close() self.view.rebirth:Close() self.view.map:Close()
+			self:Respond(false) self.model.rematch=nil self.view:SetSettings(false) self.view.tutorial:Close() self.view.info:Close() self.view.store:Close() self.view.rebirth:Close() self.view.map:Close() self.view.drip:Close()
 		else self.view:ClearRound() end
 		-- promotions and tier-ups wait until the larp-off is off screen
 		self.view.celebrate:SetPaused(self.model.inMatch)
@@ -203,6 +209,9 @@ function Controller.start()
 	-- the Clip button drives LarpClient.Clips, which reports back so the button shows it's armed
 	function self:BindClip(toggle) self.clipToggle=toggle end
 	function self:SetClipArmed(on) if self.view then self.view.hud:SetClipArmed(on) end end
+	-- the Skate button drives LarpClient.Skate, which reports back so the button shows it
+	function self:BindSkate(toggle) self.skateToggle=toggle end
+	function self:SetSkating(on) if self.view then self.view.hud:SetSkating(on) end end
 	-- each larp-off round as it starts (LarpClient.Clips records the last one)
 	function self:OnRound(listener) self.roundListener=listener end
 	-- the Invite button: Roblox's own invite prompt (ReferralService rewards whoever it brings)
@@ -230,6 +239,8 @@ function Controller.start()
 	end
 	self.adapter=Adapter.new(larp,{
 		ProfileSync=profile, StatsChanged=profile,
+		-- what this player owns and wears (DripService)
+		DripSync=function(owned,worn) self.view.drip:SetState(owned,worn) end,
 		ChallengeIncoming=function(id,userId,name,rankIndex,seconds)
 			local ok,previous=self.model:Incoming(id,userId,name,rankIndex,seconds)
 			if not ok then return end
@@ -258,6 +269,14 @@ function Controller.start()
 		-- PickupFx owns floating pickup text; do not duplicate it with a toast card.
 	})
 	self.cleanup:Add(self.adapter)
+	-- LarpCoins (CoinService keeps the balance on the player)
+	local function coins()
+		local n=player:GetAttribute("LarpCoins")
+		n=if type(n)=="number" then n else 0
+		self.view.hud:SetCoins(n) self.view.drip:SetCoins(n)
+	end
+	self.cleanup:Add(player:GetAttributeChangedSignal("LarpCoins"):Connect(coins))
+	coins()
 	local function updateGuideLocation()
 		self.model.guideLocation=nil
 		if not self.view.guide.Visible then return end

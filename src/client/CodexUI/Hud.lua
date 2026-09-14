@@ -47,7 +47,7 @@ function Hud.new(root, fx, deps)
 	self.frame = Theme.new("Frame", root, { Name = "HUD", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) })
 
 	-- left column: the rank card, then the stat bars; one UIScale fits it to the screen
-	self.left = Theme.new("Frame", self.frame, { Name = "Left", BackgroundTransparency = 1, Position = UDim2.fromOffset(12, 10), Size = UDim2.fromOffset(CARD_W, 420) })
+	self.left = Theme.new("Frame", self.frame, { Name = "Left", BackgroundTransparency = 1, Position = UDim2.fromOffset(12, 10), Size = UDim2.fromOffset(CARD_W, 470) })
 	self.leftScale = Theme.new("UIScale", self.left, { Name = "Fit" })
 
 	local card = Theme.panel(self.left, { name = "RankCard", anchor = MID, position = UDim2.fromOffset(CARD_W / 2, CARD_H / 2), box = UDim2.fromOffset(CARD_W, CARD_H) })
@@ -102,11 +102,22 @@ function Hud.new(root, fx, deps)
 		}
 		y += ROW_H + ROW_GAP
 	end
+	-- LarpCoins (larp-offs pay them; they buy drip), under the stat bars
+	local coins = Theme.panel(self.left, { name = "Coins", position = UDim2.fromOffset(ROW_H / 2, y + 2), box = UDim2.fromOffset(ROW_W - ROW_H / 2, 36), radius = 10, color = Color3.fromRGB(96, 70, 18) })
+	-- a drawn coin (Roblox has no coin emoji)
+	local coin = Theme.new("Frame", coins, { Name = "Icon", BackgroundColor3 = Color3.fromRGB(255, 206, 84), BorderSizePixel = 0, Position = UDim2.fromOffset(9, 5), Size = UDim2.fromOffset(26, 26) })
+	Theme.corner(coin, 13)
+	Theme.border(coin, Color3.fromRGB(150, 100, 20), 2)
+	Theme.text(coin, { name = "L", font = Theme.Display, text = "L", size = 16, color = Color3.fromRGB(120, 76, 10), align = CENTER, stroke = false })
+	local coinValue = Theme.text(coins, { name = "Value", font = Theme.Display, size = 22, color = Color3.fromRGB(255, 206, 84), position = UDim2.fromOffset(42, 4), box = UDim2.new(1, -124, 0, 28), stroke = 2 })
+	Theme.text(coins, { name = "Label", font = Theme.Small, text = words.Coins:upper(), size = 11, color = Color3.fromRGB(255, 232, 170), align = Enum.TextXAlignment.Right, position = UDim2.new(1, -86, 0, 11), box = UDim2.fromOffset(78, 14), stroke = false })
+	self.coinCounter = Juice.counter(coinValue, format.int, 0.5)
+	y += 44
 	self.note = Theme.text(self.left, { name = "SaveStatus", font = Theme.Small, size = 11, color = c.Muted, position = UDim2.fromOffset(6, y), box = UDim2.new(1, -12, 0, 16), stroke = false })
 
-	-- right edge, middle (clear of the player list): Wins, Settings, Help, Shop, Larp-off, and
-	-- Touch Grass at the top rank
-	self.dock = Theme.new("Frame", self.frame, { Name = "Dock", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -12, 0.5, -30), Size = UDim2.fromOffset(136, 326) })
+	-- right edge, middle (clear of the player list): Wins, Settings, Help, Shop, Wardrobe,
+	-- Larp-off, and Touch Grass at the top rank
+	self.dock = Theme.new("Frame", self.frame, { Name = "Dock", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -12, 0.5, -30), Size = UDim2.fromOffset(136, 380) })
 	self.dockScale = Theme.new("UIScale", self.dock, { Name = "Fit" })
 	local wins = Theme.panel(self.dock, { name = "Wins", anchor = MID, position = UDim2.fromOffset(68, 24), box = UDim2.fromOffset(136, 48), color = Color3.fromRGB(124, 90, 26) })
 	self.winsChip = wins
@@ -129,21 +140,25 @@ function Hud.new(root, fx, deps)
 	local bubble = Theme.panel(self.hint, { name = "Bubble", color = c.Accent, radius = 12 })
 	Theme.text(bubble, { name = "Text", font = Theme.Display, text = words.NewHere, size = 18, color = c.Ink, align = CENTER, position = UDim2.fromOffset(8, 2), box = UDim2.new(1, -16, 1, -4), scaled = true, maxSize = 18, stroke = false })
 	self.shopButton = deps.button(self.dock, { name = "Shop", text = "🛒  " .. words.Shop, size = 16, color = c.Accent, position = UDim2.fromOffset(68, 190), box = UDim2.fromOffset(136, 46) }, deps.shopOpen)
+	-- the Wardrobe: what you wear, from your drip (DripView)
+	self.wardrobeButton = deps.button(self.dock, { name = "Wardrobe", text = "👕  " .. words.Wardrobe, size = 15, color = Color3.fromRGB(214, 150, 30), position = UDim2.fromOffset(68, 244), box = UDim2.fromOffset(136, 46) }, deps.wardrobeOpen)
 	-- a practice larp-off from anywhere, so a quiet server always has someone to larp
-	self.larpOffButton = deps.button(self.dock, { name = "LarpOff", text = "⚔  " .. words.LarpOff, size = 16, color = Color3.fromRGB(196, 64, 112), position = UDim2.fromOffset(68, 244), box = UDim2.fromOffset(136, 46) }, deps.larpOffNow)
+	self.larpOffButton = deps.button(self.dock, { name = "LarpOff", text = "⚔  " .. words.LarpOff, size = 16, color = Color3.fromRGB(196, 64, 112), position = UDim2.fromOffset(68, 298), box = UDim2.fromOffset(136, 46) }, deps.larpOffNow)
 	-- Touch Grass, once a player reaches the top rank
-	self.grassButton = deps.button(self.dock, { name = "TouchGrass", text = "🌱  " .. words.TouchGrass, size = 15, color = Color3.fromRGB(52, 160, 72), position = UDim2.fromOffset(68, 298), box = UDim2.fromOffset(136, 46) }, deps.grassOpen)
+	self.grassButton = deps.button(self.dock, { name = "TouchGrass", text = "🌱  " .. words.TouchGrass, size = 15, color = Color3.fromRGB(52, 160, 72), position = UDim2.fromOffset(68, 352), box = UDim2.fromOffset(136, 46) }, deps.grassOpen)
 	self.grassButton.Visible = false
 
-	-- bottom right: the Invite, Clip, Map and Sprint buttons (above the jump button on touch screens)
+	-- bottom right: the Invite, Clip, Map, Sprint and Skate buttons (above the jump button on
+	-- touch screens)
 	local touch = game:GetService("UserInputService").TouchEnabled and not game:GetService("UserInputService").KeyboardEnabled
 	self.cornerLift = if touch then -170 else -20 -- clear of the jump button on touch screens
-	self.corner = Theme.new("Frame", self.frame, { Name = "Corner", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -16, 1, self.cornerLift), Size = UDim2.fromOffset(312, 72) })
+	self.corner = Theme.new("Frame", self.frame, { Name = "Corner", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -16, 1, self.cornerLift), Size = UDim2.fromOffset(392, 72) })
 	self.cornerScale = Theme.new("UIScale", self.corner, { Name = "Fit" })
 	self.inviteButton = deps.button(self.corner, { name = "Invite", text = "📨\n" .. words.Invite, size = 15, position = UDim2.fromOffset(36, 36), box = UDim2.fromOffset(70, 70) }, deps.inviteOpen)
 	self.clipButton = deps.button(self.corner, { name = "Clip", text = "🎥\n" .. words.Clip, size = 15, position = UDim2.fromOffset(116, 36), box = UDim2.fromOffset(70, 70) }, deps.clipToggle)
 	self.mapButton = deps.button(self.corner, { name = "Map", text = "🗺️\n" .. words.Map, size = 15, position = UDim2.fromOffset(196, 36), box = UDim2.fromOffset(70, 70) }, deps.mapOpen)
 	self.sprintButton = deps.button(self.corner, { name = "Sprint", text = "🏃\n" .. words.Sprint, size = 15, position = UDim2.fromOffset(276, 36), box = UDim2.fromOffset(70, 70) }, deps.sprintToggle)
+	self.skateButton = deps.button(self.corner, { name = "Skate", text = "🛹\n" .. words.Skate, size = 15, position = UDim2.fromOffset(356, 36), box = UDim2.fromOffset(70, 70) }, deps.skateToggle)
 
 	-- the combo meter, bottom centre above the rematch button (small: it's up a lot)
 	self.comboGroup = Theme.new("CanvasGroup", self.frame, { Name = "Combo", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -84), Size = UDim2.fromOffset(220, 68), GroupTransparency = 1 })
@@ -276,6 +291,19 @@ function Hud:SetClipArmed(on)
 	local words = self.deps.config.Words
 	self.clipButton.BackgroundColor3 = if on then c.Negative else c.Raised
 	Theme.setText(self.clipButton, "🎥\n" .. (if on then words.ClipArmed else words.Clip))
+end
+
+-- The Skate button, lit while you're on the board (LarpClient.Skate).
+function Hud:SetSkating(on)
+	local c = self.deps.config.Colors
+	local words = self.deps.config.Words
+	self.skateButton.BackgroundColor3 = if on then c.Positive else c.Raised
+	Theme.setText(self.skateButton, "🛹\n" .. (if on then words.SkateOff else words.Skate))
+end
+
+-- The LarpCoins under the stat bars, counting to the new balance.
+function Hud:SetCoins(n)
+	self.coinCounter.set(n)
 end
 
 function Hud:Tick(now)

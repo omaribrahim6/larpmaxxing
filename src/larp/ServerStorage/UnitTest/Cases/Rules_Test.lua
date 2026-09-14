@@ -161,6 +161,67 @@ return function(t)
 		end
 	end)
 
+	-- Drip: every piece is well-formed, each slot that can't be empty has a free starter, and a
+	-- larp-off pays more for a win (and an upset) than a loss, and less against the Practice Larper.
+	t.test("drip pieces, slots and LarpCoins payouts are well-formed", function()
+		local Drip = require(Larp.Config.Drip)
+		local DripService = require(game.ServerScriptService.Larp.Services.DripService)
+		local CoinService = require(game.ServerScriptService.Larp.Services.CoinService)
+		local slots, tiers, ids = {}, {}, {}
+		for _, slot in Drip.slots do
+			slots[slot.id] = slot
+		end
+		for _, tier in Drip.tiers do
+			tiers[tier.id] = true
+		end
+		for _, item in Drip.items do
+			expect.falsy(ids[item.id])
+			ids[item.id] = true
+			expect.truthy(slots[item.slot] ~= nil and tiers[item.tier] == true)
+			expect.truthy(type(item.price) == "number" and item.price >= 0 and item.price % 1 == 0)
+			expect.truthy(type(item.name) == "string" and #item.name > 0)
+			if item.slot == "Board" then
+				expect.truthy(type(item.board) == "table" and typeof(item.board.deck) == "Color3")
+			else
+				expect.truthy(type(item.assets) == "table" and #item.assets > 0)
+				for _, asset in item.assets do
+					expect.truthy(type(asset.id) == "number" and asset.id > 0)
+					expect.truthy((pcall(function()
+						return Enum.AccessoryType[asset.type]
+					end)))
+				end
+			end
+		end
+		for _, slot in Drip.slots do
+			if slot.required then
+				local starter = DripService.itemsById[slot.starter]
+				expect.truthy(starter ~= nil and starter.slot == slot.id and starter.price == 0)
+			end
+		end
+		-- an empty wardrobe still wears every required slot's starter, and a piece picked for
+		-- the wrong slot falls back to it
+		local worn = {}
+		for _, item in DripService.outfit({}) do
+			worn[item.slot] = item.id
+		end
+		for _, slot in Drip.slots do
+			if slot.required then
+				expect.equal(worn[slot.id], slot.starter)
+			end
+		end
+		expect.equal(DripService.outfit({ Top = "NotAPiece" })[1].id, Drip.slots[1].starter)
+		local win, loss = CoinService.payout("A", false, false)
+		local upsetWin = CoinService.payout("A", true, false)
+		local practiceWin = CoinService.payout("B", false, true)
+		expect.truthy(win > loss and loss > 0 and upsetWin > win and practiceWin < win)
+		local d1, d2 = CoinService.payout("Draw", false, false)
+		expect.equal(d1, loss)
+		expect.equal(d2, loss)
+		-- skating tops out at more than twice sprinting (owner 2026-09-14)
+		local Skate = require(Larp.Config.Skate)
+		expect.truthy(Skate.top >= 2 * Tuning.Movement.sprintSpeed and Skate.cruise < Skate.top)
+	end)
+
 	-- Pickups go to clients as parallel arrays; malformed entries and unknown items are dropped.
 	t.test("pickup packets round-trip and reject junk", function()
 		local PickupWire = require(Larp.Shared.PickupWire)

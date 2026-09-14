@@ -61,6 +61,7 @@ end
 function MatchService:Init(services)
 	self.Stats = services.StatService
 	self.Nameplate = services.NameplateService
+	self.Coins = services.CoinService
 end
 
 function MatchService:Start()
@@ -289,6 +290,9 @@ function MatchService:_settle(match, result)
 		rematchSeconds = Tuning.Challenge.rematchWindowSeconds,
 	}
 	if result.winner == "Draw" then
+		if self.Coins then
+			self.Coins:LarpOff(A, B, "Draw", false, true)
+		end
 		return outcome
 	end
 	local W, L = A, B
@@ -302,6 +306,10 @@ function MatchService:_settle(match, result)
 	local allowed = limiter:allow(keyA, keyB)
 	limiter:record(keyA, keyB)
 	outcome.limited = not allowed
+	-- LarpCoins for both sides (CoinService)
+	if self.Coins then
+		self.Coins:LarpOff(A, B, result.winner, result.upset, allowed)
+	end
 
 	if W.kind == "Player" and W.player.Parent and allowed then
 		local winnerTotal, loserTotal = Catalog.total(W.stats), Catalog.total(L.stats)

@@ -15,7 +15,7 @@ local CENTER = Enum.TextXAlignment.Center
 local new = Theme.new
 
 -- deps: config (UIConfig), store (Larp.Config.Store), play, button(parent, props, onClick),
--- redeem(code), info(item) (opens the item's ? page)
+-- redeem(code), info(item) (opens the item's ? page), dripOpen() (the Drip tab: DripView)
 function Store.new(root, deps)
 	local c = deps.config.Colors
 	local words = deps.config.Words
@@ -25,9 +25,14 @@ function Store.new(root, deps)
 	self.frame = Theme.panel(root, { name = "Store", anchor = MID, position = UDim2.fromScale(0.5, 0.5), box = UDim2.fromOffset(520, 480), z = 11, edge = c.Accent, edgeWidth = 3 })
 	self.frame.Visible = false
 	self.frame.SelectionGroup = true
-	Theme.text(self.frame, { name = "Title", font = Theme.Display, text = "🛒 " .. words.ShopTitle, size = 28, color = c.Accent, position = UDim2.fromOffset(18, 10), box = UDim2.new(1, -90, 0, 42), stroke = 2.5 })
+	Theme.text(self.frame, { name = "Title", font = Theme.Display, text = "🛒 " .. words.ShopTitle, size = 28, color = c.Accent, position = UDim2.fromOffset(18, 10), box = UDim2.new(1, -200, 0, 42), stroke = 2.5 })
 	self.closeButton = deps.button(self.frame, { name = "CloseStore", text = "×", size = 24, position = UDim2.new(1, -30, 0, 30), box = UDim2.fromOffset(40, 40) }, function()
 		self:Close()
+	end)
+
+	-- the Drip tab: clothes, accessories and boards for LarpCoins
+	self.dripButton = deps.button(self.frame, { name = "DripTab", text = words.DripTab, size = 15, color = Color3.fromRGB(214, 150, 30), position = UDim2.new(1, -122, 0, 30), box = UDim2.fromOffset(120, 40) }, function()
+		deps.dripOpen()
 	end)
 
 	-- what any purchase also gets you
@@ -188,6 +193,7 @@ end
 
 function Store:FocusTargets()
 	local targets = table.clone(self.order)
+	table.insert(targets, 1, self.dripButton)
 	table.insert(targets, self.redeemButton)
 	table.insert(targets, self.closeButton)
 	return targets

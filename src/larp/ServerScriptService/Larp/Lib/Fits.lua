@@ -286,43 +286,10 @@ function Fits.medal(character: Model)
 	model.Parent = character
 end
 
--- A skateboard under the feet; the character stands `lift` studs taller on it.
-function Fits.board(character: Model, lift: number)
-	local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
-	local humanoid = character:FindFirstChildOfClass("Humanoid")
-	if not root or not humanoid or character:FindFirstChild(BOARD) then
-		return
-	end
-	local hip = humanoid.HipHeight
-	humanoid:SetAttribute("RealityHip", hip)
-	humanoid.HipHeight = hip + lift
-	local feet = -(hip + root.Size.Y / 2) -- the soles, relative to the root
-	local floor = feet - lift
-	local model = Instance.new("Model")
-	model.Name = BOARD
-	local wood, grip, metal, urethane = Color3.fromRGB(214, 170, 118), Color3.fromRGB(30, 30, 34), Color3.fromRGB(180, 184, 190), Color3.fromRGB(240, 236, 220)
-	piece(model, root, Vector3.new(1.1, 0.14, 3.4), wood, Enum.Material.WoodPlanks, CFrame.new(0, feet - 0.09, 0), "Deck")
-	piece(model, root, Vector3.new(1.06, 0.03, 3.3), grip, Enum.Material.Sand, CFrame.new(0, feet - 0.01, 0), "Grip")
-	for _, z in { -1.15, 1.15 } do
-		piece(model, root, Vector3.new(0.9, 0.12, 0.26), metal, Enum.Material.Metal, CFrame.new(0, floor + 0.34, z), "Truck")
-		for _, x in { -0.46, 0.46 } do
-			piece(model, root, Vector3.new(0.24, 0.44, 0.44), urethane, Enum.Material.SmoothPlastic, CFrame.new(x, floor + 0.22, z), "Wheel", Enum.PartType.Cylinder)
-		end
-	end
-	model.Parent = character
-end
-
+-- The skateboard is Lib.Board now (SkateService puts it on, here as everywhere); this takes
+-- one off, for a reset.
 function Fits.unboard(character: Model)
-	local board = character:FindFirstChild(BOARD)
-	if board then
-		board:Destroy()
-	end
-	local humanoid = character:FindFirstChildOfClass("Humanoid")
-	local hip = humanoid and humanoid:GetAttribute("RealityHip")
-	if humanoid and type(hip) == "number" then
-		humanoid.HipHeight = hip
-		humanoid:SetAttribute("RealityHip", nil)
-	end
+	require(script.Parent.Board).remove(character)
 end
 
 return Fits

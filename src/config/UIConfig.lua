@@ -54,6 +54,9 @@ return {
 		{art = "ranks", color = Color3.fromRGB(122, 214, 112), title = "TOUCH GRASS",
 			body = "At LARP Maxxer you can Touch Grass: start a new run from NPC with every stat at 0, but farm faster forever. +10% the first time, then +15%, +20%, +25% and +30% (up to 2x). You keep your Wins and cosmetics, and Touch Grass x1, x3, x5 and x10 each unlock an item and a nameplate title.",
 			tip = "🌱 Your nameplate shows how many times you've touched grass."},
+		{art = "item", icon = "👟", color = Color3.fromRGB(255, 206, 84), title = "DRIP & BOARDS",
+			body = "Larp-offs pay LarpCoins: a win pays more, an upset double. Spend them in the Shop's Drip tab on fits, hats, chains and skateboards, then pick what you wear in the Wardrobe.",
+			tip = "🛹 B (or the Skate button) hops on your board. Space pushes!"},
 	},
 	-- tours the shop's ? button opens for an item with a `book` (Config.Store), in the How to
 	-- play book's style; `image` (an uploaded screenshot's rbxassetid) replaces a drawing
@@ -67,7 +70,7 @@ return {
 				tip = "🏎️ W/S drive, A/D steer, Space gets out, H honks."},
 			{art = "item", icon = "🛹", color = Color3.fromRGB(132, 196, 96), title = "SKATE WITH A MATCHA",
 				body = "The SK8 & MATCHA cart kits you out: a board, a white tee, jorts, wired earbuds, clogs and an iced matcha. The sidewalks are yours.",
-				tip = "🍵 Walk back to the cart to stop skating."},
+				tip = "🛹 B or the Skate button hops off. Your own board rides the city too."},
 			{art = "item", icon = "👗", color = Color3.fromRGB(255, 120, 190), title = "WALK THE RUNWAY",
 				body = "Fashion Week: pick a fit backstage (Old Money, Streetwear, Designer or Y2K) and walk the runway while the crowd cheers and the photographers go off.",
 				tip = "📸 Your fit stays on while you're in Reality."},
@@ -118,6 +121,11 @@ return {
 		ShopInfo = "ABOUT", GotIt = "GOT IT", Soon = "SOON",
 		-- the Invite and Clip buttons (Config.Referral; LarpClient.Clips)
 		LarpOff = "Larp-off", -- the dock's quick larp-off against a Practice Larper
+		-- drip and boards (Config.Drip; the Drip panel, the Wardrobe and Skate buttons)
+		Drip = "DRIP", DripTab = "👟 Drip", DripShop = "SHOP", DripWardrobe = "WARDROBE", DripRobux = "🛒 Robux",
+		DripAll = "All", DripWear = "WEAR", DripWearing = "ON ✓", DripConfirm = "BUY?",
+		DripEmpty = "Nothing here yet: win larp-offs for LarpCoins, then grab some drip in the shop",
+		Wardrobe = "Wardrobe", Coins = "LarpCoins", Skate = "Skate", SkateOff = "Hop off",
 		Invite = "Invite", InvitePrompt = "Larp-off your friends! You both get 2x points for 15 minutes",
 		InviteUnavailable = "Invites aren't available right now",
 		Clip = "Clip", ClipArmed = "REC NEXT", ClipReady = "🎥 Your next larp-off's ending will be recorded",

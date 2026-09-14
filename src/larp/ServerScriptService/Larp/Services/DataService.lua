@@ -51,6 +51,8 @@ function DataService.defaults()
 		granted = {}, -- pass keys this account owns without buying (Config.Owners)
 		referredBy = 0, -- the user id whose invite brought this player (rewarded once; ReferralService)
 		invites = 0, -- friends who joined from this player's invites and were rewarded
+		coins = 200, -- LarpCoins (CoinService); enough for a first piece of drip straight away
+		drip = { owned = {}, equipped = {} }, -- item id -> true bought; slot -> item id worn (DripService)
 		settings = table.clone(SETTINGS_DEFAULTS),
 	}
 end

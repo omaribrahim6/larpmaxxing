@@ -28,6 +28,7 @@ end
 
 function RealityService:Init(services)
 	self.Cars = services.CarService
+	self.Skate = services.SkateService
 end
 
 local function stateOf(player: Player)
@@ -123,6 +124,9 @@ end
 
 ------------------------------------------------------------------ the skate kit
 
+-- The cart's skate kit: the skate outfit (Config.Reality.skateFit) and a board from
+-- SkateService, which runs skating everywhere (pushes, poses, camera). Hopping off the board
+-- (B or the HUD's button) takes the outfit off too.
 function RealityService:_skate(player: Player, on: boolean)
 	local s = stateOf(player)
 	local character = characterOf(player)
@@ -130,38 +134,27 @@ function RealityService:_skate(player: Player, on: boolean)
 		return
 	end
 	s.skating = on
+	if s.skateWatch then
+		s.skateWatch:Disconnect()
+		s.skateWatch = nil
+	end
 	if on then
 		Fits.dress(character, Reality.skateFit)
 		s.fit = Reality.skateFit.id
-		Fits.board(character, Reality.boardLift)
-		Stance.set(character, "Skate")
-		character:SetAttribute("Skating", true)
+		self.Skate:Set(player, true, true)
+		s.skateWatch = character:GetAttributeChangedSignal("Skating"):Connect(function()
+			if character:GetAttribute("Skating") ~= true then
+				self:_skate(player, false)
+			end
+		end)
 		notice(player, words.skateOn, "success")
 	else
-		Fits.unboard(character)
+		self.Skate:Set(player, false)
 		if s.fit == Reality.skateFit.id then
 			Fits.strip(character)
 			s.fit = nil
 		end
-		Stance.clear(character)
-		character:SetAttribute("Skating", nil)
 	end
-end
-
--- A push off the ground: the back leg kicks for a moment (the client adds the speed).
-function RealityService:_push(player: Player)
-	local s = stateOf(player)
-	local character = characterOf(player)
-	if not s.skating or not character or os.clock() - (s.lastPush or 0) < Reality.skate.cooldown * 0.8 then
-		return
-	end
-	s.lastPush = os.clock()
-	Stance.set(character, "SkatePush")
-	task.delay(0.3, function()
-		if s.skating and character.Parent then
-			Stance.set(character, "Skate")
-		end
-	end)
 end
 
 ------------------------------------------------------------------ the runway
@@ -446,8 +439,6 @@ function RealityService:_action(player: Player, action: any, arg: any)
 		s.pending = nil
 	elseif action == "stopSkate" then
 		self:_skate(player, false)
-	elseif action == "push" then
-		self:_push(player)
 	end
 end
 

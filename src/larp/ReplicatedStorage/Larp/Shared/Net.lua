@@ -25,6 +25,7 @@ Net.Names = {
 	"EventChanged", -- a stat rush: id, endsAt (server time), summonedBy?; no args when it ends
 	"TouchedGrass", -- count, farming multiplier (after a rebirth)
 	"RealityEvent", -- kind, data: LARP to Reality's activities (RealityService -> LarpClient.Reality)
+	"DripSync", -- owned item ids, { slot = item id } worn (DripService -> the Drip panel)
 	-- client -> server
 	"RequestChallenge", -- targetUserId, { rematch = bool }
 	"RespondChallenge", -- id, accept
@@ -35,6 +36,10 @@ Net.Names = {
 	"OpenShop", -- item key? the server opens a player's shop (a locked door), at that item's info
 	"RealityAction", -- action, arg: a LARP to Reality activity step (the fit picked, a bench rep...)
 	"CarHorn", -- (no args) the driver honks; CarService plays it from their car for everyone
+	"DripBuy", -- item id: buy a drip piece with LarpCoins (DripService)
+	"DripEquip", -- slot, item id (nil takes it off where the slot can be empty)
+	"Skate", -- on (bool): hop on or off the board (SkateService)
+	"SkatePush", -- (no args) a push; everyone's client animates it
 	"ClientReady", -- (no args) client listeners are connected; server replies with ProfileSync
 }
 

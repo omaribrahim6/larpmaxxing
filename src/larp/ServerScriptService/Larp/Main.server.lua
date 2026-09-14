@@ -24,6 +24,9 @@ local ORDER = {
 	"CarService",
 	"RealityService",
 	"ReferralService",
+	"CoinService",
+	"DripService",
+	"SkateService",
 }
 
 local services = {}
@@ -70,6 +73,9 @@ if game:GetService("RunService"):IsStudio() then
 			-- LARP to Reality without buying it (Studio only; gone on rejoin)
 			target:SetAttribute("OwnsReality", true)
 			return services.MonetizationService:MakeSupporter(target)
+		elseif command == "coins" then
+			-- LarpCoins, to try the Drip shop (Studio only)
+			return services.CoinService:Add(target, ...)
 		elseif command == "rush" then
 			-- a stat rush now (a Config.Events id, e.g. "GoldenHour")
 			return services.EventService:Begin(...)
