@@ -59,6 +59,14 @@ function MapService:Start()
 			add(folder, street.Name, "street", center, size)
 		end
 	end
+	-- the LARP chatrooms out on the ring (LarpBuild.Chatrooms), so the map shows where to lounge
+	local chatrooms = map:FindFirstChild("Chatrooms")
+	for _, chat in if chatrooms then chatrooms:GetChildren() else {} do
+		if chat:IsA("Model") then
+			local center, size = worldBox(chat:GetBoundingBox())
+			add(folder, chat.Name, "door", center, size, { label = chat:GetAttribute("Label") or chat.Name, icon = chat:GetAttribute("Icon") or "💬" })
+		end
+	end
 	-- each zone's VIP and ELITE doors (LarpBuild.Premium), and the Plaza's own doors: the VIP++
 	-- Arena's and LARP to Reality's, one marker each
 	local PLAZA_DOORS = { ArenaDoor = { "VIP++ ARENA", "💖" }, RealityDoor = { "REALITY", "🌆" } }

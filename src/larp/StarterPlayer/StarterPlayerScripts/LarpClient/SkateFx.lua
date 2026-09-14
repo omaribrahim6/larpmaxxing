@@ -162,7 +162,7 @@ local function scrape(r, character: Model, t: number)
 	if not r.planted then
 		r.planted = true
 		r.dust:Emit(10)
-		r.scrape.Volume = 0.5
+		r.scrape.Volume = Skate.volume.scrape
 		r.scrape.PlaybackSpeed = 0.9 + math.random() * 0.25
 		r.scrape.TimePosition = 0
 		r.scrape:Play()
@@ -217,7 +217,7 @@ function SkateFx.start()
 			-- the wheels: louder and higher the faster the board rolls
 			local v = r.root.AssemblyLinearVelocity
 			local share = math.min(Vector3.new(v.X, 0, v.Z).Magnitude / Skate.top, 1)
-			r.roll.Volume = if near then math.clamp(share * 1.4, 0, 0.7) else 0
+			r.roll.Volume = if near then math.clamp(share * Skate.volume.roll * 2, 0, Skate.volume.roll) else 0
 			r.roll.PlaybackSpeed = 0.75 + share * 0.7
 		end
 	end)

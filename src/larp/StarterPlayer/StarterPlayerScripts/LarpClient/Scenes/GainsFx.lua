@@ -90,11 +90,12 @@ function GainsFx.reflect(st, source: Instance?)
 		end
 	end
 	for _, d in dd do
-		if d:IsA("JointInstance") or d:IsA("WeldConstraint") or d:IsA("Constraint") or d:IsA("BaseScript") or d:IsA("Sound") or d:IsA("GuiBase3d") or d:IsA("LayerCollector") then
+		if d:IsA("BaseScript") or d:IsA("Sound") or d:IsA("GuiBase3d") or d:IsA("LayerCollector") then
 			d:Destroy()
 		elseif d:IsA("Humanoid") then
-			-- kept: a character's shirt and pants only draw on a body with a Humanoid. It
-			-- just mustn't think, or die because its joints are gone.
+			-- kept: a character's clothes only draw on a body with its Humanoid, and layered
+			-- clothing (the drip) also needs the joints, so those stay as well (every part is
+			-- anchored, so nothing moves on its own). It just mustn't think.
 			pcall(function()
 				d.EvaluateStateMachine = false
 			end)

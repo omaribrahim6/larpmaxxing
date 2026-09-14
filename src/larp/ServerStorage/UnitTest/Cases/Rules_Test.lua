@@ -161,6 +161,25 @@ return function(t)
 		end
 	end)
 
+	-- Every LARP chatroom has a spot on the map, a look and topics to larp about.
+	t.test("chatrooms are well-formed", function()
+		local Chat = require(Larp.Config.Chatrooms)
+		expect.truthy(Chat.rotateSeconds > 0 and Chat.spawns > 0 and typeof(Chat.size) == "Vector3")
+		local ids = {}
+		for _, room in Chat.rooms do
+			expect.falsy(ids[room.id])
+			ids[room.id] = true
+			expect.truthy(type(room.name) == "string" and #room.name > 0 and type(room.icon) == "string")
+			expect.truthy(typeof(room.at) == "Vector3" and typeof(room.facing) == "Vector3")
+			expect.near(room.facing.Magnitude, 1)
+			expect.truthy(typeof(room.color) == "Color3" and typeof(room.sofa) == "Color3")
+			expect.truthy(type(room.topics) == "table" and #room.topics >= 2)
+			for _, topic in room.topics do
+				expect.truthy(type(topic) == "string" and #topic > 0)
+			end
+		end
+	end)
+
 	-- Drip: every piece is well-formed, each slot that can't be empty has a free starter, and a
 	-- larp-off pays more for a win (and an upset) than a loss, and less against the Practice Larper.
 	t.test("drip pieces, slots and LarpCoins payouts are well-formed", function()
@@ -219,7 +238,9 @@ return function(t)
 		expect.equal(d2, loss)
 		-- skating tops out at more than twice sprinting (owner 2026-09-14)
 		local Skate = require(Larp.Config.Skate)
-		expect.truthy(Skate.top >= 2 * Tuning.Movement.sprintSpeed and Skate.cruise < Skate.top)
+		expect.truthy(Skate.top >= 2 * Tuning.Movement.sprintSpeed and Skate.boost > 0 and Skate.boost < Skate.top)
+		-- a board only rolls if you keep pushing: what a push adds must beat what a push cycle bleeds
+		expect.truthy(Skate.boost > Skate.decay * Skate.autoPush)
 	end)
 
 	-- Pickups go to clients as parallel arrays; malformed entries and unknown items are dropped.

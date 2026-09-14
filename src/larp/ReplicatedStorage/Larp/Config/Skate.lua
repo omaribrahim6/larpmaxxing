@@ -3,14 +3,20 @@
 -- (Config.Drip, the Board slot): everyone starts with one. LARP to Reality's skate kit uses
 -- the same board and pushes.
 return {
-	-- speeds in studs per second (owner 2026-09-14: push with Space, at least twice sprint):
-	-- rolling speed, what each push adds (boost), the top speed, how fast it eases off (per
-	-- second), and the least time between pushes
-	cruise = 22,
-	boost = 16,
+	-- A board only moves when you push it (owner 2026-09-14): the first press of a direction
+	-- pushes off, and holding one pushes again every `autoPush` seconds; Space (or PUSH) pushes
+	-- whenever you like, down to `cooldown` apart. Each push adds `boost`, up to `top`, and
+	-- speed always bleeds off: `decay` a second while you're steering, `glideDecay` when you
+	-- let go (a free roll), down to `glideStop`, where it rolls to a stop.
+	boost = 18,
 	top = 64,
-	decay = 7,
+	decay = 4.5,
+	autoPush = 1.6,
 	cooldown = 0.34,
+	glideDecay = 3,
+	glideStop = 4,
+	-- the wheels and the push's scrape (owner: they were way too loud)
+	volume = { roll = 0.22, scrape = 0.25 },
 	lift = 0.5, -- how much higher the board stands you (its deck is under your soles)
 	pushSeconds = 0.6, -- one push, from lifting the back foot to stepping back on
 	pushFoot = "RightFoot", -- the back foot, which pushes (a regular stance: left foot forward)

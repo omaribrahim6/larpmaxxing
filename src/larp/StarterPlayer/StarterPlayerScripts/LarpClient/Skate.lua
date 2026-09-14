@@ -1,7 +1,9 @@
 -- Your board (Config.Skate): the HUD's Skate button or B hops on or off (SkateService puts the
--- board under you). On it, Space / A / PUSH pushes: speed jumps (up to more than twice
--- sprinting) and eases back to rolling speed, and the camera punches with each push (the
--- view widens, dips and rolls a touch), widening with speed and humming near the top.
+-- board under you). The board only moves when you push it: the first press of a direction is a
+-- push-off, holding one pushes again every Config.Skate.autoPush seconds, and Space / A / PUSH
+-- pushes whenever you like. Each push adds speed (up to more than twice sprinting) and it
+-- always bleeds off, so letting go leaves you rolling to a stop. The camera punches with each
+-- push (the view widens, dips and rolls a touch), widening with speed and humming near the top.
 -- LarpClient.SkateFx animates the push, for you at once and for everyone else from the server.
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
@@ -16,15 +18,14 @@ local SprintKit = require(script.Parent.SprintKit)
 
 local SkateClient = {}
 
-local PUSH, TOGGLE = "LarpSkatePush", "LarpSkateToggle"
+local PUSH, TOGGLE, RIDE = "LarpSkatePush", "LarpSkateToggle", "LarpSkateRide"
 local player = Players.LocalPlayer
 local ui = nil -- the CodexUI controller (its Skate button)
-local speed = Skate.cruise
+local speed = 0
 local lastPush = -math.huge
 local offset = CFrame.identity -- the camera offset added this frame, taken off before the next
 local fov: number? = nil
 local riding: Model? = nil -- the character set up for skating
-local loop: RBXScriptConnection? = nil
 
 local function onBoard(): boolean
 	local character = player.Character
@@ -43,7 +44,7 @@ local function push()
 		return
 	end
 	lastPush = os.clock()
-	speed = math.min(Skate.top, math.max(speed, Skate.cruise) + Skate.boost)
+	speed = math.min(Skate.top, speed + Skate.boost)
 	SkateFx.pushNow(player.Character)
 	Net.get("SkatePush"):FireServer()
 end
@@ -71,7 +72,7 @@ local function cameraApply(dt: number)
 		return
 	end
 	local C = Skate.camera
-	local share = math.clamp((speed - Skate.cruise) / (Skate.top - Skate.cruise), 0, 1)
+	local share = math.clamp(speed / Skate.top, 0, 1)
 	local p = pulse()
 	local target = Tuning.Movement.fov + share * C.speedFov + p * C.kick
 	fov = if fov then fov + (target - fov) * math.min(1, dt * 12) else camera.FieldOfView
@@ -100,11 +101,8 @@ local function stop()
 	ContextActionService:UnbindAction(PUSH)
 	RunService:UnbindFromRenderStep("LarpSkateCamUndo")
 	RunService:UnbindFromRenderStep("LarpSkateCam")
+	RunService:UnbindFromRenderStep(RIDE)
 	cameraUndo()
-	if loop then
-		loop:Disconnect()
-		loop = nil
-	end
 	local character = riding
 	riding, fov = nil, nil
 	if character and character.Parent then
@@ -127,7 +125,7 @@ local function start(character: Model)
 		return
 	end
 	riding = character
-	speed, lastPush = Skate.cruise, -math.huge
+	speed, lastPush = 0, -math.huge
 	walkAnims(character, false)
 	humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false) -- Space pushes
 	ContextActionService:BindActionAtPriority(PUSH, function(_, state)
@@ -139,11 +137,26 @@ local function start(character: Model)
 	ContextActionService:SetTitle(PUSH, Skate.words.push)
 	RunService:BindToRenderStep("LarpSkateCamUndo", Enum.RenderPriority.Camera.Value - 1, cameraUndo)
 	RunService:BindToRenderStep("LarpSkateCam", Enum.RenderPriority.Camera.Value + 1, cameraApply)
-	loop = RunService.Heartbeat:Connect(function(dt)
-		-- standing still bleeds speed faster than rolling does
-		local ease = if humanoid.MoveDirection.Magnitude < 0.1 then Skate.decay * 4 else Skate.decay
-		speed = math.max(Skate.cruise, speed - ease * dt)
-		humanoid.WalkSpeed = speed
+	-- after the controls have had their say each frame, so letting go keeps you rolling
+	-- instead of the controller stopping you dead
+	local glide = Vector3.zero -- the way you were last heading, for a free roll
+	RunService:BindToRenderStep(RIDE, Enum.RenderPriority.Character.Value, function(dt)
+		local move = humanoid.MoveDirection
+		if move.Magnitude > 0.1 then
+			glide = move.Unit
+			-- steering pushes off: the first press, then again every autoPush seconds
+			if os.clock() - lastPush >= Skate.autoPush then
+				push()
+			end
+			speed = math.max(0, speed - Skate.decay * dt)
+		else
+			-- let go and the board keeps rolling, slowing gently to a stop
+			speed = math.max(0, speed - Skate.glideDecay * dt)
+			if speed > Skate.glideStop and glide.Magnitude > 0 then
+				humanoid:Move(glide, false)
+			end
+		end
+		humanoid.WalkSpeed = math.max(speed, 0.1)
 	end)
 	if ui then
 		ui:SetSkating(true)

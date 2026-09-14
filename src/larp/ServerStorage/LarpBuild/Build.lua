@@ -8,6 +8,7 @@
 --   require(game.ServerStorage.LarpBuild.CarLotCars).build()
 --   require(game.ServerStorage.LarpBuild.Arena).build()
 --   require(game.ServerStorage.LarpBuild.Reality).build()
+--   require(game.ServerStorage.LarpBuild.Chatrooms).build()
 -- MCP execute_luau caches required modules between calls, so from there require a fresh
 -- clone of the LarpBuild folder (and destroy it after), or edits won't take effect.
 local City = require(script.Parent.City)
@@ -25,6 +26,7 @@ function Build.all(): string
 	table.insert(out, "VIP and Elite areas: " .. require(script.Parent.Premium).build())
 	table.insert(out, "VIP++ Arena: " .. require(script.Parent.Arena).build())
 	table.insert(out, "LARP to Reality: " .. require(script.Parent.Reality).build())
+	table.insert(out, "LARP chatrooms: " .. require(script.Parent.Chatrooms).build())
 	table.insert(out, "Leaderboard wall: " .. require(script.Parent.LeaderboardWall).build())
 	-- last: keep what was just built light to draw and simulate
 	table.insert(out, "Optimize: " .. require(script.Parent.Optimize).run())

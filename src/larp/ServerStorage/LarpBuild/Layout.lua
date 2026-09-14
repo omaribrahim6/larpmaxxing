@@ -19,6 +19,17 @@ return {
 		{ name = "SouthAvenue", axis = "Z", at = 0, from = 76, to = 332, spawns = 28 }, -- to the Mall
 		{ name = "NorthAvenue", axis = "Z", at = 0, from = -312, to = -140, spawns = 20 },
 		{ name = "ScholarStreet", axis = "X", at = -312, from = -212, to = 212, spawns = 32 }, -- Gym and Library
+		-- The long way round (owner 2026-09-14: too small a map to skate): an outer ring and the
+		-- links out to it. A `quiet` street is only built up on the city's side, so the LARP
+		-- chatrooms (LarpBuild.Chatrooms) have the outside of the ring to themselves.
+		{ name = "OuterSouth", axis = "X", at = 560, from = -560, to = 560, spawns = 24, quiet = true },
+		{ name = "OuterNorth", axis = "X", at = -560, from = -560, to = 560, spawns = 24, quiet = true },
+		{ name = "OuterEast", axis = "Z", at = 560, from = -560, to = 560, spawns = 24, quiet = true },
+		{ name = "OuterWest", axis = "Z", at = -560, from = -560, to = 560, spawns = 24, quiet = true },
+		{ name = "EastLink", axis = "X", at = 0, from = 424, to = 560, spawns = 12 },
+		{ name = "WestLink", axis = "X", at = -200, from = -560, to = 0, spawns = 24 }, -- clear of the Café Strip's plot
+		{ name = "SouthLink", axis = "Z", at = 0, from = 472, to = 560, spawns = 12 },
+		{ name = "NorthLink", axis = "Z", at = 0, from = -560, to = -312, spawns = 16 },
 	},
 
 	-- Pickup slots in the hand-built Car Lot (City tops its SpawnPoints up to this).
@@ -29,7 +40,7 @@ return {
 	plots = {
 		Plaza = { -60, -120, 60, 56 }, -- the Plaza and Stage 1 (hand-built, not rebuilt)
 		CarLot = { 332, -48, 424, 48 }, -- hand-built lot, moved here once by City
-		Cafe = { -464, -52, -332, 52 },
+		Cafe = { -536, -160, -332, 160 }, -- the T-shaped Café Strip (owner 2026-09-14: bigger, more at the end)
 		Mall = { -80, 332, 80, 472 },
 		Gym = { 212, -372, 332, -252 },
 		Library = { -332, -372, -212, -252 },
@@ -51,5 +62,5 @@ return {
 	-- a street, placed with `chance`.
 	fill = { chunk = 40, reach = 150, chance = 0.9 },
 
-	skyline = { count = 72, radius = { 600, 760 }, height = { 70, 230 } },
+	skyline = { count = 96, radius = { 900, 1120 }, height = { 70, 230 } },
 }

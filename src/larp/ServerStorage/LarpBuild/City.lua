@@ -16,7 +16,7 @@ local City = {}
 local CELL = 4 -- raster resolution; every street coordinate is a multiple of it
 local HALF, WALK = Layout.road.half, Layout.road.walk
 local ROAD_TOP, WALK_TOP = Layout.road.roadTop, Layout.road.walkTop
-local EXTENT = 480 -- the raster covers -EXTENT..EXTENT on X and Z
+local EXTENT = 640 -- the raster covers -EXTENT..EXTENT on X and Z (out past the outer ring)
 
 local EMPTY, ROAD, SIDEWALK, RESERVED, BUILT = 0, 1, 2, 3, 4
 
@@ -235,6 +235,10 @@ local function lineStreets(folder: Instance, rng: Random): (number, number)
 	local lot = Buildings.lot
 	for _, s in Layout.streets do
 		for _, side in { -1, 1 } do
+			-- a quiet street (the outer ring) is only built up on the city's side
+			if s.quiet and side == (if s.at >= 0 then 1 else -1) then
+				continue
+			end
 			local frontage = s.at + side * (HALF + WALK)
 			local face = across(s, -side)
 			local u = s.from - 40
@@ -335,6 +339,9 @@ local function backBlocks(folder: Instance, rng: Random): number
 			local cx, cz = (rect[1] + rect[3]) / 2, (rect[2] + rect[4]) / 2
 			local near = false
 			for _, s in Layout.streets do
+				if s.quiet then
+					continue -- the ring keeps its open outside (the chatrooms sit there)
+				end
 				local r = streetRect(s)
 				local dx = math.max(r[1] - cx, 0, cx - r[3])
 				local dz = math.max(r[2] - cz, 0, cz - r[4])
