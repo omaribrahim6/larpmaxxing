@@ -234,6 +234,77 @@ function BUILD.Matcha()
 	return acc
 end
 
+-- Touch Grass x1: a little sprout growing out of the top of the head. On HatAttachment.
+function BUILD.Sprout()
+	local acc, h = accessory()
+	-- tall enough to poke out of big hair
+	bar(h, Vector3.new(0, -0.1, 0), Vector3.new(0.03, 0.8, 0), 0.07, Color3.fromRGB(86, 160, 70), { name = "Stem" })
+	for _, side in { -1, 1 } do
+		-- tipped up at the outer end
+		piece(h, Vector3.new(0.34, 0.06, 0.2), Color3.fromRGB(104, 196, 84), CFrame.new(side * 0.17, 0.81, 0) * CFrame.Angles(0, 0, side * math.rad(25)), { name = "Leaf" })
+	end
+	return acc
+end
+
+-- Touch Grass x3: a vine round the head at the hairline, wide enough to sit on most hair,
+-- with flowers along it. On HatAttachment.
+function BUILD.FlowerCrown(size: Vector3)
+	local acc, h = accessory()
+	local r = math.max(size.X, size.Z) / 2 + 0.2
+	local y, n = 0.02, 12
+	local vine = Color3.fromRGB(86, 160, 70)
+	local petals = { Color3.fromRGB(255, 214, 90), WHITE, Color3.fromRGB(255, 150, 190) }
+	for i = 1, n do
+		local a0, a1 = (i - 1) / n * math.pi * 2, i / n * math.pi * 2
+		bar(h, Vector3.new(math.cos(a0) * r, y, math.sin(a0) * r), Vector3.new(math.cos(a1) * r, y, math.sin(a1) * r), 0.09, vine, { name = "Vine" })
+		if i % 2 == 0 then
+			local out = Vector3.new(math.cos(a0), 0, math.sin(a0))
+			local at = out * (r + 0.02) + Vector3.new(0, y + 0.05, 0)
+			piece(h, Vector3.new(0.26, 0.26, 0.26), petals[(i / 2 - 1) % #petals + 1], CFrame.new(at), { shape = Enum.PartType.Ball, name = "Flower" })
+			piece(h, Vector3.new(0.11, 0.11, 0.11), Color3.fromRGB(250, 180, 40), CFrame.new(at + out * 0.11), { shape = Enum.PartType.Ball, name = "Middle" })
+		end
+	end
+	return acc
+end
+
+-- Touch Grass x5: the Aura in grass colours, its sparkles drifting down like leaves. An
+-- Attachment for RootAttachment's spot.
+function BUILD.GrassAura()
+	local att = BUILD.Aura()
+	for _, emitter in att:GetChildren() do
+		emitter.Color = ColorSequence.new(Color3.fromRGB(150, 236, 110), Color3.fromRGB(230, 255, 150))
+	end
+	att.Sparkles.Acceleration = Vector3.new(0, -0.8, 0)
+	return att
+end
+
+-- Touch Grass x10: a glowing ring of leaves floating over the head, with golden glints. On
+-- HatAttachment.
+function BUILD.LeafHalo()
+	local acc, h = accessory()
+	local y, r, n = 0.8, 0.55, 10
+	for i = 1, n do
+		local a = i / n * math.pi * 2
+		local at = Vector3.new(math.cos(a) * r, y, math.sin(a) * r)
+		-- each leaf lies along the ring
+		piece(h, Vector3.new(0.16, 0.05, 0.32), Color3.fromRGB(150, 236, 110), CFrame.lookAt(at, at + Vector3.new(-math.sin(a), 0, math.cos(a))), { material = Enum.Material.Neon, name = "Leaf" })
+	end
+	local glow = piece(h, Vector3.new(2 * r, 0.05, 2 * r), GOLD, CFrame.new(0, y, 0), { name = "Glow" })
+	glow.Transparency = 1
+	local glints = Instance.new("ParticleEmitter")
+	glints.Name = "Glints"
+	glints.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+	glints.Color = ColorSequence.new(Color3.fromRGB(255, 230, 150))
+	glints.LightEmission = 1
+	glints.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.2), NumberSequenceKeypoint.new(1, 0) })
+	glints.Lifetime = NumberRange.new(0.5, 0.9)
+	glints.Rate = 5
+	glints.Speed = NumberRange.new(0.1, 0.3)
+	glints.SpreadAngle = Vector2.new(180, 180)
+	glints.Parent = glow
+	return acc
+end
+
 -- Builds cosmetic `id` for a body part of `size` with its attachment at `at`.
 function CosmeticModels.build(id: string, size: Vector3?, at: Vector3?): Instance
 	local builder = BUILD[id]

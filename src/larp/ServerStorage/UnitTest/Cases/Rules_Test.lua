@@ -183,18 +183,35 @@ return function(t)
 		for _, rank in Catalog.ranks do
 			rankNames[rank.name] = true
 		end
+		local ranked, grass = 0, 0
 		for _, c in Cosmetics do
-			expect.truthy(rankNames[c.rank])
-			expect.falsy(seen[c.rank])
-			seen[c.rank] = true
+			if c.grass then
+				-- a Touch Grass milestone: a rebirth count and a title, no rank
+				grass += 1
+				expect.truthy(c.grass >= 1 and type(c.title) == "string" and c.rank == nil)
+			else
+				ranked += 1
+				expect.truthy(rankNames[c.rank])
+				expect.falsy(seen[c.rank])
+				seen[c.rank] = true
+			end
 			local item = Models.build(c.id)
 			expect.truthy(item:IsA("Model") or item:IsA("Attachment"))
 			item:Destroy()
 		end
-		expect.equal(#Cosmetics, #Catalog.ranks - 1)
+		expect.equal(ranked, #Catalog.ranks - 1)
 		expect.equal(#CosmeticService.earned(1), 0)
 		expect.equal(#CosmeticService.earned(3), 2)
-		expect.equal(#CosmeticService.earned(#Catalog.ranks), #Cosmetics)
+		expect.equal(#CosmeticService.earned(#Catalog.ranks), ranked)
+		expect.equal(#CosmeticService.earned(#Catalog.ranks, 3), ranked + 2)
+		expect.equal(#CosmeticService.earned(1, 99), grass)
+		local RebirthMath = require(Larp.Shared.RebirthMath)
+		local reached, nextOne = RebirthMath.milestones(0, Cosmetics)
+		expect.equal(reached, nil)
+		expect.equal(nextOne.grass, 1)
+		reached, nextOne = RebirthMath.milestones(4, Cosmetics)
+		expect.equal(reached.grass, 3)
+		expect.equal(nextOne.grass, 5)
 	end)
 
 	-- Every music zone lists takes with a file and a numeric id (0 = not uploaded yet).

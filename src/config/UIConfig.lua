@@ -52,7 +52,7 @@ return {
 			body = "A win pays bonus points and a Win. Scenes have some luck in them, so the underdog can pull off an UPSET for double the bonus. Lost? Hit Rematch and run it back.",
 			tip = "🏆 Your Wins are on the right side of the screen."},
 		{art = "ranks", color = Color3.fromRGB(122, 214, 112), title = "TOUCH GRASS",
-			body = "At LARP Maxxer you can Touch Grass: start a new run from NPC with every stat at 0, but farm faster forever. +10% the first time, then +15%, +20%, +25% and +30% (up to 2x). You keep your Wins and cosmetics.",
+			body = "At LARP Maxxer you can Touch Grass: start a new run from NPC with every stat at 0, but farm faster forever. +10% the first time, then +15%, +20%, +25% and +30% (up to 2x). You keep your Wins and cosmetics, and Touch Grass x1, x3, x5 and x10 each unlock an item and a nameplate title.",
 			tip = "🌱 Your nameplate shows how many times you've touched grass."},
 	},
 	-- tours the shop's ? button opens for an item with a `book` (Config.Store), in the How to
@@ -126,6 +126,10 @@ return {
 		TouchGrass = "Touch Grass", GrassTitle = "TOUCH GRASS?", NotYet = "Not yet",
 		GrassBody = "Start a new run: every stat goes back to 0 and your rank back to NPC, but you farm faster forever. You keep your Wins and cosmetics.\n\nFarming bonus: %s now → %s after.",
 		GrassDone = "YOU TOUCHED GRASS", GrassCount = "x%d", GrassBonus = "Farming bonus: %s",
+		-- Touch Grass milestones (Config.Cosmetics `grass`): the prompt's line and the moment's
+		GrassUnlocks = "This time you unlock %s %s and the title \"%s\"!",
+		GrassNextAt = "Touch Grass x%d unlocks %s %s and the title \"%s\".",
+		GrassMilestone = "%s  NEW: %s + TITLE \"%s\"",
 		-- a promotion's new rank cosmetic
 		NewCosmetic = "%s  NEW: %s",
 		-- the bottom-right buttons and the city map

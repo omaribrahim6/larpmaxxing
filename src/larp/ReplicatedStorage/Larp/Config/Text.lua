@@ -61,5 +61,6 @@ return {
 		busy = "Finish your larp-off first",
 		announce = "🌱 %s touched grass (x%d)!",
 		plate = "🌱 Touched Grass x%d",
+		titled = "🌱 %s x%d", -- a milestone's title (Config.Cosmetics `grass`)
 	},
 }

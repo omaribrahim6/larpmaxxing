@@ -13,13 +13,13 @@ local GRASS_BUTTON = Color3.fromRGB(52, 160, 72) -- darker, so the white label r
 local new = Theme.new
 
 -- deps: config, play, button(parent, props, onClick), rebirthMath (Shared.RebirthMath),
--- tuning (Tuning.TouchGrass), confirm()
+-- tuning (Tuning.TouchGrass), cosmetics (Config.Cosmetics, for the milestones), confirm()
 function Rebirth.new(root, deps)
 	local words = deps.config.Words
 	local self = setmetatable({ deps = deps, root = root, open = false }, Rebirth)
 	-- dims the game and keeps clicks off the HUD underneath
 	self.backdrop = new("Frame", root, { Name = "GrassBackdrop", BackgroundColor3 = Color3.new(0, 0, 0), BackgroundTransparency = 0.45, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1), Active = true, ZIndex = 11, Visible = false })
-	self.frame = Theme.panel(root, { name = "GrassPrompt", anchor = MID, position = UDim2.fromScale(0.5, 0.5), box = UDim2.fromOffset(460, 330), z = 11, edge = GRASS, edgeWidth = 3 })
+	self.frame = Theme.panel(root, { name = "GrassPrompt", anchor = MID, position = UDim2.fromScale(0.5, 0.5), box = UDim2.fromOffset(460, 390), z = 11, edge = GRASS, edgeWidth = 3 })
 	self.frame.Visible = false
 	self.frame.SelectionGroup = true
 	Theme.text(self.frame, { name = "Title", font = Theme.Display, text = "🌱 " .. words.GrassTitle, size = 30, color = GRASS, align = CENTER, position = UDim2.fromOffset(16, 14), box = UDim2.new(1, -32, 0, 44), stroke = 2.5 })
@@ -45,7 +45,16 @@ function Rebirth:Open(rebirths: number)
 	local d = self.deps
 	local now = d.rebirthMath.multiplier(rebirths, d.tuning)
 	local after = d.rebirthMath.multiplier(rebirths + 1, d.tuning)
-	self.body.Text = d.config.Words.GrassBody:format(("%.2fx"):format(now), ("%.2fx"):format(after))
+	local words = d.config.Words
+	local text = words.GrassBody:format(("%.2fx"):format(now), ("%.2fx"):format(after))
+	-- the next milestone's item and title (Config.Cosmetics `grass`)
+	local _, nextOne = d.rebirthMath.milestones(rebirths, d.cosmetics or {})
+	if nextOne then
+		text ..= "\n\n" .. if nextOne.grass == rebirths + 1
+			then words.GrassUnlocks:format(nextOne.icon, nextOne.name, nextOne.title)
+			else words.GrassNextAt:format(nextOne.grass, nextOne.icon, nextOne.name, nextOne.title)
+	end
+	self.body.Text = text
 	self.frame.Visible = true
 	self.backdrop.Visible = true
 	Juice.punch(self.frame, 0.8, 0.4)

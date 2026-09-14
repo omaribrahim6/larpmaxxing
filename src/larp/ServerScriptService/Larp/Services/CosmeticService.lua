@@ -1,6 +1,7 @@
 -- Rank cosmetics (spec "Rank cosmetics", Config.Cosmetics): each rank-up adds an avatar item,
 -- and a player wears every item up to the best rank they've reached, so Touch Grass keeps
--- them (StatService tracks bestRank). Settings > Show cosmetics takes a player's items off.
+-- them (StatService tracks bestRank). Touch Grass milestones (`grass` entries) add items by
+-- rebirths instead. Settings > Show cosmetics takes a player's items off.
 -- The items are built from parts (Lib.CosmeticModels) and welded on at each spawn.
 local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
@@ -19,11 +20,13 @@ for i, rank in Catalog.ranks do
 	rankIndex[rank.name] = i
 end
 
--- The ids earned by a player whose best rank is `bestRank`, in Config.Cosmetics order.
-function CosmeticService.earned(bestRank: number): { string }
+-- The ids earned by a player whose best rank is `bestRank` and who has touched grass
+-- `rebirths` times (the milestone items), in Config.Cosmetics order.
+function CosmeticService.earned(bestRank: number, rebirths: number?): { string }
 	local ids = {}
 	for _, c in Cosmetics do
-		if (rankIndex[c.rank] or math.huge) <= bestRank then
+		local got = if c.grass then (rebirths or 0) >= c.grass else (rankIndex[c.rank] or math.huge) <= bestRank
+		if got then
 			table.insert(ids, c.id)
 		end
 	end
@@ -92,7 +95,7 @@ function CosmeticService:Refresh(player: Player)
 	end
 	local want = {}
 	if self.Settings:Get(player, "showCosmetics") ~= false then
-		for _, id in CosmeticService.earned(self.Stats:GetBestRank(player)) do
+		for _, id in CosmeticService.earned(self.Stats:GetBestRank(player), self.Stats:GetRebirths(player)) do
 			want[id] = true
 		end
 	end

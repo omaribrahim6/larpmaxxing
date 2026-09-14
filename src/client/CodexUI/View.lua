@@ -89,7 +89,7 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 		rankIndex = function() return self.rankIndex or 1 end, pages = {}, title = words.ShopInfo})
 	-- Touch Grass's confirm prompt
 	self.rebirth = Rebirth.new(self.root, {config = config, play = play, button = button, rebirthMath = extras.rebirthMath, tuning = extras.touchGrass,
-		confirm = function() callbacks.touchGrass() end})
+		cosmetics = extras.cosmetics or {}, confirm = function() callbacks.touchGrass() end})
 	-- the city map (the Map button, or M)
 	self.map = MapView.new(self.root, {config = config, catalog = catalog, play = play, button = button})
 

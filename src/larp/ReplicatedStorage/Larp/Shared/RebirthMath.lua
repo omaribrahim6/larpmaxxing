@@ -12,4 +12,20 @@ function RebirthMath.multiplier(count: number, config: { bonuses: { number }, ca
 	return math.min(config.cap, total)
 end
 
+-- The Touch Grass milestones (Config.Cosmetics entries with `grass`) around `count` rebirths:
+-- the best one reached and the next one to reach, either nil.
+function RebirthMath.milestones(count: number, cosmetics: { any }): (any, any)
+	local reached, nextOne = nil, nil
+	for _, c in cosmetics do
+		if c.grass and c.grass <= count then
+			if not reached or c.grass > reached.grass then
+				reached = c
+			end
+		elseif c.grass and (not nextOne or c.grass < nextOne.grass) then
+			nextOne = c
+		end
+	end
+	return reached, nextOne
+end
+
 return RebirthMath

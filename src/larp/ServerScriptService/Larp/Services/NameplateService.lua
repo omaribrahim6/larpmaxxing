@@ -4,6 +4,8 @@ local Players = game:GetService("Players")
 
 local Larp = game:GetService("ReplicatedStorage"):WaitForChild("Larp")
 local Catalog = require(Larp.Shared.Catalog)
+local RebirthMath = require(Larp.Shared.RebirthMath)
+local Cosmetics = require(Larp.Config.Cosmetics)
 local Text = require(Larp.Config.Text)
 
 local NameplateService = {}
@@ -70,14 +72,18 @@ local function build(model: Model)
 	return plate
 end
 
--- Line 3 shows EXPOSED while it lasts, otherwise the Touch Grass count once there is one.
+-- Line 3 shows EXPOSED while it lasts, otherwise the Touch Grass count once there is one,
+-- with the title of the best milestone reached (Config.Cosmetics `grass`).
 local function render(plate, rankIndex: number, name: string, wins: number?, exposed: boolean, rebirths: number?)
 	local rank = Catalog.ranks[rankIndex] or Catalog.ranks[1]
 	plate.rank.Text = rank.name
 	plate.rank.TextColor3 = rank.color or Color3.new(1, 1, 1)
 	plate.name.Text = if wins then ("%s   W %d"):format(name, wins) else name
 	plate.tag.Visible = exposed or (rebirths or 0) > 0
-	plate.tag.Text = if exposed then Text.Stamps.Exposed else Text.TouchGrass.plate:format(rebirths or 0)
+	local milestone = RebirthMath.milestones(rebirths or 0, Cosmetics)
+	plate.tag.Text = if exposed then Text.Stamps.Exposed
+		elseif milestone then Text.TouchGrass.titled:format(milestone.title, rebirths or 0)
+		else Text.TouchGrass.plate:format(rebirths or 0)
 	plate.tag.TextColor3 = if exposed then Color3.fromRGB(255, 94, 82) else Color3.fromRGB(122, 214, 112)
 end
 

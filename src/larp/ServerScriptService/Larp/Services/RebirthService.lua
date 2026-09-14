@@ -20,6 +20,7 @@ local limiter = nil
 function RebirthService:Init(services)
 	self.Stats = services.StatService
 	self.Matches = services.MatchService
+	self.Cosmetics = services.CosmeticService
 end
 
 -- A player's farming bonus from their rebirths (1 before the first).
@@ -43,6 +44,7 @@ function RebirthService:_request(player: Player)
 	if not count then
 		return
 	end
+	self.Cosmetics:Refresh(player) -- a milestone's item goes on at once
 	Net.get("TouchedGrass"):FireClient(player, count, RebirthMath.multiplier(count, Tuning.TouchGrass))
 	-- everyone else gets a toast; the player has the full-screen moment
 	local announce = Text.TouchGrass.announce:format(player.DisplayName, count)

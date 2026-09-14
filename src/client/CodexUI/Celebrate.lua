@@ -251,11 +251,19 @@ function SHOW.rank(self, item)
 		if cosmetic then words.NewCosmetic:format(cosmetic.icon, cosmetic.name:upper()) else nil)
 end
 
--- TOUCHED GRASS: the rebirth count in grass green, and the new farming bonus.
+-- TOUCHED GRASS: the rebirth count in grass green, the new farming bonus, and a milestone's
+-- item and title when this count unlocks one (Config.Cosmetics `grass`).
 function SHOW.grass(self, item)
 	local words = self.deps.config.Words
+	local milestone = nil
+	for _, c in self.deps.cosmetics or {} do
+		if c.grass == item.count then
+			milestone = c
+		end
+	end
 	self:_burst(Color3.fromRGB(122, 214, 112), words.GrassDone, words.GrassCount:format(item.count),
-		words.GrassBonus:format(("%.2fx"):format(item.multiplier)))
+		words.GrassBonus:format(("%.2fx"):format(item.multiplier)),
+		if milestone then words.GrassMilestone:format(milestone.icon, milestone.name:upper(), milestone.title:upper()) else nil)
 end
 
 -- SCENE UPGRADE: outlined text under the top of the screen naming the stat's new tier and
