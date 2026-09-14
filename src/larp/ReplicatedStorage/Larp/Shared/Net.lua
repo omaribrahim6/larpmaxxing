@@ -26,6 +26,7 @@ Net.Names = {
 	"TouchedGrass", -- count, farming multiplier (after a rebirth)
 	"RealityEvent", -- kind, data: LARP to Reality's activities (RealityService -> LarpClient.Reality)
 	"DripSync", -- owned item ids, { slot = item id } worn (DripService -> the Drip panel)
+	"QuizState", -- one lounge quiz's whole state on every phase change (QuizService -> LarpClient.Quiz)
 	-- client -> server
 	"RequestChallenge", -- targetUserId, { rematch = bool }
 	"RespondChallenge", -- id, accept
@@ -40,6 +41,8 @@ Net.Names = {
 	"DripEquip", -- slot, item id (nil takes it off where the slot can be empty)
 	"Skate", -- on (bool): hop on or off the board (SkateService)
 	"SkatePush", -- (no args) a push; everyone's client animates it
+	"QuizJoin", -- (no args) start or join the quiz in the lounge you're sitting in (QuizService)
+	"QuizAnswer", -- choice (1-4): lock an answer in
 	"ClientReady", -- (no args) client listeners are connected; server replies with ProfileSync
 }
 

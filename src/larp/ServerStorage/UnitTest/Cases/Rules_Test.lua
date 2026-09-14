@@ -161,10 +161,12 @@ return function(t)
 		end
 	end)
 
-	-- Every LARP chatroom has a spot on the map, a look and topics to larp about.
-	t.test("chatrooms are well-formed", function()
+	-- Every LARP lounge has a spot on the map, a look, and a subject with questions behind it.
+	t.test("lounges are well-formed", function()
 		local Chat = require(Larp.Config.Chatrooms)
-		expect.truthy(Chat.rotateSeconds > 0 and Chat.spawns > 0 and typeof(Chat.size) == "Vector3")
+		local Quiz = require(Larp.Config.Quiz)
+		local Stats = require(Larp.Config.Stats)
+		expect.truthy(typeof(Chat.size) == "Vector3")
 		local ids = {}
 		for _, room in Chat.rooms do
 			expect.falsy(ids[room.id])
@@ -173,10 +175,70 @@ return function(t)
 			expect.truthy(typeof(room.at) == "Vector3" and typeof(room.facing) == "Vector3")
 			expect.near(room.facing.Magnitude, 1)
 			expect.truthy(typeof(room.color) == "Color3" and typeof(room.sofa) == "Color3")
-			expect.truthy(type(room.topics) == "table" and #room.topics >= 2)
-			for _, topic in room.topics do
-				expect.truthy(type(topic) == "string" and #topic > 0)
+			-- the sign, the screen and the map all just say the subject
+			expect.equal(room.name, room.subject:upper())
+			-- every lounge is a subject with a question bank and a real stat behind it
+			expect.truthy(type(Quiz.banks[room.subject]) == "table")
+			expect.truthy(#Quiz.banks[room.subject] >= Quiz.questions)
+			local stat = nil
+			for _, s in Stats do
+				if s.id == room.stat then
+					stat = s
+				end
 			end
+			expect.truthy(stat ~= nil)
+		end
+	end)
+
+	-- Every question has four distinct answers, and the written one is the right one.
+	t.test("quiz banks are well-formed", function()
+		local Quiz = require(Larp.Config.Quiz)
+		expect.equal(#Quiz.choices, 4)
+		expect.truthy(Quiz.minPlayers >= 2 and Quiz.questions > 0 and Quiz.answerSeconds > 0)
+		for subject, bank in Quiz.banks do
+			expect.truthy(#bank >= Quiz.questions)
+			for _, item in bank do
+				expect.truthy(type(item.q) == "string" and #item.q > 0, subject)
+				expect.equal(#item.a, 4)
+				local seen = {}
+				for _, answer in item.a do
+					expect.truthy(type(answer) == "string" and #answer > 0)
+					expect.falsy(seen[answer])
+					seen[answer] = true
+				end
+			end
+		end
+	end)
+
+	-- Scoring: right answers pay the base, and answering sooner pays more, never over the cap.
+	t.test("quiz scores reward speed", function()
+		local Quiz = require(Larp.Config.Quiz)
+		local Service = require(game.ServerScriptService.Larp.Services.QuizService)
+		local full = Quiz.answerSeconds
+		expect.equal(Service.score(0, full), Quiz.base)
+		expect.equal(Service.score(full, full), Quiz.base + Quiz.speedBonus)
+		expect.truthy(Service.score(full * 0.5, full) > Service.score(full * 0.25, full))
+		expect.equal(Service.score(full * 2, full), Quiz.base + Quiz.speedBonus)
+	end)
+
+	-- A round draws distinct questions, and shuffling answers keeps track of the right one.
+	t.test("quiz draws and shuffles fairly", function()
+		local Quiz = require(Larp.Config.Quiz)
+		local Service = require(game.ServerScriptService.Larp.Services.QuizService)
+		local rng = Random.new(7)
+		local order = Service.draw(12, Quiz.questions, rng)
+		expect.equal(#order, Quiz.questions)
+		local seen = {}
+		for _, index in order do
+			expect.falsy(seen[index])
+			seen[index] = true
+			expect.truthy(index >= 1 and index <= 12)
+		end
+		expect.equal(#Service.draw(3, 10, rng), 3) -- never more than the bank holds
+		for _ = 1, 40 do
+			local answers, correct = Service.shuffleAnswers({ "right", "b", "c", "d" }, rng)
+			expect.equal(#answers, 4)
+			expect.equal(answers[correct], "right")
 		end
 	end)
 
