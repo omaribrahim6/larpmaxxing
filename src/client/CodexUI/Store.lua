@@ -1,7 +1,8 @@
--- The shop and codes box: every set-up game pass and developer product (Config.Store; an id
--- of 0 isn't set up yet and stays hidden) as a row with its price and a Buy button (OWNED
--- once a pass is yours), and a box to redeem codes. Roblox's own purchase prompt takes it
--- from there, and the server grants what's bought (MonetizationService).
+-- The shop and codes box: every game pass and developer product (Config.Store) as a row with
+-- its price and a Buy button (OWNED once a pass is yours, SOON while its id is 0), a ? button
+-- that explains it (View's info book: a page about it, or a whole tour for LARP to
+-- Reality), and a box to redeem codes. Roblox's own purchase prompt takes it from there,
+-- and the server grants what's bought (MonetizationService).
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local Theme = require(script.Parent.Theme)
@@ -14,14 +15,14 @@ local CENTER = Enum.TextXAlignment.Center
 local new = Theme.new
 
 -- deps: config (UIConfig), store (Larp.Config.Store), play, button(parent, props, onClick),
--- redeem(code)
+-- redeem(code), info(item) (opens the item's ? page)
 function Store.new(root, deps)
 	local c = deps.config.Colors
 	local words = deps.config.Words
 	local self = setmetatable({ deps = deps, root = root, open = false, rows = {}, prices = {}, order = {} }, Store)
 	-- dims the game and keeps clicks off the HUD underneath
 	self.backdrop = new("Frame", root, { Name = "StoreBackdrop", BackgroundColor3 = Color3.new(0, 0, 0), BackgroundTransparency = 0.45, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1), Active = true, ZIndex = 11, Visible = false })
-	self.frame = Theme.panel(root, { name = "Store", anchor = MID, position = UDim2.fromScale(0.5, 0.5), box = UDim2.fromOffset(480, 460), z = 11, edge = c.Accent, edgeWidth = 3 })
+	self.frame = Theme.panel(root, { name = "Store", anchor = MID, position = UDim2.fromScale(0.5, 0.5), box = UDim2.fromOffset(520, 480), z = 11, edge = c.Accent, edgeWidth = 3 })
 	self.frame.Visible = false
 	self.frame.SelectionGroup = true
 	Theme.text(self.frame, { name = "Title", font = Theme.Display, text = "🛒 " .. words.ShopTitle, size = 28, color = c.Accent, position = UDim2.fromOffset(18, 10), box = UDim2.new(1, -90, 0, 42), stroke = 2.5 })
@@ -45,26 +46,33 @@ function Store.new(root, deps)
 	})
 	new("UIListLayout", list, { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder })
 	local function add(item, kind: string)
-		if item.id == 0 then
-			return
-		end
-		local row = new("Frame", list, { Name = item.key, LayoutOrder = #self.order + 1, Size = UDim2.new(1, -8, 0, 64), BackgroundColor3 = c.Raised, BackgroundTransparency = 0.5, BorderSizePixel = 0 })
+		local featured = item.book ~= nil -- the tour item (LARP to Reality) stands out
+		local row = new("Frame", list, { Name = item.key, LayoutOrder = #self.order + 1, Size = UDim2.new(1, -8, 0, if featured then 72 else 64), BackgroundColor3 = c.Raised, BackgroundTransparency = if featured then 0.15 else 0.5, BorderSizePixel = 0 })
 		Theme.corner(row, 10)
+		if featured then
+			Theme.border(row, c.Accent, 2)
+		end
 		Theme.text(row, { name = "Icon", text = item.icon or "", scaled = true, align = CENTER, position = UDim2.fromOffset(8, 10), box = UDim2.fromOffset(44, 44), stroke = false })
-		Theme.text(row, { name = "Name", font = Theme.Display, text = item.name, size = 20, position = UDim2.fromOffset(60, 6), box = UDim2.new(1, -190, 0, 26), stroke = 2 })
-		Theme.text(row, { name = "Line", text = item.line or "", size = 14, color = c.Muted, position = UDim2.fromOffset(60, 32), box = UDim2.new(1, -190, 0, 26), wrap = true, scaled = true, maxSize = 15, stroke = 1 })
+		Theme.text(row, { name = "Name", font = Theme.Display, text = item.name, size = 20, color = if featured then c.Accent else nil, position = UDim2.fromOffset(60, 6), box = UDim2.new(1, -236, 0, 26), scaled = true, maxSize = 20, stroke = 2 })
+		Theme.text(row, { name = "Line", text = item.line or "", size = 14, color = c.Muted, position = UDim2.fromOffset(60, 32), box = UDim2.new(1, -236, 0, 30), wrap = true, scaled = true, maxSize = 15, stroke = 1 })
+		local info = deps.button(row, { name = "Info", text = "?", size = 20, position = UDim2.new(1, -150, 0.5, 0), box = UDim2.fromOffset(40, 40) }, function()
+			deps.info(item)
+		end)
 		local buy = deps.button(row, { name = "Buy", text = "R$ " .. item.price, size = 17, color = c.Positive, position = UDim2.new(1, -62, 0.5, 0), box = UDim2.fromOffset(110, 44) }, function()
 			self:_buy(item, kind)
 		end)
-		self.rows[item.key] = { item = item, kind = kind, buy = buy }
+		self.rows[item.key] = { item = item, kind = kind, buy = buy, info = info }
+		table.insert(self.order, info)
 		table.insert(self.order, buy)
 		-- the real price, once Roblox reports it
-		task.spawn(function()
-			local ok, info = pcall(MarketplaceService.GetProductInfo, MarketplaceService, item.id, if kind == "pass" then Enum.InfoType.GamePass else Enum.InfoType.Product)
-			if ok and type(info) == "table" and type(info.PriceInRobux) == "number" then
-				self.prices[item.key] = info.PriceInRobux
-			end
-		end)
+		if item.id ~= 0 then
+			task.spawn(function()
+				local ok, data = pcall(MarketplaceService.GetProductInfo, MarketplaceService, item.id, if kind == "pass" then Enum.InfoType.GamePass else Enum.InfoType.Product)
+				if ok and type(data) == "table" and type(data.PriceInRobux) == "number" then
+					self.prices[item.key] = data.PriceInRobux
+				end
+			end)
+		end
 	end
 	for _, pass in deps.store.passes or {} do
 		add(pass, "pass")
@@ -107,6 +115,9 @@ end
 
 function Store:_buy(item, kind: string)
 	local player = Players.LocalPlayer
+	if item.id == 0 then
+		return
+	end
 	if kind == "pass" then
 		if player:GetAttribute("Owns" .. item.key) ~= true then
 			MarketplaceService:PromptGamePassPurchase(player, item.id)
@@ -125,15 +136,25 @@ function Store:_redeem()
 	self.codeBox.Text = ""
 end
 
--- Owned passes read OWNED; prices switch to Roblox's once known.
+-- Owned passes read OWNED and items not set up yet SOON; prices switch to Roblox's once known.
 function Store:Refresh()
 	local player = Players.LocalPlayer
 	local c = self.deps.config.Colors
+	local words = self.deps.config.Words
 	for key, row in self.rows do
 		local owned = row.kind == "pass" and player:GetAttribute("Owns" .. key) == true
-		Theme.setText(row.buy, if owned then self.deps.config.Words.Owned else "R$ " .. tostring(self.prices[key] or row.item.price))
-		row.buy.Active = not owned
-		row.buy.BackgroundColor3 = if owned then c.Raised else c.Positive
+		local soon = row.item.id == 0
+		Theme.setText(row.buy, if owned then words.Owned elseif soon then words.Soon else "R$ " .. tostring(self.prices[key] or row.item.price))
+		row.buy.Active = not owned and not soon
+		row.buy.BackgroundColor3 = if owned or soon then c.Raised else c.Positive
+	end
+end
+
+-- The ? page of the item with `key` (a locked door opens the shop right at it).
+function Store:Info(key: string)
+	local row = self.rows[key]
+	if row then
+		self.deps.info(row.item)
 	end
 end
 
@@ -143,7 +164,7 @@ function Store:Open()
 	end
 	self.open = true
 	local size = self.root.AbsoluteSize
-	self.frame.Size = UDim2.fromOffset(math.max(300, math.min(size.X - 24, 480)), math.max(260, math.min(size.Y - 20, 460)))
+	self.frame.Size = UDim2.fromOffset(math.max(300, math.min(size.X - 24, 520)), math.max(260, math.min(size.Y - 20, 480)))
 	self.frame.Visible = true
 	self.backdrop.Visible = true
 	self:Refresh()

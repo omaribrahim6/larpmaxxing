@@ -25,6 +25,12 @@ return {
 			color = Color3.fromRGB(255, 92, 180),
 			weights = { Common = 20, Uncommon = 28, Rare = 28, Epic = 18, Legendary = 1.8 },
 		},
+		-- LARP to Reality (Config.Reality, LarpBuild.Reality): opens with its own pass; no props
+		Reality = {
+			pass = "Reality",
+			label = "REALITY",
+			color = Color3.fromRGB(80, 200, 255),
+		},
 	},
 	-- each home zone (a Workspace.Larp.Map child): its VIP room's and Elite rooftop's names
 	zones = {
@@ -33,12 +39,13 @@ return {
 		Mall = { VIP = "Designer Floor", Elite = "Mall Rooftop" },
 		Gym = { VIP = "Pro Gym", Elite = "Gym Rooftop" },
 		Library = { VIP = "Rare Books Room", Elite = "Library Rooftop" },
-		Plaza = { Arena = "VIP++ Arena" },
+		Plaza = { Arena = "VIP++ Arena", Reality = "LARP to Reality" },
 	},
 	words = {
 		locked = "🔒 The %s opens at %s",
 		supporterOnly = "🔒 The %s is for anyone who's bought something in the Shop",
-		welcome = { VIP = "💎 Welcome to the %s", Elite = "👑 Welcome to the %s", Arena = "💖 Welcome to the %s" },
+		passOnly = "🔒 %s opens with Turn LARP to Reality in the Shop",
+		welcome = { VIP = "💎 Welcome to the %s", Elite = "👑 Welcome to the %s", Arena = "💖 Welcome to the %s", Reality = "🌆 Welcome to %s. It's all real here" },
 		enter = "Enter", -- the doors' prompts
 		leave = "Leave",
 		back = "Back to the %s", -- the zone's name (Config.Stats zoneName)

@@ -59,14 +59,23 @@ function MapService:Start()
 			add(folder, street.Name, "street", center, size)
 		end
 	end
-	-- each zone's VIP and ELITE doors (LarpBuild.Premium), and the Plaza's VIP++ Arena door
+	-- each zone's VIP and ELITE doors (LarpBuild.Premium), and the Plaza's own doors: the VIP++
+	-- Arena's and LARP to Reality's, one marker each
+	local PLAZA_DOORS = { ArenaDoor = { "VIP++ ARENA", "💖" }, RealityDoor = { "REALITY", "🌆" } }
 	local premium = map:FindFirstChild("Premium")
 	for _, zone in if premium then premium:GetChildren() else {} do
 		local entrance = zone:FindFirstChild("Entrance")
-		if entrance and entrance:IsA("Model") then
+		if entrance and entrance:IsA("Model") and zone.Name == "Plaza" then
+			for name, look in PLAZA_DOORS do
+				local door = entrance:FindFirstChild(name)
+				if door and door:IsA("Model") then
+					local center, size = worldBox(door:GetBoundingBox())
+					add(folder, name, "door", center, size, { label = look[1], icon = look[2] })
+				end
+			end
+		elseif entrance and entrance:IsA("Model") then
 			local center, size = worldBox(entrance:GetBoundingBox())
-			local arena = zone.Name == "Plaza"
-			add(folder, zone.Name .. "Doors", "door", center, size, { label = if arena then "VIP++ ARENA" else "VIP · ELITE", icon = if arena then "💖" else "💎" })
+			add(folder, zone.Name .. "Doors", "door", center, size, { label = "VIP · ELITE", icon = "💎" })
 		end
 	end
 	folder.Parent = Larp

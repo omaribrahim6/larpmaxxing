@@ -22,6 +22,7 @@ Net.Names = {
 	"Announce", -- server-wide banner text
 	"EventChanged", -- a stat rush: id, endsAt (server time), summonedBy?; no args when it ends
 	"TouchedGrass", -- count, farming multiplier (after a rebirth)
+	"RealityEvent", -- kind, data: LARP to Reality's activities (RealityService -> LarpClient.Reality)
 	-- client -> server
 	"RequestChallenge", -- targetUserId, { rematch = bool }
 	"RespondChallenge", -- id, accept
@@ -29,7 +30,8 @@ Net.Names = {
 	"UpdateSetting", -- key, value
 	"RedeemCode", -- code (the shop's codes box)
 	"TouchGrass", -- (no args) the player confirms Touch Grass
-	"OpenShop", -- (no args) the server opens a player's shop (they tried a locked VIP++ door)
+	"OpenShop", -- item key? the server opens a player's shop (a locked door), at that item's info
+	"RealityAction", -- action, arg: a LARP to Reality activity step (the fit picked, a bench rep...)
 	"ClientReady", -- (no args) client listeners are connected; server replies with ProfileSync
 }
 

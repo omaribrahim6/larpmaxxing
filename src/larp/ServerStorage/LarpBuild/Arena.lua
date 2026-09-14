@@ -31,22 +31,26 @@ function Arena.build(): string
 	local cfg = Arena.config
 	local map = workspace:WaitForChild("Larp"):WaitForChild("Map")
 	local root = Kit.folder(map, "Premium", "Folder")
-	local zone = Kit.fresh(root, "Plaza", "Model")
+	-- only the Arena's own pieces are replaced: LARP to Reality (LarpBuild.Reality) shares the zone
+	local zone = Kit.folder(root, "Plaza", "Model")
 	local name = Areas.zones.Plaza.Arena
 
-	-- the Plaza door, and where players land when they leave the Arena
-	local entrance = Instance.new("Model")
-	entrance.Name = "Entrance"
-	entrance.Parent = zone
+	-- the Plaza door (Entrance.ArenaDoor), and where players land when they leave the Plaza's
+	-- areas (Entrance.Arrival); loose parts are the old layout's
+	local entrance = Kit.folder(zone, "Entrance", "Model")
+	for _, child in entrance:GetChildren() do
+		if child:IsA("BasePart") then
+			child:Destroy()
+		end
+	end
+	local doorModel = Kit.fresh(entrance, "ArenaDoor", "Model")
 	local base = CFrame.lookAt(cfg.door, cfg.door + cfg.doorFacing)
-	Premium.door(entrance, base * CFrame.new(0, 5, 0), PINK, "VIP++ ARENA", Areas.words.enter,
+	Premium.door(doorModel, base * CFrame.new(0, 5, 0), PINK, "VIP++ ARENA", Areas.words.enter,
 		("💖 %s (anyone who's bought something)"):format(name), "Plaza", "Arena")
-	Kit.detail(entrance, "Step", base * CFrame.new(0, 0.3, -1.6), Vector3.new(7, 0.2, 2), PINK, Enum.Material.Neon)
+	Kit.detail(doorModel, "Step", base * CFrame.new(0, 0.3, -1.6), Vector3.new(7, 0.2, 2), PINK, Enum.Material.Neon)
 	Kit.block(entrance, "Arrival", base * CFrame.new(0, 0.5, -5), Vector3.new(4, 1, 4), P.white, nil, HIDDEN)
 
-	local m = Instance.new("Model")
-	m.Name = "Arena"
-	m.Parent = zone
+	local m = Kit.fresh(zone, "Arena", "Model")
 	local function at(x: number, y: number, z: number): CFrame
 		return CFrame.new(cfg.center + Vector3.new(x, y, z))
 	end
@@ -110,7 +114,7 @@ function Arena.build(): string
 	Kit.block(m, "Arrival", at(0, 0.5, half - 12), Vector3.new(4, 1, 4), P.white, nil, HIDDEN)
 	Kit.block(m, "Volume", at(0, 20, 0), Vector3.new(S + 14, 44, S + 14), P.white, nil, HIDDEN)
 	Premium.pickupZone(m, at, -half + 16, -half + 10, half - 16, half - 22, 0, cfg.spawns)
-	return ("%d parts"):format(#zone:GetDescendants())
+	return ("%d parts"):format(#m:GetDescendants() + #doorModel:GetDescendants())
 end
 
 return Arena

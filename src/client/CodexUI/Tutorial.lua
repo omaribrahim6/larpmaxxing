@@ -11,17 +11,18 @@ Tutorial.__index = Tutorial
 local MID = Vector2.new(0.5, 0.5)
 local new = Theme.new
 
--- deps: config, catalog, format, play, button(parent, props, onClick), rankIndex(), onClose()
+-- deps: config, catalog, format, play, button(parent, props, onClick), rankIndex(), onClose(),
+-- and optionally pages and title (the shop's info book is a second one: see SetPages)
 function Tutorial.new(root, deps)
 	local c = deps.config.Colors
 	local words = deps.config.Words
-	local self = setmetatable({ deps = deps, root = root, pages = deps.config.Tutorial or {}, index = 1, open = false, dots = {} }, Tutorial)
+	local self = setmetatable({ deps = deps, root = root, pages = deps.pages or deps.config.Tutorial or {}, index = 1, open = false, dots = {} }, Tutorial)
 	-- dims the game and keeps clicks off the HUD underneath
 	self.backdrop = new("Frame", root, { Name = "TutorialBackdrop", BackgroundColor3 = Color3.new(0, 0, 0), BackgroundTransparency = 0.4, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1), Active = true, ZIndex = 11, Visible = false })
 	self.frame = Theme.panel(root, { name = "Tutorial", anchor = MID, position = UDim2.fromScale(0.5, 0.5), box = UDim2.fromOffset(760, 470), z = 11, edge = c.Accent, edgeWidth = 3 })
 	self.frame.Visible = false
 	self.frame.SelectionGroup = true
-	Theme.text(self.frame, { name = "Eyebrow", font = Theme.Small, text = "❓  " .. words.TutorialTitle, size = 13, color = c.Accent, position = UDim2.fromOffset(20, 14), box = UDim2.new(1, -170, 0, 20), stroke = false })
+	self.eyebrow = Theme.text(self.frame, { name = "Eyebrow", font = Theme.Small, text = "❓  " .. (deps.title or words.TutorialTitle), size = 13, color = c.Accent, position = UDim2.fromOffset(20, 14), box = UDim2.new(1, -170, 0, 20), stroke = false })
 	self.counter = Theme.text(self.frame, { name = "Counter", font = Theme.Small, size = 13, color = c.Muted, align = Enum.TextXAlignment.Right, position = UDim2.new(1, -150, 0, 14), box = UDim2.fromOffset(90, 20), stroke = false })
 	self.closeButton = deps.button(self.frame, { name = "CloseTutorial", text = "×", size = 24, position = UDim2.new(1, -30, 0, 26), box = UDim2.fromOffset(40, 40) }, function()
 		self:Close()
@@ -49,12 +50,7 @@ function Tutorial.new(root, deps)
 		Padding = UDim.new(0, 8),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 	})
-	for i = 1, #self.pages do
-		local dot = new("Frame", self.dotRow, { Name = "Dot" .. i, LayoutOrder = i, BackgroundColor3 = c.Raised, BorderSizePixel = 0, Size = UDim2.fromOffset(10, 10) })
-		Theme.corner(dot)
-		Theme.border(dot, c.Ink, 1.5)
-		self.dots[i] = dot
-	end
+	self:_dots()
 	self.back.NextSelectionRight = self.nextButton
 	self.nextButton.NextSelectionLeft = self.back
 	self.sizeConn = root:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
@@ -63,6 +59,29 @@ function Tutorial.new(root, deps)
 		end
 	end)
 	return self
+end
+
+-- A dot per page.
+function Tutorial:_dots()
+	local c = self.deps.config.Colors
+	for _, dot in self.dots do
+		dot:Destroy()
+	end
+	table.clear(self.dots)
+	for i = 1, #self.pages do
+		local dot = new("Frame", self.dotRow, { Name = "Dot" .. i, LayoutOrder = i, BackgroundColor3 = c.Raised, BorderSizePixel = 0, Size = UDim2.fromOffset(10, 10) })
+		Theme.corner(dot)
+		Theme.border(dot, c.Ink, 1.5)
+		self.dots[i] = dot
+	end
+end
+
+-- New pages (and eyebrow title, and the last page's button text) for the next Open.
+function Tutorial:SetPages(pages, title: string?, doneText: string?)
+	self.pages = pages
+	self.doneText = doneText
+	self.eyebrow.Text = "❓  " .. (title or self.deps.config.Words.TutorialTitle)
+	self:_dots()
 end
 
 -- Picture beside the text on wide screens, above it on narrow ones.
@@ -140,7 +159,7 @@ function Tutorial:_show(index)
 	end
 	self.back.Visible = index > 1
 	local last = index == #pages
-	Theme.setText(self.nextButton, if last then words.LetsGo else words.Next)
+	Theme.setText(self.nextButton, if last then self.doneText or words.LetsGo else words.Next)
 	self.nextButton.BackgroundColor3 = if last then c.Accent else c.Positive
 	self:_clear()
 	local ok, cleanup = pcall(Art.build, page.art, self.picture, {
@@ -150,6 +169,7 @@ function Tutorial:_show(index)
 		color = color,
 		rankIndex = d.rankIndex(),
 		image = page.image,
+		icon = page.icon,
 	})
 	if ok then
 		self.cleanupArt = cleanup
@@ -181,7 +201,9 @@ function Tutorial:Close()
 	self.frame.Visible = false
 	self.backdrop.Visible = false
 	self:_clear()
-	self.deps.onClose()
+	if self.deps.onClose then
+		self.deps.onClose()
+	end
 end
 
 function Tutorial:Next()

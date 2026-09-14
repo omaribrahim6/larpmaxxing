@@ -81,7 +81,10 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 		onClose = function() callbacks.tutorialClosed() end})
 	-- the shop and codes box
 	self.store = Store.new(self.root, {config = config, store = extras.store or {passes = {}, products = {}}, play = play, button = button,
-		redeem = function(code) callbacks.redeem(code) end})
+		redeem = function(code) callbacks.redeem(code) end, info = function(item) self:ShowInfo(item) end})
+	-- the shop's ? pages: a second book, over the shop
+	self.info = Tutorial.new(self.root, {config = config, catalog = catalog, format = format, play = play, button = button,
+		rankIndex = function() return self.rankIndex or 1 end, pages = {}, title = words.ShopInfo})
 	-- Touch Grass's confirm prompt
 	self.rebirth = Rebirth.new(self.root, {config = config, play = play, button = button, rebirthMath = extras.rebirthMath, tuning = extras.touchGrass,
 		confirm = function() callbacks.touchGrass() end})
@@ -210,6 +213,7 @@ function View:Render(model)
 	-- a first-time player reads How to play before the step-by-step guide appears
 	local unread = model.loaded and model.settings.tutorialSeen == false
 	if model.inMatch and self.tutorial:IsOpen() then self.tutorial:Close() end
+	if model.inMatch and self.info:IsOpen() then self.info:Close() end
 	self.feed:SetVisible(not model.inMatch)
 	self.guide.Visible = guide ~= nil and guide:Visible(model.inMatch or model.incoming ~= nil or self.settings.Visible or model.rematch ~= nil
 		or unread or self.tutorial:IsOpen())
@@ -362,6 +366,19 @@ function View:SetNotificationsPaused(paused, now)
 	end
 end
 
+-- The shop's ? for `item` (Config.Store): its tour (UIConfig.Books) when it has one, else a
+-- page about it.
+function View:ShowInfo(item)
+	local config, words = self.config, self.config.Words
+	local pages = item.book and config.Books and config.Books[item.book]
+	if not pages then
+		pages = {{art = "item", icon = item.icon, color = config.Colors.Accent, title = item.name:upper(),
+			body = item.about or item.line or "", tip = ("R$ %s  ·  %s"):format(tostring(item.price), words.ShopPerk)}}
+	end
+	self.info:SetPages(pages, words.ShopInfo .. "  ·  " .. item.name:upper(), words.GotIt)
+	self.info:Open()
+end
+
 function View:FocusTargets()
 	if self.challenge.Visible then return {self.decline, self.accept} end
 	if self.settings.Visible then
@@ -369,6 +386,7 @@ function View:FocusTargets()
 		for _, target in self.settingFocus do if target.Selectable then table.insert(targets, target) end end
 		return targets
 	end
+	if self.info:IsOpen() then return self.info:FocusTargets() end
 	if self.tutorial:IsOpen() then return self.tutorial:FocusTargets() end
 	if self.store:IsOpen() then return self.store:FocusTargets() end
 	if self.rebirth:IsOpen() then return self.rebirth:FocusTargets() end
@@ -455,6 +473,7 @@ function View:Destroy()
 	self.hud:Destroy()
 	self.celebrate:Destroy()
 	self.tutorial:Destroy()
+	self.info:Destroy()
 	self.store:Destroy()
 	self.rebirth:Destroy()
 	self.feed:Destroy()

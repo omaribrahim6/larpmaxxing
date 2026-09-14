@@ -18,11 +18,15 @@ function InputController.new(controller)
 	end
 	-- the button a gamepad lands on when each modal opens
 	local function entry(modal)
-		return if modal==view.challenge then view.decline elseif modal==view.settings then view.settingsClose elseif modal==view.tutorial.frame then view.tutorial.nextButton elseif modal==view.store.frame then view.store.closeButton elseif modal==view.map.frame then view.map.closeButton else view.rebirth.no
+		return if modal==view.challenge then view.decline elseif modal==view.settings then view.settingsClose elseif modal==view.info.frame then view.info.nextButton elseif modal==view.tutorial.frame then view.tutorial.nextButton elseif modal==view.store.frame then view.store.closeButton elseif modal==view.map.frame then view.map.closeButton else view.rebirth.no
+	end
+	-- the open book: the shop's ? pages sit over the shop, else How to play
+	local function book()
+		return if view.info:IsOpen() then view.info else view.tutorial
 	end
 	local function context()
 		return {typing=UIS:GetFocusedTextBox()~=nil,menu=GuiService.MenuIsOpen,
-			inMatch=controller.model.inMatch,challenge=controller.model.incoming~=nil,settings=view.settings.Visible,tutorial=view.tutorial:IsOpen(),store=view.store:IsOpen(),rebirth=view.rebirth:IsOpen(),map=view.map:IsOpen()}
+			inMatch=controller.model.inMatch,challenge=controller.model.incoming~=nil,settings=view.settings.Visible,tutorial=view.tutorial:IsOpen() or view.info:IsOpen(),store=view.store:IsOpen(),rebirth=view.rebirth:IsOpen(),map=view.map:IsOpen()}
 	end
 	local actionName="CodexUI.Navigation"
 	CAS:BindAction(actionName,function(_,state,input)
@@ -36,12 +40,12 @@ function InputController.new(controller)
 				if index then select(targets[index]) view:RevealFocused(targets[index]) end
 			elseif action=="activate" then
 				if not view:ActivateFocused(GuiService.SelectedObject) then
-					if not view.tutorial:IsOpen() then return Enum.ContextActionResult.Pass end
-					view.tutorial:Next()
+					if not book():IsOpen() then return Enum.ContextActionResult.Pass end
+					book():Next()
 				end
-			elseif action=="pageNext" then view.tutorial:Next()
-			elseif action=="pagePrevious" then view.tutorial:Previous()
-			elseif action=="closeTutorial" then view.tutorial:Close()
+			elseif action=="pageNext" then book():Next()
+			elseif action=="pagePrevious" then book():Previous()
+			elseif action=="closeTutorial" then book():Close()
 			elseif action=="closeStore" then view.store:Close()
 			elseif action=="closeRebirth" then view.rebirth:Close()
 			elseif action=="map" then view.map:Toggle()
@@ -53,7 +57,7 @@ function InputController.new(controller)
 	end,false,Enum.KeyCode.G,Enum.KeyCode.Y,Enum.KeyCode.N,Enum.KeyCode.ButtonY,Enum.KeyCode.ButtonB,Enum.KeyCode.Tab,Enum.KeyCode.Return,Enum.KeyCode.Up,Enum.KeyCode.Down,Enum.KeyCode.Left,Enum.KeyCode.Right,Enum.KeyCode.DPadLeft,Enum.KeyCode.DPadRight,Enum.KeyCode.M)
 	local function refresh()
 		local modal=if view.challenge.Visible then view.challenge elseif view.settings.Visible then view.settings
-			elseif view.tutorial:IsOpen() then view.tutorial.frame elseif view.store:IsOpen() then view.store.frame elseif view.rebirth:IsOpen() then view.rebirth.frame elseif view.map:IsOpen() then view.map.frame else nil
+			elseif view.info:IsOpen() then view.info.frame elseif view.tutorial:IsOpen() then view.tutorial.frame elseif view.store:IsOpen() then view.store.frame elseif view.rebirth:IsOpen() then view.rebirth.frame elseif view.map:IsOpen() then view.map.frame else nil
 		local ctx=context()
 		if modal~=previousModal then
 			if not previousModal then previousSelection=GuiService.SelectedObject end

@@ -22,6 +22,7 @@ local ORDER = {
 	"AreaService",
 	"MapService",
 	"CarService",
+	"RealityService",
 }
 
 local services = {}
@@ -63,6 +64,10 @@ if game:GetService("RunService"):IsStudio() then
 			return services.PracticeNpcService:_demo(...)
 		elseif command == "supporter" then
 			-- the VIP++ Arena without buying anything (Studio only)
+			return services.MonetizationService:MakeSupporter(target)
+		elseif command == "reality" then
+			-- LARP to Reality without buying it (Studio only; gone on rejoin)
+			target:SetAttribute("OwnsReality", true)
 			return services.MonetizationService:MakeSupporter(target)
 		elseif command == "rush" then
 			-- a stat rush now (a Config.Events id, e.g. "GoldenHour")

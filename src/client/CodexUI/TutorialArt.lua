@@ -3,7 +3,7 @@
 -- (the city map, the rank ladder, the stamps). build(kind, container, ctx) fills the
 -- picture frame and returns a cleanup function.
 -- ctx: config, catalog, format, color (the page colour), rankIndex, image (an uploaded
--- screenshot's rbxassetid; when set it replaces the drawing).
+-- screenshot's rbxassetid; when set it replaces the drawing), icon (the item picture's emoji).
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -377,6 +377,40 @@ function DRAW.win(container, ctx)
 	Theme.text(pill, { name = "Text", font = Theme.Display, text = ctx.config.Words.Rematch:upper(), size = 15, align = CENTER, stroke = 1.5 })
 	popIn(pill, 1.2)
 	return {}
+end
+
+-- A shop item (or a Reality tour page): its emoji big on a glowing disc, bobbing.
+function DRAW.item(container, ctx)
+	local disc = new("Frame", container, { Name = "Disc", BackgroundColor3 = ctx.color, BackgroundTransparency = 0.55, BorderSizePixel = 0, AnchorPoint = MID, Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.62, 0.62) })
+	new("UIAspectRatioConstraint", disc, { AspectRatio = 1 })
+	Theme.corner(disc)
+	Theme.border(disc, ctx.color:Lerp(WHITE, 0.4), 3)
+	local icon = Theme.text(container, { name = "Icon", text = ctx.icon or "⭐", scaled = true, align = CENTER, anchor = MID, position = UDim2.fromScale(0.5, 0.5), box = UDim2.fromScale(0.4, 0.4), stroke = false })
+	new("UIAspectRatioConstraint", icon, { AspectRatio = 1 })
+	popIn(icon, 0.05)
+	return {
+		RunService.RenderStepped:Connect(function()
+			local t = os.clock()
+			icon.Position = UDim2.fromScale(0.5, 0.5 + 0.025 * math.sin(t * 3))
+			icon.Rotation = 6 * math.sin(t * 1.7)
+		end),
+	}
+end
+
+-- DRIVE THE T5: the game's T5 Supercar turning on a turntable.
+function DRAW.car(container, ctx)
+	local vp, camera = stage(container)
+	new("Part", vp, { Name = "Turntable", Anchored = true, Shape = Enum.PartType.Cylinder, Material = Enum.Material.SmoothPlastic, Color = ctx.color:Lerp(Color3.new(0, 0, 0), 0.5), Size = Vector3.new(0.3, 12, 12), CFrame = CFrame.new(0, -0.15, 0) * CFrame.Angles(0, 0, math.rad(90)) })
+	local model = copy(larp():WaitForChild("Assets"):WaitForChild("Scenes"):WaitForChild("Money"):FindFirstChild("T5_Supercar"))
+	local turn = model and place(vp, model, Vector3.zero, 0.6, 9)
+	return {
+		aim(vp, camera, Vector3.new(0, 1.2, 0), 5, 0.3),
+		RunService.RenderStepped:Connect(function()
+			if turn then
+				turn(os.clock() * 0.6)
+			end
+		end),
+	}
 end
 
 function Art.build(kind, container, ctx)

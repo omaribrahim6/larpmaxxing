@@ -106,7 +106,9 @@ return function(t)
 				expect.falsy(seen[item.key])
 				seen[item.key] = true
 				expect.truthy(type(item.id) == "number" and item.id >= 0)
-				expect.truthy(item.multiplier or item.magnet or item.boostMinutes or item.rush or item.speed or item.bundle)
+				expect.truthy(item.multiplier or item.magnet or item.boostMinutes or item.rush or item.speed or item.bundle or item.reality)
+				-- the shop's ? button has something to say about every item
+				expect.truthy(type(item.about) == "string" or type(item.book) == "string")
 				-- a bundle only includes passes that exist
 				for _, key in item.bundle or {} do
 					local found = false
@@ -120,6 +122,26 @@ return function(t)
 		for code, reward in require(game.ServerScriptService.Larp.Config.Codes) do
 			expect.equal(code, (string.gsub(string.upper(code), "%s", "")))
 			expect.truthy(reward.boostMinutes ~= nil)
+		end
+	end)
+
+	-- Every car in Config.Cars builds into a drivable rig: a chassis, a driver's seat and at
+	-- least three wheels, each on a spring, a steering strut and a motor, with real strengths.
+	t.test("cars build into drivable rigs", function()
+		local Cars = require(Larp.Config.Cars)
+		local CarRig = require(game.ServerScriptService.Larp.Lib.CarRig)
+		for id in Cars.cars do
+			local car = CarRig.build(id, CFrame.new(0, -400, 0))
+			expect.truthy(car.PrimaryPart ~= nil and car.PrimaryPart.Name == "Chassis")
+			expect.truthy(car:FindFirstChild("DriverSeat") ~= nil)
+			local wheels = car.Wheels:GetChildren()
+			expect.truthy(#wheels >= 3)
+			for _, rig in wheels do
+				expect.truthy(rig:FindFirstChild("Spring") and rig:FindFirstChild("Strut") and rig:FindFirstChild("Motor"))
+				expect.truthy(rig.Spring.Stiffness > 0 and rig.Spring.Damping > 0)
+			end
+			expect.truthy(car:GetAttribute("DriveTorque") > 0 and car:GetAttribute("BrakeTorque") > 0)
+			car:Destroy()
 		end
 	end)
 
@@ -196,8 +218,12 @@ return function(t)
 			rankOf[rank.name] = i
 		end
 		for _, tier in Areas.tiers do
-			expect.truthy(tier.supporter or rankOf[tier.rank])
+			expect.truthy(tier.supporter or tier.pass or rankOf[tier.rank])
 		end
+		-- LARP to Reality: only its pass opens it, whatever the rank or other purchases
+		expect.falsy(AreaService.allowed("Reality", #Catalog.ranks, true, {}))
+		expect.falsy(AreaService.allowed("Reality", #Catalog.ranks, true, { MegaBundle = true }))
+		expect.truthy(AreaService.allowed("Reality", 1, false, { Reality = true }))
 		-- the VIP++ Arena: supporters only, whatever their rank, with the richest props
 		expect.falsy(AreaService.allowed("Arena", #Catalog.ranks, false))
 		expect.truthy(AreaService.allowed("Arena", 1, true))

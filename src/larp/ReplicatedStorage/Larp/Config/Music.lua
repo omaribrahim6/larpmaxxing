@@ -3,7 +3,8 @@
 -- screened by tools/audio (see docs/DECISIONS.md), and the owner picks the takes.
 -- Each zone rotates through its takes (one plays through, then the next); a zone with a
 -- single take loops it. file = .local/audio/final/<file>.ogg; id = its Roblox audio asset
--- id, 0 until uploaded. Takes with id 0 are skipped, and a zone with none plays nothing.
+-- id (uploaded 2026-09-13 through Open Cloud), 0 until uploaded. Takes with id 0 are skipped,
+-- and a zone with none plays nothing.
 return {
 	default = "Street", -- outside every zone below: the main theme
 	volume = 0.3, -- before the player's Music volume setting
@@ -13,17 +14,17 @@ return {
 		-- main theme: the Plaza, the Road, the Library, anywhere without its own track
 		Street = {
 			takes = {
-				{ file = "street_take05", id = 0 },
-				{ file = "street_take10", id = 0 },
-				{ file = "street_take11", id = 0 },
-				{ file = "street_take13", id = 0 },
-				{ file = "street_take15", id = 0 },
+				{ file = "street_take05", id = 111534084467965 },
+				{ file = "street_take10", id = 71786993654099 },
+				{ file = "street_take11", id = 109661486618286 },
+				{ file = "street_take13", id = 121889443018254 },
+				{ file = "street_take15", id = 135466702944457 },
 			},
 		},
 		-- a zone is Workspace.Larp.Map.<zone>.ZoneBounds
-		CarLot = { zone = "CarLot", takes = { { file = "carlot_take06", id = 0 }, { file = "carlot_take07", id = 0 } } },
-		Cafe = { zone = "Cafe", takes = { { file = "cafe_take01", id = 0 }, { file = "cafe_take03", id = 0 } } },
-		Gym = { zone = "Gym", takes = { { file = "gym_take01", id = 0 } } },
-		Mall = { zone = "Mall", takes = { { file = "mall_take01", id = 0 }, { file = "mall_take05", id = 0 } } },
+		CarLot = { zone = "CarLot", takes = { { file = "carlot_take06", id = 86973883646504 }, { file = "carlot_take07", id = 136709803224228 } } },
+		Cafe = { zone = "Cafe", takes = { { file = "cafe_take01", id = 115139198722736 }, { file = "cafe_take03", id = 109622764899733 } } },
+		Gym = { zone = "Gym", takes = { { file = "gym_take01", id = 123673749187290 } } },
+		Mall = { zone = "Mall", takes = { { file = "mall_take01", id = 105003983632401 }, { file = "mall_take05", id = 90318297536258 } } },
 	},
 }

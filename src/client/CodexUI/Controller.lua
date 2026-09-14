@@ -147,7 +147,7 @@ function Controller.start()
 		self.model.inMatch=isActive==true
 		if isActive then
 			self.model.onboarding:MatchStarted()
-			self:Respond(false) self.model.rematch=nil self.view:SetSettings(false) self.view.tutorial:Close() self.view.store:Close() self.view.rebirth:Close() self.view.map:Close()
+			self:Respond(false) self.model.rematch=nil self.view:SetSettings(false) self.view.tutorial:Close() self.view.info:Close() self.view.store:Close() self.view.rebirth:Close() self.view.map:Close()
 		else self.view:ClearRound() end
 		-- promotions and tier-ups wait until the larp-off is off screen
 		self.view.celebrate:SetPaused(self.model.inMatch)
@@ -219,8 +219,12 @@ function Controller.start()
 		ChallengeClosed=function(id) self.model:Close(id) self.view:Render(self.model) end,
 		MatchAborted=function() self.model.onboarding:ResetTransient() end,
 		Notice=notice, Announce=function(message) notice(message,"info") end,
-		-- a locked VIP++ door opens the shop, so the way in is right there
-		OpenShop=function() self.view.store:Open() self.view:Render(self.model) end,
+		-- a locked door opens the shop, so the way in is right there (at that item's ? page)
+		OpenShop=function(key)
+			self.view.store:Open()
+			if type(key)=="string" then self.view.store:Info(key) end
+			self.view:Render(self.model)
+		end,
 		-- a rebirth is a full-screen moment too
 		TouchedGrass=function(count,multiplier)
 			if finite(count) and finite(multiplier) then self.view.celebrate:Push({kind="grass",count=count,multiplier=multiplier}) end

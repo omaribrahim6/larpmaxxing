@@ -55,6 +55,30 @@ return {
 			body = "At LARP Maxxer you can Touch Grass: start a new run from NPC with every stat at 0, but farm faster forever. +10% the first time, then +15%, +20%, +25% and +30% (up to 2x). You keep your Wins and cosmetics.",
 			tip = "🌱 Your nameplate shows how many times you've touched grass."},
 	},
+	-- tours the shop's ? button opens for an item with a `book` (Config.Store), in the How to
+	-- play book's style; `image` (an uploaded screenshot's rbxassetid) replaces a drawing
+	Books = {
+		Reality = {
+			{art = "item", icon = "🌆", color = Color3.fromRGB(80, 200, 255), title = "TURN LARP TO REALITY",
+				body = "Your own world past the city, where every larp is real. Walk through the blue door next to the VIP++ Arena in the Plaza. Buy it once and it's yours forever.",
+				tip = "💖 Like everything in the Shop, it opens the VIP++ Arena too."},
+			{art = "car", color = Color3.fromRGB(255, 198, 64), title = "DRIVE THE T5",
+				body = "Grab the keys from a valet and drive the T5 Supercar or the T4 Sports Car round the city streets and down a six-lane highway: real suspension, real steering, up to 120 mph.",
+				tip = "🏎️ W/S drive, A/D steer, Space gets out, H honks."},
+			{art = "item", icon = "🛹", color = Color3.fromRGB(132, 196, 96), title = "SKATE WITH A MATCHA",
+				body = "The SK8 & MATCHA cart kits you out: a board, a white tee, jorts, wired earbuds, Birkenstocks and an iced matcha. The sidewalks are yours.",
+				tip = "🍵 Walk back to the cart to stop skating."},
+			{art = "item", icon = "👗", color = Color3.fromRGB(255, 120, 190), title = "WALK THE RUNWAY",
+				body = "Fashion Week: pick a fit backstage (Old Money, Streetwear, Designer or Y2K) and walk the runway while the crowd cheers and the photographers go off.",
+				tip = "📸 Your fit stays on while you're in Reality."},
+			{art = "item", icon = "🏋️", color = Color3.fromRGB(255, 96, 80), title = "BENCH 500 LB",
+				body = "Lie down at Iron Paradise and push the bar up three times while the whole gym watches. Your name goes up on the 500 LB CLUB board.",
+				tip = "💪 Tap Space (or the PUSH button) as fast as you can."},
+			{art = "item", icon = "🏆", color = Color3.fromRGB(226, 176, 64), title = "WIN A NOBEL PRIZE",
+				body = "Step up to the gold pedestal in the Prize Hall: your name on the big board, a medal round your neck and a standing ovation for your world-changing discovery.",
+				tip = "🏅 You keep the medal on while you're in Reality."},
+		},
+	},
 	Settings = {
 		{key = "acceptLarpOffs", label = "Accept larp-offs", default = true, persisted = true},
 		{key = "clipMode", label = "Clip Mode", default = false, persisted = true},
@@ -91,6 +115,7 @@ return {
 		Shop = "Shop", ShopTitle = "SHOP", Codes = "CODES", EnterCode = "Enter a code", Redeem = "Redeem", Owned = "OWNED",
 		ComingSoon = "The shop opens soon. Check back later!", BoostLeft = "⚡ 2x BOOST  %d:%02d",
 		ShopPerk = "💖 Anything you buy also opens the VIP++ Arena: props worth about 4x",
+		ShopInfo = "ABOUT", GotIt = "GOT IT", Soon = "SOON",
 		-- Touch Grass
 		TouchGrass = "Touch Grass", GrassTitle = "TOUCH GRASS?", NotYet = "Not yet",
 		GrassBody = "Start a new run: every stat goes back to 0 and your rank back to NPC, but you farm faster forever. You keep your Wins and cosmetics.\n\nFarming bonus: %s now → %s after.",

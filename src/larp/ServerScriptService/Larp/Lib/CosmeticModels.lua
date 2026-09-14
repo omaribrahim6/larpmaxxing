@@ -223,6 +223,17 @@ function BUILD.GoldenMatcha()
 	return acc
 end
 
+-- LARP to Reality's skate kit (Lib.Fits): an iced matcha in a clear cup with a white lid and
+-- a straw, held upright like the golden one (origin at RightGripAttachment).
+function BUILD.Matcha()
+	local acc, h = accessory()
+	local c = Vector3.new(0, 0, -0.2)
+	piece(h, Vector3.new(0.72, 0.44, 0.44), MATCHA, CFrame.new(c) * UPRIGHT, { shape = Enum.PartType.Cylinder, name = "Cup", reflectance = 0.1 })
+	piece(h, Vector3.new(0.07, 0.47, 0.47), WHITE, CFrame.new(c + Vector3.new(0, 0.39, 0)) * UPRIGHT, { shape = Enum.PartType.Cylinder, name = "Lid" })
+	bar(h, c + Vector3.new(0.06, 0.3, 0), c + Vector3.new(0.12, 0.78, 0.02), 0.06, Color3.fromRGB(120, 200, 110), { name = "Straw" })
+	return acc
+end
+
 -- Builds cosmetic `id` for a body part of `size` with its attachment at `at`.
 function CosmeticModels.build(id: string, size: Vector3?, at: Vector3?): Instance
 	local builder = BUILD[id]

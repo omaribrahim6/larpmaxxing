@@ -18,12 +18,16 @@ for i, rank in Catalog.ranks do
 	rankOf[rank.name] = i
 end
 
--- Whether a player at rank index `rank`, a `supporter` or not, may be in `tier` (nil: an
--- open area). The VIP++ Arena goes by supporter, the others by rank.
-function AreaService.allowed(tier: string?, rank: number, supporter: boolean?): boolean
+-- Whether a player at rank index `rank`, a `supporter` or not, owning the passes in `owns`
+-- (key -> true), may be in `tier` (nil: an open area). The VIP++ Arena goes by supporter,
+-- LARP to Reality by its own pass, the others by rank.
+function AreaService.allowed(tier: string?, rank: number, supporter: boolean?, owns: { [string]: boolean }?): boolean
 	local spec = tier and Areas.tiers[tier]
 	if spec == nil then
 		return true
+	end
+	if spec.pass then
+		return owns ~= nil and owns[spec.pass] == true
 	end
 	if spec.supporter then
 		return supporter == true
@@ -33,6 +37,15 @@ end
 
 local function isSupporter(player: Player): boolean
 	return player:GetAttribute("Supporter") == true
+end
+
+-- The passes a player owns, read from MonetizationService's Owns<key> attributes.
+local function ownsOf(player: Player): { [string]: boolean }
+	return setmetatable({}, {
+		__index = function(_, key)
+			return player:GetAttribute("Owns" .. tostring(key)) == true
+		end,
+	}) :: any
 end
 
 function AreaService:Init(services)
@@ -49,11 +62,15 @@ local function areaName(home: string, tier: string): string
 	return Areas.zones[home] and Areas.zones[home][tier] or tier
 end
 
--- Stands the player's character on `part`, facing the way it faces.
+-- Stands the player's character on `part`, facing the way it faces. The far areas stream in
+-- around it first, so nobody lands before the floor has.
 local function moveTo(player: Player, part: BasePart?)
 	local character = player.Character
 	if character and part then
-		character:PivotTo(part.CFrame + Vector3.new(0, 3, 0))
+		pcall(player.RequestStreamAroundAsync, player, part.Position, 4)
+		if character.Parent then
+			character:PivotTo(part.CFrame + Vector3.new(0, 3, 0))
+		end
 	end
 end
 
@@ -65,7 +82,11 @@ end
 
 function AreaService:_locked(player: Player, home: string, tier: string)
 	local spec = Areas.tiers[tier]
-	if spec.supporter then
+	if spec.pass then
+		-- the shop opens at the pass's tour
+		Net.get("Notice"):FireClient(player, Areas.words.passOnly:format(areaName(home, tier)), "warning")
+		Net.get("OpenShop"):FireClient(player, spec.pass)
+	elseif spec.supporter then
 		-- the shop opens, so the way in is right there
 		Net.get("Notice"):FireClient(player, Areas.words.supporterOnly:format(areaName(home, tier)), "warning")
 		Net.get("OpenShop"):FireClient(player)
@@ -81,7 +102,7 @@ function AreaService:_use(player: Player, prompt: ProximityPrompt)
 		return
 	end
 	if Areas.tiers[to] then
-		if not AreaService.allowed(to, self.Stats:GetRankIndex(player), isSupporter(player)) then
+		if not AreaService.allowed(to, self.Stats:GetRankIndex(player), isSupporter(player), ownsOf(player)) then
 			self:_locked(player, home, to)
 			return
 		end
@@ -99,7 +120,7 @@ function AreaService:_sweep()
 		if root then
 			local rank = self.Stats:GetRankIndex(player)
 			for _, v in self.volumes do
-				if not AreaService.allowed(v.tier, rank, isSupporter(player)) and inside(v.part, root.Position) then
+				if not AreaService.allowed(v.tier, rank, isSupporter(player), ownsOf(player)) and inside(v.part, root.Position) then
 					moveTo(player, arrival(v.zone:FindFirstChild("Entrance")))
 					self:_locked(player, v.zone.Name, v.tier)
 					break
