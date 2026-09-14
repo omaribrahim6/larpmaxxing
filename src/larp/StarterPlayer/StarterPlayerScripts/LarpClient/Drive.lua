@@ -9,6 +9,7 @@ local CollectionService = game:GetService("CollectionService")
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
 local Larp = game:GetService("ReplicatedStorage"):WaitForChild("Larp")
 local Cars = require(Larp.Config.Cars)
@@ -52,6 +53,45 @@ local function honk(chassis: BasePart)
 	end)
 end
 
+local function held(...): number
+	for _, key in { ... } do
+		if UserInputService:IsKeyDown(key) then
+			return 1
+		end
+	end
+	return 0
+end
+
+-- The throttle and steering: the seat's own (Roblox's vehicle controls fill them) or, when
+-- this game's controls don't, the keys, the gamepad's stick and triggers, or the direction
+-- the player is pushing (touch).
+local function input(seat: VehicleSeat, humanoid: Humanoid, cf: CFrame): (number, number)
+	local throttle, steer = seat.ThrottleFloat, seat.SteerFloat
+	if throttle ~= 0 or steer ~= 0 then
+		return throttle, steer
+	end
+	throttle = held(Enum.KeyCode.W, Enum.KeyCode.Up) - held(Enum.KeyCode.S, Enum.KeyCode.Down)
+	steer = held(Enum.KeyCode.D, Enum.KeyCode.Right) - held(Enum.KeyCode.A, Enum.KeyCode.Left)
+	local ok, states = pcall(UserInputService.GetGamepadState, UserInputService, Enum.UserInputType.Gamepad1)
+	for _, state in if ok then states else {} do
+		if state.KeyCode == Enum.KeyCode.Thumbstick1 and state.Position.Magnitude > 0.15 then
+			steer = state.Position.X
+			throttle = if math.abs(throttle) > 0 then throttle else state.Position.Y
+		elseif state.KeyCode == Enum.KeyCode.ButtonR2 and state.Position.Z > 0.1 then
+			throttle = state.Position.Z
+		elseif state.KeyCode == Enum.KeyCode.ButtonL2 and state.Position.Z > 0.1 then
+			throttle = -state.Position.Z
+		end
+	end
+	if throttle == 0 and steer == 0 then
+		local move = humanoid.MoveDirection
+		if move.Magnitude > 0.1 then
+			throttle, steer = move:Dot(cf.LookVector), move:Dot(cf.RightVector)
+		end
+	end
+	return math.clamp(throttle, -1, 1), math.clamp(steer, -1, 1)
+end
+
 -- Drives `car` from `seat` until the player leaves it.
 local function drive(car: Model, seat: VehicleSeat, humanoid: Humanoid)
 	local spec = Cars.cars[car:GetAttribute("CarId") or ""]
@@ -92,7 +132,7 @@ local function drive(car: Model, seat: VehicleSeat, humanoid: Humanoid)
 		local cf = chassis.CFrame
 		local velocity = chassis.AssemblyLinearVelocity
 		local speed = velocity:Dot(cf.LookVector) -- + forward, - backward
-		local throttle, steer = seat.ThrottleFloat, seat.SteerFloat
+		local throttle, steer = input(seat, humanoid, cf)
 		for _, w in wheels do
 			local target, torque = 0, coastTorque
 			if throttle > 0.05 then
@@ -143,19 +183,30 @@ local function drive(car: Model, seat: VehicleSeat, humanoid: Humanoid)
 	end)
 end
 
+-- Starts driving whenever the player's SeatPart becomes a car's DriverSeat. (SeatPart, not the
+-- Seated event: CarService seats the driver from the server, which the event can miss.)
 local function watch(character: Model)
 	local humanoid = character:WaitForChild("Humanoid", 10) :: Humanoid?
 	if not humanoid then
 		return
 	end
-	humanoid.Seated:Connect(function(active, seat)
-		if active and seat and seat:IsA("VehicleSeat") and seat.Name == "DriverSeat" then
+	local driving: Instance? = nil
+	local function check()
+		local seat = humanoid.SeatPart
+		if seat == driving then
+			return
+		end
+		driving = nil
+		if seat and seat:IsA("VehicleSeat") and seat.Name == "DriverSeat" then
 			local car = seat.Parent
 			if car and car:IsA("Model") and CollectionService:HasTag(car, TAG) then
+				driving = seat
 				drive(car, seat, humanoid)
 			end
 		end
-	end)
+	end
+	humanoid:GetPropertyChangedSignal("SeatPart"):Connect(check)
+	check()
 end
 
 function Drive.start(controller)

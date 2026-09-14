@@ -48,16 +48,30 @@ local function sound(key: string, volume: number?, speed: number?)
 	end)
 end
 
+-- Holds the player still for a cinematic (the runway walk, the prize): Roblox's own controls
+-- when this game has a PlayerModule, and the movement keys sunk either way.
+local FREEZE = "LarpRealityFreeze"
 local function controls(on: boolean)
-	local ok, module = pcall(function()
-		return require(player:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule")):GetControls()
-	end)
-	if ok and module then
-		if on then
-			module:Enable()
-		else
-			module:Disable()
+	local scripts = player:FindFirstChild("PlayerScripts")
+	local module = scripts and scripts:FindFirstChild("PlayerModule")
+	if module then
+		local ok, c = pcall(function()
+			return require(module):GetControls()
+		end)
+		if ok and c then
+			if on then
+				c:Enable()
+			else
+				c:Disable()
+			end
 		end
+	end
+	if on then
+		ContextActionService:UnbindAction(FREEZE)
+	else
+		ContextActionService:BindActionAtPriority(FREEZE, function()
+			return Enum.ContextActionResult.Sink
+		end, false, Enum.ContextActionPriority.High.Value + 1, Enum.KeyCode.W, Enum.KeyCode.A, Enum.KeyCode.S, Enum.KeyCode.D, Enum.KeyCode.Up, Enum.KeyCode.Down, Enum.KeyCode.Left, Enum.KeyCode.Right, Enum.KeyCode.Space, Enum.KeyCode.Thumbstick1, Enum.KeyCode.ButtonA)
 	end
 end
 
@@ -242,8 +256,7 @@ end
 local function bench(data)
 	finish()
 	local token = current
-	controls(false)
-	hold(data.cam, 50)
+	hold(data.cam, 50) -- the server holds them on the bench; Space pushes the bar
 	local c = Colors
 	local p = panel("Bench", { anchor = Vector2.new(0.5, 1), position = UDim2.new(0.5, 0, 1, -30), box = UDim2.fromOffset(380, 130), z = 5, edge = Color3.fromRGB(255, 96, 80), edgeWidth = 3 })
 	Theme.text(p, { name = "Title", font = Theme.Small, text = words.push, size = 13, color = c.Accent, align = Enum.TextXAlignment.Center, position = UDim2.fromOffset(10, 8), box = UDim2.new(1, -20, 0, 18), scaled = true, maxSize = 13, stroke = false })

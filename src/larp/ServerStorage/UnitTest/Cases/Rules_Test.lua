@@ -119,6 +119,13 @@ return function(t)
 				end
 			end
 		end
+		-- Config.Owners only grants passes that exist
+		for userId, keys in require(game.ServerScriptService.Larp.Config.Owners) do
+			expect.truthy(type(userId) == "number")
+			for _, key in keys do
+				expect.truthy(seen[key])
+			end
+		end
 		for code, reward in require(game.ServerScriptService.Larp.Config.Codes) do
 			expect.equal(code, (string.gsub(string.upper(code), "%s", "")))
 			expect.truthy(reward.boostMinutes ~= nil)

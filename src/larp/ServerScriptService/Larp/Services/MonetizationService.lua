@@ -14,6 +14,7 @@ local EventsConfig = require(Larp.Config.Events)
 local Text = require(Larp.Config.Text)
 local Net = require(Larp.Shared.Net)
 local Codes = require(script.Parent.Parent.Config.Codes)
+local Owners = require(script.Parent.Parent.Config.Owners)
 local RateLimiter = require(ReplicatedStorage:WaitForChild("CodexShared"):WaitForChild("RateLimiter"))
 
 local MonetizationService = {}
@@ -104,6 +105,31 @@ function MonetizationService:MakeSupporter(player: Player): boolean
 	return true
 end
 
+-- Passes this account owns without buying them (Config.Owners, and LARP to Reality for the
+-- place's creator), saved in the profile so they stay.
+function MonetizationService:_grantOwned(player: Player, data)
+	data.granted = data.granted or {}
+	local keys = table.clone(Owners[player.UserId] or {})
+	if game.CreatorType == Enum.CreatorType.User and player.UserId == game.CreatorId then
+		table.insert(keys, "Reality")
+	end
+	for _, key in keys do
+		if passByKey[key] then
+			data.granted[key] = true
+		end
+	end
+	local any = false
+	for key in data.granted do
+		if passByKey[key] then
+			applyPass(player, passByKey[key])
+			any = true
+		end
+	end
+	if any then
+		self:MakeSupporter(player)
+	end
+end
+
 function MonetizationService:_checkPasses(player: Player)
 	for _, pass in Store.passes do
 		if pass.id ~= 0 then
@@ -188,6 +214,7 @@ function MonetizationService:Start()
 	limiter = RateLimiter.new(3, 0.5, 200)
 	self.Data.ProfileLoaded:Connect(function(player, data)
 		showBoost(player, data)
+		self:_grantOwned(player, data)
 		task.spawn(self._checkPasses, self, player)
 	end)
 	Players.PlayerRemoving:Connect(function(player)

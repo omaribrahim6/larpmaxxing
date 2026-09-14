@@ -1,5 +1,30 @@
 # Handoff
-## LATEST: Claude, 2026-09-13 (more to buy, and the VIP++ Arena)
+## LATEST: Claude, 2026-09-14 (LARP to Reality, the shop's ? pages, music and shop ids)
+- **LARP to Reality** (owner request, the Shop's top item at R$999, `Config.Store` "Reality"):
+  - One world inside this place, 2,600 studs south of the city (`Workspace.Larp.Map.Premium.Plaza.Reality`, built by `LarpBuild.Reality`). Its door is the blue one next to the VIP++ Arena's in the Plaza (`Entrance.RealityDoor`). Without the pass the door says so and opens the shop at the Reality tour.
+  - The world: a street loop round a middle block, a six-lane highway with turnarounds and sign gantries, sidewalks (the skate loop), a skyline, and the arrival plaza with a LARP TO REALITY sign, a fountain and an EXIT door.
+  - **Drive:** two valets on the Boulevard hand out a drivable T5 or T4 in the lane in front. W/S drive, A/D steer, Space gets out, H honks, a speedometer shows mph. An empty car is towed after 20 s; the owner can hop back in with the car's Drive prompt; friends can take the passenger seat.
+  - **Skate:** the SK8 & MATCHA cart kits you out (board under the feet, white tee, jorts, wired earbuds, Birkenstocks, an iced matcha held upright) at walk speed 34. Use the cart again to stop.
+  - **Runway (Fashion Week):** the backstage mirror opens a fit picker (Old Money, Streetwear, Designer, Y2K). The player walks the runway on a photographers'-view camera, poses at the end while the crowd cheers and flashes pop, gets ATE, and walks back. The fit stays on in Reality.
+  - **Bench (Iron Paradise):** lie down, tap Space or PUSH to fill the meter, three reps; the 500 LB CLUB board shows the lift, the gym bros cheer, then 500 LB PR.
+  - **Prize (the Prize Hall):** the gold pedestal starts a Nobel ceremony: the laureate on stage, their name and a random discovery on the banner, the medal (kept in Reality), applause and confetti.
+  - Leaving the world (the EXIT door, a reset) takes the fit, board and medal off and tows the car.
+- **Code (all installed; Studio matches the repo):**
+  - `Config.Reality` (the world, fits, stances, words), `Config.Areas` tier `Reality` (`pass = "Reality"`), `AreaService.allowed(tier, rank, supporter, owns)`.
+  - `Services.RealityService` (activities, one player at a time per venue, board texts, leaving resets), `Lib.Stance` (poses held on the server), `Lib.Fits` (outfits, board, medal), `LarpClient.Reality` (picker, cameras, bench meter, ceremony, crowds, skating).
+  - `LarpBuild.Reality` with `Roads`, `Plaza`, `Runway`, `Gym`, `Hall` and the shared `Venue`; `Build.all()` runs it. `LarpBuild.Arena` now only replaces its own door and arena (both builders share the Plaza zone).
+  - Remotes `RealityEvent` and `RealityAction`; `OpenShop` can carry an item key.
+  - AreaService streams the far areas in before a teleport lands.
+- **Drivable cars:** `Config.Cars`, `Lib.CarRig` (an invisible chassis, CylindricalConstraint struts for suspension travel and steering, SpringConstraint springs and dampers, HingeConstraint wheel motors, strengths from the car's mass), `Services.CarService` and `LarpClient.Drive`. Any body with separate wheel parts (named in `wheelParts`) drives; a one-piece body lists `wheels` spots and gets plain tyres.
+- **The shop:** every item shows (SOON while its id is 0) with a **?** button: a page about it (`Config.Store` `about`), and for Reality a six-page tour (`UIConfig.Books.Reality`) in the How to play book's style (the book takes custom pages now: `Tutorial:SetPages`).
+- **Uploaded with the owner's Open Cloud key (`.env` `ROBLOX_API_KEY`, never printed):** the 12 music takes (`Config.Music` ids) and the 5 passes and 3 products (`Config.Store` ids). Scripts: `tools/roblox` (upload-audio, create-store, upload-model) and `tools/tripo`.
+- **Owner feedback fixed:** the promotion (NPC → Normie) is a small banner in the top third for about 3 s, not a full-screen takeover; the Drip scene's red carpet roll lies across the carpet at its leading edge.
+- **Tripo car:** the Aurelian GT (pearl white, gold trim) is generated and uploaded as Model 109789817214284 (`ServerStorage.AurelianGT_import` in Studio). It's one mesh with the tyres baked in and a stray piece beside it, so it can only be a show car as it is; its mesh didn't render in Edit yet (likely still processing). Splitting it into a body and four wheels (Tripo `mesh_segmentation`) needs more Tripo credits; Studio's `segment_mesh` tool errors ("parts must be a table").
+- **Tested:** 58/58 unit tests (new: cars build into drivable rigs, Reality needs its pass, every shop item has a ? page). In play: the Reality door took a pass owner to the arrival; the valet spawned a T5, seated the player and gave them its physics; W drove it forward level on its springs; D steered it right. Not yet seen by me: the skate, runway, bench and prize flows (Studio stopped showing prompts to the test client, so I couldn't trigger them). The owner is testing.
+- **The owner always owns Reality** (owner request 2026-09-14): `ServerScriptService.Larp.Config.Owners` lists user ids and the pass keys they own without buying (the owner, 2065214055: Reality). On every join `MonetizationService:_grantOwned` grants them, saves them in the profile (`granted`, new) and makes the account a supporter (so the VIP++ Arena opens too). The place's creator always gets Reality as well, so Studio playtests have it.
+- **Owner:** press Ctrl+S in Studio (the world only exists in the place file); buy Tripo credits for drivable Tripo cars; pass icons are still Roblox's defaults.
+
+## Claude, 2026-09-13 (more to buy, and the VIP++ Arena)
 - **The shop (`Config.Store`)**, where every id is still 0 until you create the item:
   - Game passes:
     - 🎁 **Mega Bundle** (R$299): 2× Points, 2× Magnet and 2× Speed in one.

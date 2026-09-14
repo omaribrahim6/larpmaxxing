@@ -48,6 +48,7 @@ function DataService.defaults()
 		rebirths = 0, -- times this player has touched grass
 		bestRank = 1, -- the highest rank reached, kept through Touch Grass (rank cosmetics)
 		supporter = false, -- has bought something (the VIP++ Arena opens)
+		granted = {}, -- pass keys this account owns without buying (Config.Owners)
 		settings = table.clone(SETTINGS_DEFAULTS),
 	}
 end
