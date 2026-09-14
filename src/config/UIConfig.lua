@@ -10,7 +10,7 @@ return {
 	GuideNearDistance=12,
 	Guide={
 		Collect={title="1 / 2  GET THAT MONEY",body="Walk over Money pickups in the Car Lot to grow your Money stat. Then try your first larp-off."},
-		Practice={title="2 / 2  TRY A LARP-OFF",body="Find the Practice Larper in the plaza. Use its interaction prompt to start your first match."},
+		Practice={title="2 / 2  TRY A LARP-OFF",body="Tap ⚔ Larp-off on the right, or find the Practice Larper in the plaza and press E, to start your first match."},
 		Complete={title="YOU KNOW THE BASICS",body="Collect more Money, practice again, or challenge another player. Close this guide whenever you're ready."},
 		Loading={title="CONNECTING",body="Waiting for your profile."},
 	},
@@ -43,7 +43,7 @@ return {
 			body = "All your points add up to your rank. Start as an NPC and climb all the way to LARP Maxxer.",
 			tip = "📈 The card in the top left shows how close your next rank is."},
 		{art = "larpoff", color = Color3.fromRGB(240, 124, 167), title = "LARP-OFF!",
-			body = "Walk up to another player, or the Practice Larper in the Plaza, and press E. You each play one scene per stat, and whoever wins more rounds wins.",
+			body = "Walk up to another player, or the Practice Larper in the Plaza, and press E, or tap ⚔ Larp-off on the right for a quick one. You each play one scene per stat, and whoever wins more rounds wins.",
 			tip = "🎯 New? The Practice Larper is an easy first win."},
 		{art = "scenes", color = Color3.fromRGB(255, 170, 60), title = "BIGGER STATS, BIGGER SCENES",
 			body = "The higher a stat, the crazier its scene. The bus becomes a scooter, then a sports car, then a private jet. The badge next to each stat shows its tier.",
