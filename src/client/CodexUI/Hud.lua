@@ -137,7 +137,8 @@ function Hud.new(root, fx, deps)
 
 	-- bottom right: the Invite, Clip, Map and Sprint buttons (above the jump button on touch screens)
 	local touch = game:GetService("UserInputService").TouchEnabled and not game:GetService("UserInputService").KeyboardEnabled
-	self.corner = Theme.new("Frame", self.frame, { Name = "Corner", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -16, 1, if touch then -170 else -20), Size = UDim2.fromOffset(312, 72) })
+	self.cornerLift = if touch then -170 else -20 -- clear of the jump button on touch screens
+	self.corner = Theme.new("Frame", self.frame, { Name = "Corner", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -16, 1, self.cornerLift), Size = UDim2.fromOffset(312, 72) })
 	self.cornerScale = Theme.new("UIScale", self.corner, { Name = "Fit" })
 	self.inviteButton = deps.button(self.corner, { name = "Invite", text = "📨\n" .. words.Invite, size = 15, position = UDim2.fromOffset(36, 36), box = UDim2.fromOffset(70, 70) }, deps.inviteOpen)
 	self.clipButton = deps.button(self.corner, { name = "Clip", text = "🎥\n" .. words.Clip, size = 15, position = UDim2.fromOffset(116, 36), box = UDim2.fromOffset(70, 70) }, deps.clipToggle)
@@ -188,6 +189,13 @@ function Hud:_fit()
 	self.leftScale.Scale = scale
 	self.dockScale.Scale = scale
 	self.cornerScale.Scale = scale
+	-- on short screens (phones) the dock reaches down past the corner buttons' top: the
+	-- corner then sits left of the dock instead of under it
+	local dock, corner = self.dock, self.corner
+	local dockBottom = size.Y * 0.5 + dock.Position.Y.Offset + dock.Size.Y.Offset * scale / 2
+	local cornerTop = size.Y + self.cornerLift - corner.Size.Y.Offset * scale
+	local right = if dockBottom + 8 > cornerTop then dock.Position.X.Offset - dock.Size.X.Offset * scale - 12 else -16
+	corner.Position = UDim2.new(1, right, 1, self.cornerLift)
 end
 
 function Hud:Render(model)

@@ -11,6 +11,7 @@
 - **`LarpBuild.Optimize`** (new, runs last in `Build.all`): parts smaller than 4 studs on every side cast no shadows (3,078 of them) and audience rigs don't simulate.
 - Audited: every client-to-server remote checks its arguments and is rate-limited; the always-on client loops only touch what's visible.
 - Removed the empty `Workspace.Larp.Pickups` folder saved in the place.
+- **Phones:** at the smallest HUD scale the right dock reached down over the corner buttons (Shop/Larp-off over Map/Sprint on a ~390 px tall screen, true before Larp-off too). `Hud:_fit` now works out the overlap and moves the corner buttons to the left of the dock when they would collide; desktop is unchanged (checked in play at 1631x792: no overlap, corner in place).
 - 59/59 tests (new: pickup packets round-trip and reject junk).
 
 ## Claude, 2026-09-14 (friend invites, larp-off clips, Touch Grass rewards, quiet servers)
