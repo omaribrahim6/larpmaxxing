@@ -21,6 +21,7 @@ Net.Names = {
 	"MatchVerdict", -- outcome
 	"MatchEnd", -- matchId
 	"MatchAborted", -- matchId, reason
+	"MatchFeature", -- match header: the show stage's screen has cut to this larp-off
 	"Announce", -- server-wide banner text
 	"EventChanged", -- a stat rush: id, endsAt (server time), summonedBy?; no args when it ends
 	"TouchedGrass", -- count, farming multiplier (after a rebirth)

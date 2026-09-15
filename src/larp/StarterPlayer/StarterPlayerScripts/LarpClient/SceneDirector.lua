@@ -346,12 +346,14 @@ local function buildContext(header, ui)
 			gui.Parent = player:WaitForChild("PlayerGui")
 			ctx.fullGui = gui
 			ctx.monitor:mount(gui)
-		else
-			ctx.surface = stageSurface(stage)
+		elseif header.featured and header.showStage then
+			-- the audience watches on the show stage's screen, never the arena's: an arena is
+			-- parked 6000 studs out and only the pair in it is there to see anything
+			ctx.surface = stageSurface(header.showStage)
 			ctx.monitor:mount(ctx.surface)
 		end
 	end
-	local hint = idleHint(stage)
+	local hint = if header.featured and header.showStage then idleHint(header.showStage) else nil
 	if hint then
 		ctx.hint, ctx.hintWas = hint, hint.Text
 		hint.Text = ("%s  VS  %s"):format(header.a.name, header.b.name)
@@ -829,6 +831,15 @@ function SceneDirector.start(ui)
 		if ctx then
 			intro(ctx)
 		end
+	end)
+	-- The show stage's screen has cut to another larp-off (MatchService:_refeature): pick it up
+	-- mid-flight, exactly the way walking up to the stage during one does. Never fires at
+	-- someone who is in a larp-off themselves, so this cannot pull a player out of their own.
+	Net.get("MatchFeature").OnClientEvent:Connect(function(header)
+		if not header or (current and current.id == header.matchId) then
+			return
+		end
+		begin(header)
 	end)
 	Net.get("MatchRound").OnClientEvent:Connect(function(pkg)
 		-- late spectators build their context from the header carried in every round

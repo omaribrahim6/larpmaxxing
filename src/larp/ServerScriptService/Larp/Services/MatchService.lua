@@ -1,10 +1,19 @@
--- Runs larp-offs: stage queue, placing combatants, resolving rounds, streaming round
--- packages to everyone watching, rewards and the EXPOSED tag. All randomness and every
--- reward decision happens here; clients only play back what they are sent.
+-- Runs larp-offs: arenas, placing combatants, resolving rounds, streaming round packages to
+-- everyone watching, rewards and the EXPOSED tag. All randomness and every reward decision
+-- happens here; clients only play back what they are sent.
+--
+-- One stage, many larp-offs (owner 2026-09-15: "there needs to be one stage, but everyone can
+-- play simultaneously, and the main stage just displays whatever game one of them"). The
+-- Plaza's Stage1 is the show stage: the first pair larps on it and the rest get their own
+-- copy of it parked far outside the map, so nobody waits for a stage. The show stage's big
+-- screen carries one larp-off at a time -- the pair standing on it, or, once they are done,
+-- the longest-running one anywhere -- and that is the `featured` match. Only a featured match
+-- is broadcast; the arenas are out of everyone's way and have no audience of their own.
 --
 -- Packets (all RemoteEvents from Larp.Shared.Net):
 --   MatchBegin(header)
---     header = { matchId, stageName, stage = Model, a = Side, b = Side, rounds = n,
+--     header = { matchId, stageName, stage = Model, showStage = Model, featured = bool,
+--                a = Side, b = Side, rounds = n,
 --                introSeconds, roundSeconds, verdictSeconds, timing }   timing = Tuning.Timing.street
 --                in CCTV scene mode (Shared.StreetPlan), else Tuning.Timing.round (Shared.ClimbPlan)
 --     Side   = { kind = "Player"|"Npc", userId, name, rankIndex, model = Model }
@@ -15,6 +24,7 @@
 --     outcome = { matchId, winner = "A"|"B"|"Draw", winsA, winsB, upset, bonus, limited,
 --                 exposedSeconds, rematchSeconds }
 --   MatchEnd(matchId) / MatchAborted(matchId, reason)
+--   MatchFeature(header)  the show stage's screen has cut to this larp-off
 local Players = game:GetService("Players")
 
 local Larp = game:GetService("ReplicatedStorage"):WaitForChild("Larp")
@@ -42,11 +52,21 @@ local CCTV = Tuning.SceneMode == "Cctv"
 
 local rng = Random.new()
 local limiter = PairLimiter.new(Tuning.SamePairRewardLimit.count, Tuning.SamePairRewardLimit.windowSeconds)
-local stages = {} -- { { name, model, markers, busy } }
-local queue = {} -- { { A, B } }
+local arenas = {} -- { { name, displayName, model, markers, busy, show } }; [1] is the show stage
+local show = nil -- the arena players can actually walk to, and whose screen broadcasts
+local live: { [number]: any } = {} -- matchId -> the match running now
+local featured = nil -- the match the show stage's screen is carrying
+local queue = {} -- { { A, B } }, only once every arena is busy
 local busy: { [string]: string } = {} -- combatant key -> "queued" | "match"
 local recent: { [string]: { opponent: string, at: number } } = {}
 local nextMatchId = 0
+
+-- Larp-offs that can run at once. Each one past the first holds a copy of the stage, so this
+-- is a ceiling on parts, not on players: past it a pair waits, the way they always used to.
+local ARENA_CAP = 8
+local ARENA_ORIGIN = Vector3.new(6000, 400, -6000) -- clear of the city, the skyline, Reality
+local ARENA_STEP = Vector3.new(0, 0, 280)
+local ARENA_DROP = { "Crowd", "Stands" } -- an arena has no audience, so it needs no seats
 
 local function now()
 	return workspace:GetServerTimeNow()
@@ -64,21 +84,63 @@ function MatchService:Init(services)
 	self.Coins = services.CoinService
 end
 
+-- Another arena: the show stage copied into an empty slot far outside the map, holding only
+-- the parts a larp-off needs (Markers, the platform, the lights, the screen). It is
+-- Persistent so that every client has it the moment it exists: a client that has not streamed
+-- its arena in reads `header.stage` as nil and plays no larp-off at all.
+local function cloneArena(index: number)
+	local model = show.model:Clone()
+	model.Name = ("Arena%d"):format(index)
+	for _, name in ARENA_DROP do
+		local child = model:FindFirstChild(name)
+		if child then
+			child:Destroy()
+		end
+	end
+	model.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
+	model:PivotTo(CFrame.new(ARENA_ORIGIN + ARENA_STEP * index))
+	model.Parent = show.model.Parent
+	-- the upset banner goes to the whole server, so every arena announces the show stage's
+	-- name: "UPSET on Arena 5" would mean nothing to anyone
+	return { name = model.Name, displayName = show.displayName, model = model, markers = model:FindFirstChild("Markers"), busy = false, show = false }
+end
+
+-- A free arena, making one if every arena is busy and we are under the cap.
+local function freeArena()
+	for _, arena in arenas do
+		if not arena.busy then
+			return arena
+		end
+	end
+	if #arenas >= ARENA_CAP then
+		return nil
+	end
+	local arena = cloneArena(#arenas)
+	table.insert(arenas, arena)
+	return arena
+end
+
 function MatchService:Start()
 	local root = workspace.Larp:WaitForChild("Stages")
+	local found = {}
 	for _, model in root:GetChildren() do
 		local markers = model:FindFirstChild("Markers")
 		if markers and markers:FindFirstChild("MarkL") and markers:FindFirstChild("MarkR") then
 			-- "Stage1" reads as "Stage 1" unless the model sets a DisplayName attribute
 			local displayName = model:GetAttribute("DisplayName") or (model.Name:gsub("(%a)(%d)", "%1 %2"))
-			table.insert(stages, { name = model.Name, displayName = displayName, model = model, markers = markers, busy = false })
+			table.insert(found, { name = model.Name, displayName = displayName, model = model, markers = markers, busy = false, show = true })
 		end
 	end
-	table.sort(stages, function(x, y)
+	table.sort(found, function(x, y)
 		return x.name < y.name
 	end)
-	if #stages == 0 then
-		warn("[Larp] No larp-off stages found under Workspace.Larp.Stages")
+	show = found[1]
+	arenas = found
+	if not show then
+		warn("[Larp] No larp-off stage found under Workspace.Larp.Stages")
+	else
+		-- the one stage everybody can see has to reach everybody, however far away they are
+		show.model.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
 	end
 
 	Players.PlayerRemoving:Connect(function(player)
@@ -116,7 +178,7 @@ function MatchService:Enqueue(A, B)
 	if busy[A.key] or busy[B.key] then
 		return nil, "busy"
 	end
-	if #stages == 0 then
+	if not show then
 		return nil, "no stage"
 	end
 	busy[A.key] = "queued"
@@ -137,25 +199,27 @@ function MatchService:Enqueue(A, B)
 end
 
 function MatchService:_pump()
-	for _, stage in stages do
-		while not stage.busy and #queue > 0 do
-			local entry = table.remove(queue, 1)
-			if Combatant.isValid(entry.A) and Combatant.isValid(entry.B) then
-				stage.busy = true
-				task.spawn(function()
-					local ok, err = pcall(self._run, self, stage, entry.A, entry.B)
-					if not ok then
-						warn("[Larp] Larp-off crashed: " .. tostring(err))
-						busy[entry.A.key] = nil
-						busy[entry.B.key] = nil
-						stage.busy = false
-						self:_pump()
-					end
-				end)
-			else
-				busy[entry.A.key] = nil
-				busy[entry.B.key] = nil
-			end
+	while #queue > 0 do
+		local arena = freeArena()
+		if not arena then
+			return -- every arena is busy and we are at the cap; these two wait
+		end
+		local entry = table.remove(queue, 1)
+		if Combatant.isValid(entry.A) and Combatant.isValid(entry.B) then
+			arena.busy = true
+			task.spawn(function()
+				local ok, err = pcall(self._run, self, arena, entry.A, entry.B)
+				if not ok then
+					warn("[Larp] Larp-off crashed: " .. tostring(err))
+					busy[entry.A.key] = nil
+					busy[entry.B.key] = nil
+					arena.busy = false
+					self:_pump()
+				end
+			end)
+		else
+			busy[entry.A.key] = nil
+			busy[entry.B.key] = nil
 		end
 	end
 end
@@ -199,14 +263,56 @@ local function restore(c, previous: CFrame?)
 	end
 end
 
-local function viewers(stage, A, B): { Player }
+-- Everyone standing at the show stage with nothing else on their screen. Anyone mid larp-off
+-- is left out however close they are: their own match owns their camera, and handing them a
+-- second one would tear it down.
+local function stageAudience(): { Player }
 	local list = {}
-	local center = stage.markers.StagePivot.Position
+	if not show then
+		return list
+	end
+	local center = show.markers.StagePivot.Position
 	for _, player in Players:GetPlayers() do
-		local participant = (A.kind == "Player" and A.player == player) or (B.kind == "Player" and B.player == player)
-		local character = player.Character
-		local root = character and character:FindFirstChild("HumanoidRootPart")
-		if participant or (root and (root.Position - center).Magnitude <= Tuning.Spectate.radius) then
+		if busy["u" .. player.UserId] then
+			continue
+		end
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		if root and (root.Position - center).Magnitude <= Tuning.Spectate.radius then
+			table.insert(list, player)
+		end
+	end
+	return list
+end
+
+-- Who sees this larp-off: the two in it, and -- only while it is the one on the show stage's
+-- screen -- whoever is standing at the stage. An arena is 6000 studs out, so a larp-off that
+-- is not being broadcast has no audience to look for.
+local function viewers(match): { Player }
+	local A, B = match.A, match.B
+	local list = {}
+	for _, c in { A, B } do
+		if c.kind == "Player" and c.player.Parent then
+			table.insert(list, c.player)
+		end
+	end
+	if match.featured then
+		for _, player in stageAudience() do
+			table.insert(list, player)
+		end
+	end
+	-- anyone sent a packet has to be sent the end of it too, or their screen keeps the last
+	-- frame forever (they walked off mid-match, or the stage cut to someone else)
+	for _, player in list do
+		match.seen[player] = true
+	end
+	return list
+end
+
+-- Everyone who has been sent any part of this match, whether or not they can still see it.
+local function everyoneSeen(match): { Player }
+	local list = {}
+	for player in match.seen do
+		if player.Parent then
 			table.insert(list, player)
 		end
 	end
@@ -336,9 +442,44 @@ function MatchService:_settle(match, result)
 	return outcome
 end
 
-function MatchService:_run(stage, A, B)
+-- Picks what the show stage's screen carries: the pair actually standing on it, or, when it
+-- is empty, the longest-running larp-off anywhere. Run it whenever a match starts or ends.
+function MatchService:_refeature()
+	local pick = nil
+	for _, m in live do
+		if m.arena.show then
+			pick = m
+			break
+		end
+	end
+	if not pick then
+		for _, m in live do
+			if not pick or m.id < pick.id then
+				pick = m
+			end
+		end
+	end
+	if pick == featured then
+		return
+	end
+	if featured then
+		featured.featured = false
+	end
+	featured = pick
+	if not pick then
+		return -- nothing live; whoever was on the screen has had their MatchEnd already
+	end
+	pick.featured = true
+	pick.header.featured = true
+	-- the audience is told to cut to it; a client with no context for this match builds one
+	-- from the header, the same way someone who walks up mid-larp-off does
+	fire(stageAudience(), "MatchFeature", pick.header)
+end
+
+function MatchService:_run(arena, A, B)
 	nextMatchId += 1
-	local match = { id = nextMatchId, stage = stage, A = A, B = B, aborted = false, reason = nil }
+	local stage = arena
+	local match = { id = nextMatchId, arena = arena, stage = arena, A = A, B = B, aborted = false, reason = nil, seen = {} }
 	busy[A.key] = "match"
 	busy[B.key] = "match"
 	Combatant.refresh(A, self.Stats)
@@ -384,7 +525,9 @@ function MatchService:_run(stage, A, B)
 	local header = {
 		matchId = match.id,
 		stageName = stage.name,
-		stage = stage.model,
+		stage = stage.model, -- where the two of them are actually standing
+		showStage = show and show.model, -- the one stage everyone can see; carries the screen
+		featured = false, -- set by _refeature once this match has the screen
 		a = Combatant.header(A),
 		b = Combatant.header(B),
 		rounds = #result.rounds,
@@ -394,12 +537,16 @@ function MatchService:_run(stage, A, B)
 		timing = timing,
 	}
 
+	match.header = header
+	live[match.id] = match
+	self:_refeature()
+
 	local finished = false
-	fire(viewers(stage, A, B), "MatchBegin", header)
+	fire(viewers(match), "MatchBegin", header)
 	if sleep(match, header.introSeconds) then
 		finished = true
 		for i, round in result.rounds do
-			fire(viewers(stage, A, B), "MatchRound", MatchService._package(header, i, #result.rounds, round))
+			fire(viewers(match), "MatchRound", MatchService._package(header, i, #result.rounds, round))
 			if not sleep(match, header.roundSeconds) then
 				finished = false
 				break
@@ -409,7 +556,7 @@ function MatchService:_run(stage, A, B)
 
 	if finished then
 		local outcome = self:_settle(match, result)
-		fire(viewers(stage, A, B), "MatchVerdict", outcome)
+		fire(viewers(match), "MatchVerdict", outcome)
 		if outcome.upset then
 			Net.get("Announce"):FireAllClients(Text.UpsetBanner:format(stage.displayName))
 		end
@@ -417,11 +564,14 @@ function MatchService:_run(stage, A, B)
 			notice(if outcome.winner == "A" then A else B, Text.RewardsLimited)
 		end
 		sleep(match, header.verdictSeconds)
-		fire(viewers(stage, A, B), "MatchEnd", match.id)
+		-- everyone who was ever sent this match, not just whoever can still see it: someone
+		-- who walked away, or whose screen cut to another larp-off, is otherwise left holding
+		-- the last frame of it for good
+		fire(everyoneSeen(match), "MatchEnd", match.id)
 		recent[A.key] = { opponent = B.key, at = now() }
 		recent[B.key] = { opponent = A.key, at = now() }
 	else
-		fire(viewers(stage, A, B), "MatchAborted", match.id, match.reason or "aborted")
+		fire(everyoneSeen(match), "MatchAborted", match.id, match.reason or "aborted")
 	end
 
 	for _, connection in connections do
@@ -437,7 +587,12 @@ function MatchService:_run(stage, A, B)
 	if B.onFinished then
 		B.onFinished()
 	end
-	stage.busy = false
+	arena.busy = false
+	live[match.id] = nil
+	if featured == match then
+		featured = nil
+	end
+	self:_refeature() -- the screen moves on to whoever is still going
 	self:_pump()
 end
 
