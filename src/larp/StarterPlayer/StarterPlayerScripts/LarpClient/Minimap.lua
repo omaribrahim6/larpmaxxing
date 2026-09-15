@@ -56,6 +56,31 @@ local function corner(it: Instance, radius: number)
 	new("UICorner", it, { CornerRadius = UDim.new(0, radius) })
 end
 
+-- A triangle pointing up, stacked from bars. Roblox does not clip rotated descendants, so
+-- clipping half off a rotated square gives a diamond rather than a triangle, and a glyph can
+-- fail to render — bars always draw.
+local function triangle(parent: Instance, width: number, height: number, color: Color3, z: number)
+	local holder = new("Frame", parent, {
+		Name = "Arrow",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(0.5, 0, 0.5, -1),
+		Size = UDim2.fromOffset(width, height),
+		BackgroundTransparency = 1,
+		ZIndex = z,
+	})
+	for row = 1, height do
+		new("Frame", holder, {
+			BackgroundColor3 = color,
+			BorderSizePixel = 0,
+			AnchorPoint = Vector2.new(0.5, 0),
+			Position = UDim2.new(0.5, 0, 0, row - 1),
+			Size = UDim2.fromOffset(math.max(width * row / height, 2), 1),
+			ZIndex = z,
+		})
+	end
+	return holder
+end
+
 -- A rectangle of the world, in canvas pixels.
 local function plate(canvas: Frame, minX: number, minZ: number, cx: number, cz: number, sx: number, sz: number, color: Color3, layer: number, radius: number?)
 	local w, h = math.max(sx * SCALE, 2), math.max(sz * SCALE, 2)
@@ -215,9 +240,7 @@ local function build()
 	})
 
 	-- You: a blip like GTA's — a pale disc with a blue arrow in it. The disc never turns; the
-	-- map turns underneath, so the arrow always points the way you are facing. The arrow is
-	-- the top half of a rotated square inside a clipping frame, because a triangle drawn from
-	-- frames can't fail to render the way a glyph can.
+	-- map turns underneath, so the arrow always points the way you are facing.
 	local you = new("Frame", frame, {
 		Name = "You",
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -229,24 +252,7 @@ local function build()
 	})
 	corner(you, 12)
 	new("UIStroke", you, { Color = Color3.fromRGB(12, 11, 18), Thickness = 2 })
-	local nose = new("Frame", you, {
-		Name = "Arrow",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.new(0.5, 0, 0.5, -1),
-		Size = UDim2.fromOffset(16, 8),
-		BackgroundTransparency = 1,
-		ClipsDescendants = true, -- leaves the square's top corner: a triangle pointing up
-		ZIndex = 11,
-	})
-	new("Frame", nose, {
-		BackgroundColor3 = YOU,
-		BorderSizePixel = 0,
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.new(0.5, 0, 1, 0),
-		Size = UDim2.fromOffset(11, 11),
-		Rotation = 45,
-		ZIndex = 11,
-	})
+	triangle(you, 16, 8, YOU, 11)
 
 	return { gui = gui, frame = frame, pivot = pivot, you = you }
 end
