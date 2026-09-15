@@ -33,6 +33,7 @@ local function offer(capture)
 	closeCard()
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "LarpClip"
+	gui.IgnoreGuiInset = true
 	gui.ResetOnSpawn = false
 	gui.DisplayOrder = 45
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling

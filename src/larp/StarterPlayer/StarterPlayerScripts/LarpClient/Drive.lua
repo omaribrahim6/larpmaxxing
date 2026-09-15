@@ -32,6 +32,7 @@ local function makeHud()
 	local Theme = require(player:WaitForChild("PlayerScripts"):WaitForChild("CodexUI"):WaitForChild("Theme"))
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "LarpDrive"
+	gui.IgnoreGuiInset = true
 	gui.ResetOnSpawn = false
 	gui.DisplayOrder = 30
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling

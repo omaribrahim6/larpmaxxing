@@ -456,6 +456,7 @@ function RealityClient.start(controller)
 	Colors = require(codex:WaitForChild("UIConfig")).Colors
 	gui = Instance.new("ScreenGui")
 	gui.Name = "LarpReality"
+	gui.IgnoreGuiInset = true
 	gui.ResetOnSpawn = false
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling -- a panel's contents draw over it
 	gui.DisplayOrder = 35

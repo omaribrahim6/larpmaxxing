@@ -87,11 +87,13 @@ function DripView:_card(item, index: number)
 	local c = deps.config.Colors
 	local slotIndex = table.find(deps.drip.slots, self.slots[item.slot]) or 0
 	local tier = self.tiers[item.tier] or { index = 1, tier = deps.drip.tiers[1] }
-	local card = new("Frame", self.grid, { Name = item.id, LayoutOrder = slotIndex * 10000 + tier.index * 1000 + index, BackgroundColor3 = c.Raised, BackgroundTransparency = 0.25, BorderSizePixel = 0 })
+	-- the card carries its tier's colour, not just a border of it, so a wall of cards reads
+	-- as tiers at a glance (owner 2026-09-14: more colour in the shop and wardrobe)
+	local card = new("Frame", self.grid, { Name = item.id, LayoutOrder = slotIndex * 10000 + tier.index * 1000 + index, BackgroundColor3 = c.Raised:Lerp(tier.tier.color, 0.22), BackgroundTransparency = 0.25, BorderSizePixel = 0 })
 	Theme.corner(card, 10)
 	Theme.border(card, tier.tier.color, 2)
 	new("Frame", card, { Name = "Tier", BackgroundColor3 = tier.tier.color, BorderSizePixel = 0, Position = UDim2.fromOffset(10, 0), Size = UDim2.new(1, -20, 0, 4) })
-	local art = new("Frame", card, { Name = "Art", BackgroundColor3 = c.Ink, BackgroundTransparency = 0.3, BorderSizePixel = 0, Position = UDim2.fromOffset(8, 10), Size = UDim2.new(1, -16, 0, 92) })
+	local art = new("Frame", card, { Name = "Art", BackgroundColor3 = c.Ink:Lerp(tier.tier.color, 0.16), BackgroundTransparency = 0.3, BorderSizePixel = 0, Position = UDim2.fromOffset(8, 10), Size = UDim2.new(1, -16, 0, 92) })
 	Theme.corner(art, 8)
 	if item.board then
 		-- a deck seen from above, tipped, with its grip and stripe

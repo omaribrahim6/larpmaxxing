@@ -50,6 +50,22 @@ function Store.new(root, deps)
 		ScrollingDirection = Enum.ScrollingDirection.Y,
 	})
 	new("UIListLayout", list, { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder })
+	-- A colour per item (owner 2026-09-14: "make some of the UI more colourful"), picked from
+	-- the key so it is stable between sessions. The shop then reads as a shelf of different
+	-- things rather than a stack of identical grey bars.
+	local HUES = {
+		Color3.fromRGB(255, 138, 96), Color3.fromRGB(122, 196, 255), Color3.fromRGB(180, 152, 255),
+		Color3.fromRGB(122, 226, 168), Color3.fromRGB(255, 190, 92), Color3.fromRGB(255, 138, 190),
+		Color3.fromRGB(120, 214, 232),
+	}
+	local function hueFor(key: string): Color3
+		local n = 0
+		for i = 1, #key do
+			n = (n * 31 + string.byte(key, i)) % 9973
+		end
+		return HUES[n % #HUES + 1]
+	end
+
 	local function add(item, kind: string)
 		local featured = item.book ~= nil -- the tour item (LARP to Reality) stands out
 		local row = new("Frame", list, { Name = item.key, LayoutOrder = #self.order + 1, Size = UDim2.new(1, -8, 0, if featured then 72 else 64), BackgroundColor3 = c.Raised, BackgroundTransparency = if featured then 0.15 else 0.5, BorderSizePixel = 0 })
@@ -57,8 +73,13 @@ function Store.new(root, deps)
 		if featured then
 			Theme.border(row, c.Accent, 2)
 		end
+		local hue = if featured then c.Accent else hueFor(item.key)
+		local rail = new("Frame", row, { Name = "Rail", BackgroundColor3 = hue, BorderSizePixel = 0, Position = UDim2.fromOffset(0, 8), Size = UDim2.new(0, 5, 1, -16) })
+		Theme.corner(rail, 3)
+		local disc = new("Frame", row, { Name = "Disc", BackgroundColor3 = hue, BackgroundTransparency = 0.74, BorderSizePixel = 0, Position = UDim2.fromOffset(7, 9), Size = UDim2.fromOffset(46, 46) })
+		Theme.corner(disc, 23)
 		Theme.text(row, { name = "Icon", text = item.icon or "", scaled = true, align = CENTER, position = UDim2.fromOffset(8, 10), box = UDim2.fromOffset(44, 44), stroke = false })
-		Theme.text(row, { name = "Name", font = Theme.Display, text = item.name, size = 20, color = if featured then c.Accent else nil, position = UDim2.fromOffset(60, 6), box = UDim2.new(1, -236, 0, 26), scaled = true, maxSize = 20, stroke = 2 })
+		Theme.text(row, { name = "Name", font = Theme.Display, text = item.name, size = 20, color = hue, position = UDim2.fromOffset(60, 6), box = UDim2.new(1, -236, 0, 26), scaled = true, maxSize = 20, stroke = 2 })
 		Theme.text(row, { name = "Line", text = item.line or "", size = 14, color = c.Muted, position = UDim2.fromOffset(60, 32), box = UDim2.new(1, -236, 0, 30), wrap = true, scaled = true, maxSize = 15, stroke = 1 })
 		local info = deps.button(row, { name = "Info", text = "?", size = 20, position = UDim2.new(1, -150, 0.5, 0), box = UDim2.fromOffset(40, 40) }, function()
 			deps.info(item)

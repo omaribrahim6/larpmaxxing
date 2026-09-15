@@ -35,8 +35,10 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 		toasts = {}, focusActions = {}, thumbs = {}}, View)
 	local c = config.Colors
 	local words = config.Words
+	-- IgnoreGuiInset (owner 2026-09-14): the HUD lays itself out against the whole screen, so
+	-- nothing shifts down under Roblox's top bar and the minimap can sit in the true corner.
 	self.gui = new("ScreenGui", playerGui, {Name = "LarpCodexUI", ResetOnSpawn = false,
-		DisplayOrder = 40, ZIndexBehavior = Enum.ZIndexBehavior.Sibling})
+		IgnoreGuiInset = true, DisplayOrder = 40, ZIndexBehavior = Enum.ZIndexBehavior.Sibling})
 	self.root = new("Frame", self.gui, {Name = "SafeRoot", BackgroundTransparency = 1, Size = UDim2.fromScale(1,1)})
 	local function button(parent, props, callback)
 		local b = Theme.button(parent, props)

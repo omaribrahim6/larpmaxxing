@@ -148,17 +148,16 @@ function Hud.new(root, fx, deps)
 	self.grassButton = deps.button(self.dock, { name = "TouchGrass", text = "🌱  " .. words.TouchGrass, size = 15, color = Color3.fromRGB(52, 160, 72), position = UDim2.fromOffset(68, 352), box = UDim2.fromOffset(136, 46) }, deps.grassOpen)
 	self.grassButton.Visible = false
 
-	-- bottom right: the Invite, Clip, Map, Sprint and Skate buttons (above the jump button on
+	-- bottom right: the Invite, Clip, Sprint and Skate buttons (above the jump button on
 	-- touch screens)
 	local touch = game:GetService("UserInputService").TouchEnabled and not game:GetService("UserInputService").KeyboardEnabled
 	self.cornerLift = if touch then -170 else -20 -- clear of the jump button on touch screens
-	self.corner = Theme.new("Frame", self.frame, { Name = "Corner", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -16, 1, self.cornerLift), Size = UDim2.fromOffset(392, 72) })
+	self.corner = Theme.new("Frame", self.frame, { Name = "Corner", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -16, 1, self.cornerLift), Size = UDim2.fromOffset(312, 72) })
 	self.cornerScale = Theme.new("UIScale", self.corner, { Name = "Fit" })
 	self.inviteButton = deps.button(self.corner, { name = "Invite", text = "📨\n" .. words.Invite, size = 15, position = UDim2.fromOffset(36, 36), box = UDim2.fromOffset(70, 70) }, deps.inviteOpen)
 	self.clipButton = deps.button(self.corner, { name = "Clip", text = "🎥\n" .. words.Clip, size = 15, position = UDim2.fromOffset(116, 36), box = UDim2.fromOffset(70, 70) }, deps.clipToggle)
-	self.mapButton = deps.button(self.corner, { name = "Map", text = "🗺️\n" .. words.Map, size = 15, position = UDim2.fromOffset(196, 36), box = UDim2.fromOffset(70, 70) }, deps.mapOpen)
-	self.sprintButton = deps.button(self.corner, { name = "Sprint", text = "🏃\n" .. words.Sprint, size = 15, position = UDim2.fromOffset(276, 36), box = UDim2.fromOffset(70, 70) }, deps.sprintToggle)
-	self.skateButton = deps.button(self.corner, { name = "Skate", text = "🛹\n" .. words.Skate, size = 15, position = UDim2.fromOffset(356, 36), box = UDim2.fromOffset(70, 70) }, deps.skateToggle)
+	self.sprintButton = deps.button(self.corner, { name = "Sprint", text = "🏃\n" .. words.Sprint, size = 15, position = UDim2.fromOffset(196, 36), box = UDim2.fromOffset(70, 70) }, deps.sprintToggle)
+	self.skateButton = deps.button(self.corner, { name = "Skate", text = "🛹\n" .. words.Skate, size = 15, position = UDim2.fromOffset(276, 36), box = UDim2.fromOffset(70, 70) }, deps.skateToggle)
 
 	-- the combo meter, bottom centre above the rematch button (small: it's up a lot)
 	self.comboGroup = Theme.new("CanvasGroup", self.frame, { Name = "Combo", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -84), Size = UDim2.fromOffset(220, 68), GroupTransparency = 1 })
