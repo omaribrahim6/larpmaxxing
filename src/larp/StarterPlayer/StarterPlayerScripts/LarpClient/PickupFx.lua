@@ -201,10 +201,10 @@ function PickupFx.start(ui)
 			-- each pickup in a chain rings a little higher
 			local combo = ui:Collected(statId, points, rarityName, at) or 1
 			local big = rarityName == "Legendary" -- only Legendaries get the big sound (owner: Epics' got annoying)
-			-- quiet (owner 2026-09-14: "reduce the sound of the pickup"): you collect these in
-			-- long chains, so one has to sit under the music rather than on top of it
+			-- quiet (owner 2026-09-15, twice): you collect these in long chains, so one has to
+			-- sit well under the music rather than play over the top of it
 			SoundKit.play(if big then "PickupRare" else "Pickup", {
-				volume = if rarityName == "Legendary" then 0.34 else 0.16,
+				volume = if rarityName == "Legendary" then 0.18 else 0.085,
 				speed = 1 + math.min(combo - 1, 16) * 0.03,
 			})
 		end)
@@ -219,7 +219,7 @@ function PickupFx.start(ui)
 			local rarity = Catalog.rarities[item.rarity]
 			local color = (rarity and rarity.color or Color3.new(1, 1, 1)):ToHex()
 			ui:Feed(('%s <font color="#%s">%s</font> %s'):format(Text.Legendary.title, color, item.name:upper(), Text.Legendary.where:format(where)), nil, false, 6)
-			SoundKit.play("Ping", { volume = 0.5 })
+			SoundKit.play("Ping", { volume = 0.28 })
 		end
 	end)
 end

@@ -25,8 +25,9 @@ return {
 	turnRate = 260,
 	turnEase = 22,
 	turnScrub = 2.2,
-	-- the wheels and the push's scrape (owner: they were way too loud)
-	volume = { roll = 0.22, scrape = 0.25 },
+	-- the wheels and the push's scrape. Owner 2026-09-15: still too loud over the music, so
+	-- these sit well under it — you should hear the board, not ride on top of the track.
+	volume = { roll = 0.1, scrape = 0.12 },
 	lift = 0.5, -- how much higher the board stands you (its deck is under your soles)
 	pushSeconds = 0.6, -- one push, from lifting the back foot to stepping back on
 	pushFoot = "RightFoot", -- the back foot, which pushes (a regular stance: left foot forward)
