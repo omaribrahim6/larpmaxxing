@@ -43,7 +43,7 @@ return {
 			body = "All your points add up to your rank. Start as an NPC and climb all the way to LARP Maxxer.",
 			tip = "📈 The card in the top left shows how close your next rank is."},
 		{art = "larpoff", color = Color3.fromRGB(240, 124, 167), title = "LARP-OFF!",
-			body = "Walk up to another player, or the Practice Larper in the Plaza, and press E, or tap ⚔ Larp-off on the right for a quick one. You each play one scene per stat, and whoever wins more rounds wins.",
+			body = "Walk up to another player and press G, or up to the Practice Larper in the Plaza and press E, or tap ⚔ Larp-off on the right for a quick one. You each play one scene per stat, and whoever wins more rounds wins.",
 			tip = "🎯 New? The Practice Larper is an easy first win."},
 		{art = "scenes", color = Color3.fromRGB(255, 170, 60), title = "BIGGER STATS, BIGGER SCENES",
 			body = "The higher a stat, the crazier its scene. The bus becomes a scooter, then a sports car, then a private jet. The badge next to each stat shows its tier.",
@@ -56,7 +56,7 @@ return {
 			tip = "🌱 Your nameplate shows how many times you've touched grass."},
 		{art = "item", icon = "👟", color = Color3.fromRGB(255, 206, 84), title = "DRIP & BOARDS",
 			body = "Larp-offs pay LarpCoins: a win pays more, an upset double. Spend them in the Shop's Drip tab on fits, hats, chains and skateboards, then pick what you wear in the Wardrobe.",
-			tip = "🛹 B (or the Skate button) hops on your board. Space pushes!"},
+			tip = "🛹 F (or the Skate button) hops on your board. Space pushes!"},
 	},
 	-- tours the shop's ? button opens for an item with a `book` (Config.Store), in the How to
 	-- play book's style; `image` (an uploaded screenshot's rbxassetid) replaces a drawing
@@ -70,7 +70,7 @@ return {
 				tip = "🏎️ W/S drive, A/D steer, Space gets out, H honks."},
 			{art = "item", icon = "🛹", color = Color3.fromRGB(132, 196, 96), title = "SKATE WITH A MATCHA",
 				body = "The SK8 & MATCHA cart kits you out: a board, a white tee, jorts, wired earbuds, clogs and an iced matcha. The sidewalks are yours.",
-				tip = "🛹 B or the Skate button hops off. Your own board rides the city too."},
+				tip = "🛹 F or the Skate button hops off. Your own board rides the city too."},
 			{art = "item", icon = "👗", color = Color3.fromRGB(255, 120, 190), title = "WALK THE RUNWAY",
 				body = "Fashion Week: pick a fit backstage (Old Money, Streetwear, Designer or Y2K) and walk the runway while the crowd cheers and the photographers go off.",
 				tip = "📸 Your fit stays on while you're in Reality."},

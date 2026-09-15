@@ -145,6 +145,9 @@ function Controller.start()
 		self.view.map:Toggle()
 		self.view:Render(self.model)
 	end
+	-- Is a larp-off on this player's screen right now? The minimap asks so it can go dark with
+	-- the rest of the HUD (owner 2026-09-15: "map should be off during the larpoffs").
+	function self:InMatch() return self.model.inMatch==true end
 	function self:GetAudioGroup(kind)
 		return self.audioGroups[if kind=="Music" then "musicVolume" elseif kind=="SFX" then "sfxVolume" else ""]
 	end

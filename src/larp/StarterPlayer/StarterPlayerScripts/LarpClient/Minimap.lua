@@ -41,6 +41,7 @@ local PAINT = {
 
 local player = Players.LocalPlayer
 local view = nil -- the built GUI
+local host = nil -- CodexUI's controller, asked each frame whether a larp-off is on screen
 local worlds: { [string]: any } = {} -- name -> { canvas, minX, minZ }
 local showing: string? = nil
 
@@ -284,6 +285,7 @@ local function build(ui)
 end
 
 function Minimap.start(ui)
+	host = ui
 	view = build(ui)
 	worlds.City = buildCity(view.pivot)
 	if worlds.City then
@@ -292,6 +294,18 @@ function Minimap.start(ui)
 
 	local lastLook = 0
 	RunService.RenderStepped:Connect(function()
+		-- A larp-off owns the screen, so the radar goes with the rest of the HUD (owner
+		-- 2026-09-15). The whole ScreenGui, not the frame: the render loop below writes
+		-- `frame.Visible` every step and would turn it straight back on. CodexUI already
+		-- tracks this (SetMatchActive), so there is no second copy of the match state here.
+		local busy = host ~= nil and host.InMatch ~= nil and host:InMatch()
+		if view.gui.Enabled == busy then
+			view.gui.Enabled = not busy
+		end
+		if busy then
+			return
+		end
+
 		local character = player.Character
 		local root = character and character:FindFirstChild("HumanoidRootPart")
 		local camera = workspace.CurrentCamera

@@ -216,7 +216,7 @@ function SkateClient.start(controller)
 			toggle()
 		end
 		return Enum.ContextActionResult.Sink
-	end, false, Enum.KeyCode.B)
+	end, false, Enum.KeyCode.F)
 	player.CharacterAdded:Connect(watch)
 	if player.Character then
 		watch(player.Character)
