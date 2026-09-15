@@ -110,6 +110,18 @@ local function avatarCopy(model: Model?, mark: CFrame, parent: Instance): Model?
 	if not ok or not copy then
 		return nil
 	end
+	-- no skateboard in a scene: a copy made before the server took it off would keep the board
+	-- (Lib.Board's LarpBoard) and the height it adds for the whole round
+	local board = copy:FindFirstChild("LarpBoard")
+	if board then
+		board:Destroy()
+	end
+	local rider = copy:FindFirstChildOfClass("Humanoid")
+	local hip = rider and rider:GetAttribute("BoardHip")
+	if rider and type(hip) == "number" then
+		rider.HipHeight = hip
+		rider:SetAttribute("BoardHip", nil)
+	end
 	for _, d in copy:GetDescendants() do
 		if d:IsA("BaseScript") or d:IsA("Sound") or d:IsA("BillboardGui") or d:IsA("ProximityPrompt") then
 			d:Destroy()

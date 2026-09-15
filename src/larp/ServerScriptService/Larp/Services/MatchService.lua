@@ -93,6 +93,7 @@ function MatchService:Init(services)
 	self.Stats = services.StatService
 	self.Nameplate = services.NameplateService
 	self.Coins = services.CoinService
+	self.Skate = services.SkateService
 end
 
 -- Another arena: the show stage copied into an empty slot far outside the map, holding only
@@ -525,6 +526,15 @@ function MatchService:_run(arena, A, B)
 	watch(A)
 	watch(B)
 
+	-- off the board first, before anyone is moved or copied (owner 2026-09-15: "if someone joins
+	-- a larpoff with their skateboard equipped its below their feet the whole time").
+	-- SkateService's own check only runs every half second, and the round's avatar copies are
+	-- made the moment MatchBegin lands, so they kept the board and its extra height.
+	for _, c in { A, B } do
+		if c.kind == "Player" and self.Skate then
+			self.Skate:Set(c.player, false)
+		end
+	end
 	local returnA = place(A, stage.markers.MarkL)
 	local returnB = place(B, stage.markers.MarkR)
 
