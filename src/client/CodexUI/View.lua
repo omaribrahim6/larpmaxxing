@@ -16,6 +16,7 @@ local Store = require(script.Parent.Store)
 local Rebirth = require(script.Parent.Rebirth)
 local Feed = require(script.Parent.Feed)
 local MapView = require(script.Parent.MapView)
+local Opponents = require(script.Parent.Opponents)
 local DripView = require(script.Parent.DripView)
 local View = {}
 View.__index = View
@@ -77,7 +78,8 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 		sprintToggle = function() callbacks.sprintToggle() end,
 		clipToggle = function() callbacks.clipToggle() end,
 		inviteOpen = function() callbacks.inviteOpen() end,
-		larpOffNow = function() callbacks.larpOffNow() end,
+		-- the dock button opens the picker; the Practice Larper is one of its rows
+		larpOffNow = function() self.opponents:Toggle() end,
 		wardrobeOpen = function() callbacks.dripOpen("wardrobe") end,
 		skateToggle = function() callbacks.skateToggle() end,
 		onTierUp = tierUp})
@@ -99,6 +101,10 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 		cosmetics = extras.cosmetics or {}, confirm = function() callbacks.touchGrass() end})
 	-- the city map (the Map button, or M)
 	self.map = MapView.new(self.root, {config = config, catalog = catalog, play = play, button = button})
+	-- who to larp off (the HUD's Larp-off button)
+	self.opponents = Opponents.new(self.root, {config = config, catalog = catalog, play = play, button = button,
+		challenge = function(userId) callbacks.challenge(userId) end,
+		practice = function() callbacks.larpOffNow() end})
 	-- the shop's Drip tab and the Wardrobe: clothes and boards for LarpCoins
 	self.drip = DripView.new(self.root, {config = config, drip = extras.drip or {slots = {}, tiers = {}, items = {}}, format = format, play = play, button = button,
 		buy = function(id) callbacks.dripBuy(id) end, equip = function(slot, id) callbacks.dripEquip(slot, id) end,
@@ -405,6 +411,7 @@ function View:FocusTargets()
 	if self.store:IsOpen() then return self.store:FocusTargets() end
 	if self.rebirth:IsOpen() then return self.rebirth:FocusTargets() end
 	if self.map:IsOpen() then return self.map:FocusTargets() end
+	if self.opponents:IsOpen() then return self.opponents:FocusTargets() end
 	return {}
 end
 
@@ -465,6 +472,7 @@ function View:Tick(now)
 	end
 	if self.stampDeadline and now >= self.stampDeadline then self.stamp.Visible = false self.stampDeadline = nil end
 	self.hud:Tick(now)
+	self.opponents:Tick()
 end
 
 -- A stamp slams in: big, tilted, then settles (still with Reduce effects).
@@ -492,6 +500,7 @@ function View:Destroy()
 	self.rebirth:Destroy()
 	self.feed:Destroy()
 	self.map:Destroy()
+	self.opponents:Destroy()
 	self.gui:Destroy()
 end
 return View
