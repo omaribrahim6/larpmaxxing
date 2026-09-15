@@ -21,7 +21,13 @@ local Premium = {}
 Premium.config = {
 	vipFloor = -100, -- the VIP rooms' floor top, under their zone
 	room = Vector3.new(84, 18, 64), -- a VIP room's inside: width, height, depth
-	towerRadius = 950, -- Elite towers stand this far from the Plaza, past the skyline
+	-- How far out the Elite towers stand. It is a floor, not the final number: `towerOut`
+	-- below pushes them past whatever Layout.skyline reaches, because a rooftop standing
+	-- inside the skyline's radius band has decorative towers grown straight through it
+	-- (owner 2026-09-15: "some of the rooftop VIP sections are merged with buildings"). The
+	-- skyline band widened when the map grew, and this did not follow.
+	towerRadius = 950,
+	towerClear = 150, -- studs of daylight between the outermost skyline tower and a rooftop
 	roof = 120, -- the rooftops' height
 	deck = Vector3.new(76, 0, 60), -- a rooftop's width and depth inside the parapet
 	spawns = 30, -- spawn points per area (each holds Tuning.Pickup.slotsPerSpawnPoint)
@@ -341,11 +347,19 @@ local function vipRoom(model: Instance, home: string, spec, zoneName: string, na
 	pickupZone(m, at, -W / 2 + 5, -D / 2 + 14, W / 2 - 5, D / 2 - 6, 0, cfg.spawns)
 end
 
+-- Past the skyline, whatever the skyline is: its far radius plus a clear margin, never
+-- nearer than the configured floor. Tied to Layout so the two can't drift apart again.
+local function towerOut(): number
+	local cfg = Premium.config
+	local far = Layout.skyline and Layout.skyline.radius and Layout.skyline.radius[2] or 0
+	return math.max(cfg.towerRadius, far + cfg.towerClear)
+end
+
 -- The Elite rooftop: a deck on a tower past the skyline, its front toward the Plaza.
 local function eliteRoof(model: Instance, home: string, spec, zoneName: string, names)
 	local cfg = Premium.config
 	local rect = Layout.plots[home]
-	local out = Vector3.new((rect[1] + rect[3]) / 2, 0, (rect[2] + rect[4]) / 2).Unit * cfg.towerRadius
+	local out = Vector3.new((rect[1] + rect[3]) / 2, 0, (rect[2] + rect[4]) / 2).Unit * towerOut()
 	local at = framed(CFrame.lookAt(Vector3.new(out.X, cfg.roof, out.Z), Vector3.new(0, cfg.roof, 0)))
 	local W, D, R = cfg.deck.X, cfg.deck.Z, cfg.roof
 	local elite = Areas.tiers.Elite
