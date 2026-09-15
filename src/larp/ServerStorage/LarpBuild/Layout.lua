@@ -78,4 +78,10 @@ return {
 	fill = { chunk = 40, reach = 150, chance = 0.9 },
 
 	skyline = { count = 96, radius = { 900, 1120 }, height = { 70, 230 } },
+
+	-- How far the grass reaches. It has to cover everything a player can stand on, not just
+	-- the streets: the Elite rooftops sit at 1303, the VIP++ Arena at 1536 and the whole LARP
+	-- to Reality world out at 2966, and the old 2048-stud baseplate stopped at 1024, so all of
+	-- those floated over void. A part maxes out at 2048 studs, so City tiles it.
+	ground = { reach = 3200, tile = 1600, top = 0 },
 }

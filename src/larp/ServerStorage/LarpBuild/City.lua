@@ -200,6 +200,22 @@ local function rasterize()
 	end
 end
 
+-- The grass under everything, tiled because a single part caps at 2048 studs. Anything a
+-- player can reach has to sit on it, so it is sized from Layout.ground.reach rather than the
+-- street raster.
+local function groundPlates(folder: Instance)
+	local g = Layout.ground
+	local tiles = math.ceil(g.reach * 2 / g.tile)
+	for i = 0, tiles - 1 do
+		for j = 0, tiles - 1 do
+			local x = -g.reach + g.tile * (i + 0.5)
+			local z = -g.reach + g.tile * (j + 0.5)
+			Kit.block(folder, "Grass", Vector3.new(x, g.top - 4, z), Vector3.new(g.tile, 8, g.tile), P.grass, Enum.Material.Grass, { CastShadow = false })
+		end
+	end
+	return tiles * tiles
+end
+
 local function paveGround(ground: Instance)
 	for _, r in mesh(ROAD) do
 		Kit.block(ground, "Road", Vector3.new((r[1] + r[3]) / 2, ROAD_TOP - 0.2, (r[2] + r[4]) / 2), Vector3.new(r[3] - r[1], 0.4, r[4] - r[2]), P.asphalt, Enum.Material.Asphalt)
@@ -395,7 +411,14 @@ function City.build(): string
 
 	local city = Kit.fresh(larp, "City")
 	rasterize()
-	paveGround(Kit.folder(city, "Ground"))
+	local groundFolder = Kit.folder(city, "Ground")
+	groundPlates(groundFolder) -- first, so the streets and pavements lie on top of it
+	paveGround(groundFolder)
+	-- the default baseplate only reached 1024 and is what the grass tiles replace
+	local plate = workspace:FindFirstChild("Baseplate")
+	if plate then
+		plate:Destroy()
+	end
 	paint(Kit.folder(city, "Markings"))
 	local buildings, parks = lineStreets(Kit.folder(city, "Buildings"), rng)
 	local blocks = backBlocks(Kit.folder(city, "Blocks"), rng)
