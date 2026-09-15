@@ -16,15 +16,18 @@ return {
 	glideDecay = 3,
 	glideStop = 4,
 
-	-- Turning (owner 2026-09-14: "if im going forward at max speed and i press back it does a
-	-- 180 right away at the same speed, rather than slowing down"). A board carves, it doesn't
-	-- pivot. `turnRate` is how fast it comes round at a standstill, in degrees a second, and it
-	-- halves each time your speed passes `turnEase` — so the faster you go, the wider you turn.
-	-- Asking for a change of direction also scrubs speed: `turnScrub` of it a second at a full
-	-- reversal, less for a gentle lean. A U-turn is a slow-down and a carve, not a flick.
-	turnRate = 260,
-	turnEase = 22,
-	turnScrub = 2.2,
+	-- Turning. A board carves rather than pivoting, but the carve has to be tight (owner
+	-- 2026-09-15: "the turn radius isnt tight enough"). `turnRate` is how fast it can come
+	-- round, in degrees a second. How much of that you get depends on your speed AND on how
+	-- sharp a change you asked for. Sharpness is cubed before `reverseBite` weights it, so a
+	-- lean or a corner keeps almost all of the rate at full speed while turning all the way
+	-- round barely moves until the speed is off — S brakes you down and rolls away backwards
+	-- instead of flipping on the spot. The change also scrubs speed, squared by sharpness, so
+	-- a corner costs almost nothing and an about-turn costs nearly everything.
+	turnRate = 430,
+	turnEase = 46,
+	turnScrub = 4.5,
+	reverseBite = 4,
 	-- the wheels and the push's scrape. Owner 2026-09-15: still too loud over the music, so
 	-- these sit well under it — you should hear the board, not ride on top of the track.
 	volume = { roll = 0.1, scrape = 0.12 },

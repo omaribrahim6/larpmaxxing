@@ -148,14 +148,18 @@ local function start(character: Model)
 			if heading.Magnitude < 0.1 then
 				heading = want
 			end
-			-- A board carves, it doesn't pivot: the sharper the change you ask for the more
-			-- speed it costs, and the faster you're going the slower it comes round. So
-			-- pressing back at full tilt scrubs you down and swings you through the turn
-			-- instead of spinning you on the spot.
+			-- A board carves, it doesn't pivot. How fast it comes round depends on how sharp
+			-- a change you asked for as well as how fast you're going: a lean stays tight at
+			-- speed, while asking for the opposite direction waits for the speed to bleed off
+			-- first, so S brakes you down and rolls away backwards rather than flipping.
 			local angle = math.acos(math.clamp(heading:Dot(want), -1, 1))
 			if angle > 1e-3 then
-				speed = math.max(0, speed - Skate.turnScrub * (angle / math.pi) * speed * dt)
-				local rate = math.rad(Skate.turnRate) * (Skate.turnEase / (Skate.turnEase + speed)) * dt
+				local sharp = angle / math.pi -- 0 is a lean, 1 is a full about-turn
+				speed = math.max(0, speed - Skate.turnScrub * sharp * sharp * speed * dt)
+				-- cubed, so only a near-reversal is held back; corners stay tight at speed
+				local bite = sharp * sharp * sharp
+				local grip = Skate.turnEase / (Skate.turnEase + speed * bite * Skate.reverseBite)
+				local rate = math.rad(Skate.turnRate) * grip * dt
 				local turned = heading:Lerp(want, math.clamp(rate / angle, 0, 1))
 				if turned.Magnitude > 1e-4 then
 					heading = turned.Unit
