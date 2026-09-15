@@ -4,7 +4,12 @@
 local CollectionService = game:GetService("CollectionService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Debris = game:GetService("Debris")
+
+-- "+15 Money" on a phone: a phone's screen is a fraction of a monitor's, so the same studs
+-- take up far more of what you can see (owner 2026-09-15: "in game text from pickups too")
+local TEXT_SCALE = if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then 0.65 else 1
 
 local Larp = game:GetService("ReplicatedStorage"):WaitForChild("Larp")
 local Catalog = require(Larp.Shared.Catalog)
@@ -118,7 +123,7 @@ local function floatText(position: Vector3, text: string, color: Color3)
 	-- that it gets distracting", and "im zoomed out but its the same size"). A pixel size is
 	-- the same however far away the camera is, so zooming out to see your character buried it
 	-- behind a wall of text; in studs it shrinks as you pull back, like everything else.
-	gui.Size = UDim2.fromScale(2.4, 0.58) -- smaller again, twice asked (owner 2026-09-15)
+	gui.Size = UDim2.fromScale(2.4 * TEXT_SCALE, 0.58 * TEXT_SCALE) -- smaller again, twice asked (owner 2026-09-15)
 	gui.MaxDistance = 130 -- far-off pops aren't yours to read
 	gui.AlwaysOnTop = true
 	gui.LightInfluence = 0

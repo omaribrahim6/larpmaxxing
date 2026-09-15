@@ -15,15 +15,24 @@
 -- you are actually standing in it and cached from then on.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+-- the HUD lays itself out differently with touch controls on screen, so the map has to ask
+-- Layout the same question it does or the side buttons end up under it
+local TOUCH = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
 local Larp = game:GetService("ReplicatedStorage"):WaitForChild("Larp")
 
 local Minimap = {}
 
-local SIZE = 188 -- the viewport, a square in the corner
+local player = Players.LocalPlayer
+-- where the map goes and how big comes from the HUD's own layout, so on a phone it shrinks
+-- with everything else (owner 2026-09-15: "the map is HUGE, make it smaller, much smaller")
+local Layout = require(player:WaitForChild("PlayerScripts"):WaitForChild("CodexUI"):WaitForChild("Layout"))
+
+local SIZE = Layout.native.minimap -- the square it is drawn at; a UIScale fits it to the screen
 local STUDS = 340 -- how much of the world it shows across that square
 local SCALE = SIZE / STUDS -- pixels per stud
-local EDGE = 8 -- margin from the screen corner
 
 local GROUND = Color3.fromRGB(26, 25, 36)
 local ROAD = Color3.fromRGB(92, 92, 108)
@@ -39,7 +48,6 @@ local PAINT = {
 	door = { blip = Color3.fromRGB(255, 202, 92) },
 }
 
-local player = Players.LocalPlayer
 local view = nil -- the built GUI
 local host = nil -- CodexUI's controller, asked each frame whether a larp-off is on screen
 local worlds: { [string]: any } = {} -- name -> { canvas, minX, minZ }
@@ -230,14 +238,26 @@ local function build(ui)
 	-- its bounds however they are turned.
 	local frame = new("CanvasGroup", gui, {
 		Name = "Minimap",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -EDGE, 0, EDGE),
 		Size = UDim2.fromOffset(SIZE, SIZE),
 		BackgroundColor3 = GROUND,
 		BorderSizePixel = 0,
 		ClipsDescendants = true,
 	})
 	corner(frame, 14)
+	-- drawn at SIZE and shrunk to the screen: everything inside, the pan maths included, stays
+	-- in SIZE pixels, so nothing below has to know how big it is really showing
+	local fit = new("UIScale", frame, { Name = "Fit" })
+	local function place()
+		local size = gui.AbsoluteSize
+		if size.X < 240 or size.Y < 250 then
+			return
+		end
+		local r = Layout.compute(size.X, size.Y, { touch = TOUCH }).minimap
+		frame.Position = UDim2.fromOffset(r.x, r.y)
+		fit.Scale = r.scale
+	end
+	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(place)
+	place()
 	new("UIStroke", frame, { Color = Color3.fromRGB(12, 11, 18), Thickness = 3 })
 
 	-- the map turns about this, which sits exactly where you are

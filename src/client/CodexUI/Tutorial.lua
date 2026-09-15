@@ -2,9 +2,13 @@
 -- from the game's own models) and a few lines of text, Back / Next, a dot per page and
 -- "LET'S GO!" on the last. Opened from the HUD's How to play button; the pages live in
 -- UIConfig.Tutorial.
+local UserInputService = game:GetService("UserInputService")
 local Theme = require(script.Parent.Theme)
 local Juice = require(script.Parent.Juice)
 local Art = require(script.Parent.TutorialArt)
+
+-- a phone or tablet with no keyboard: pages say "tap" rather than naming a key
+local TOUCH = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
 local Tutorial = {}
 Tutorial.__index = Tutorial
@@ -148,9 +152,12 @@ function Tutorial:_show(index)
 	self.counter.Text = words.PageOf:format(index, #pages)
 	self.title.Text = page.title or ""
 	self.title.TextColor3 = color
-	self.body.Text = page.body or ""
-	self.tip.Visible = page.tip ~= nil
-	self.tipText.Text = page.tip or ""
+	-- a page that names keys has a touch version (bodyTouch, tipTouch) for phones
+	local body = if TOUCH and page.bodyTouch then page.bodyTouch else page.body
+	local tip = if TOUCH and page.tipTouch then page.tipTouch else page.tip
+	self.body.Text = body or ""
+	self.tip.Visible = tip ~= nil
+	self.tipText.Text = tip or ""
 	self.pictureEdge.Color = color
 	self.pictureShade.Color = ColorSequence.new(color:Lerp(c.Ink, 0.55), c.Ink:Lerp(color, 0.08))
 	for i, dot in self.dots do

@@ -82,6 +82,8 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 		larpOffNow = function() self.opponents:Toggle() end,
 		wardrobeOpen = function() callbacks.dripOpen("wardrobe") end,
 		skateToggle = function() callbacks.skateToggle() end,
+		-- the HUD lays itself out on every resize (Layout); the feed goes where it says
+		onLayout = function(rects, meta) self.feed:Fit(rects.feed, meta.compact) end,
 		onTierUp = tierUp})
 	self.settingsOpen = self.hud.settingsButton
 	self.helpOpen = self.hud.helpButton
@@ -220,7 +222,10 @@ function View:Render(model)
 	local guide = model.onboarding
 	local size = self.root.AbsoluteSize
 	if size.X >= 240 and size.Y >= 250 then
-		for name, rect in Layout.compute(size.X, size.Y) do
+		-- the same rects the HUD lays itself out by, so on a phone the guide lands in the gap
+		-- it leaves (between the stat bars and the side buttons)
+		local rects = Layout.compute(size.X, size.Y, self.hud:LayoutOptions())
+		for name, rect in rects do
 			local frame = self[PLACED[name]]
 			if frame then
 				frame.AnchorPoint = MID
@@ -240,7 +245,8 @@ function View:Render(model)
 	if model.loaded then self.rankIndex = self.rankMath.indexFor(model.total, self.catalog.ranks) end
 	if guide then
 		local copy = self.config.Guide[guide:Step()]
-		if copy then self.guideTitle.Text = copy.title self.guideBody.Text = copy.body end
+		-- a step that names keys has a touch version for phones (bodyTouch)
+		if copy then self.guideTitle.Text = copy.title self.guideBody.Text = if self.hints == "touch" and copy.bodyTouch then copy.bodyTouch else copy.body end
 	end
 	self.guideLocation.Text = if model.guideLocation then "📍 "..model.guideLocation else ""
 	self.hud.frame.Visible = not model.inMatch

@@ -123,7 +123,8 @@ return {
 	},
 
 	words = {
-		on = "🛹 On the board! Space (or PUSH) pushes: keep pushing to go faster. B hops off",
+		on = "🛹 On the board! Space (or PUSH) pushes: keep pushing to go faster. F hops off",
+		onTouch = "🛹 On the board! Tap PUSH to push: keep pushing to go faster. The Skate button hops off",
 		push = "PUSH",
 		seated = "Hop out of the car first",
 		busy = "Finish what you're doing first",

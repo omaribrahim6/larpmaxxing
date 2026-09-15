@@ -17,8 +17,8 @@ local SECONDS = 5 -- how long a line stays by default
 
 -- deps: config
 function Feed.new(root, deps)
-	local self = setmetatable({ deps = deps, lines = {} }, Feed)
-	-- on touch screens it sits above the thumbstick
+	local self = setmetatable({ deps = deps, lines = {}, maxLines = MAX_LINES }, Feed)
+	-- on touch screens it sits above the thumbstick until the HUD's first fit (Fit) places it
 	local touch = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 	self.frame = Theme.new("Frame", root, {
 		Name = "Feed",
@@ -28,7 +28,21 @@ function Feed.new(root, deps)
 		Size = UDim2.fromOffset(520, MAX_LINES * (BIG_H + GAP)),
 		ZIndex = 11,
 	})
+	self.scale = Theme.new("UIScale", self.frame, { Name = "Fit" })
 	return self
+end
+
+-- Where the feed goes and how big (Layout.compute's `feed`). On a phone it is squeezed in
+-- between the stat bars and the thumbstick, so it is smaller and keeps three lines, not four.
+function Feed:Fit(rect, compact: boolean)
+	self.frame.AnchorPoint = Vector2.zero
+	self.frame.Position = UDim2.fromOffset(rect.x, rect.y)
+	self.frame.Size = UDim2.fromOffset(rect.w / rect.scale, rect.h / rect.scale)
+	self.scale.Scale = rect.scale
+	self.maxLines = if compact then 3 else MAX_LINES
+	while #self.lines > self.maxLines do
+		table.remove(self.lines).label:Destroy()
+	end
 end
 
 -- Adds a line: `text` (RichText allowed) in `color`, `big` for a taller line, staying
@@ -55,7 +69,7 @@ function Feed:Push(text: string, color: Color3?, big: boolean?, seconds: number?
 	label.UIStroke.Transparency = 1
 	local entry = { label = label, text = text, height = height }
 	table.insert(self.lines, 1, entry)
-	while #self.lines > MAX_LINES do
+	while #self.lines > self.maxLines do
 		table.remove(self.lines).label:Destroy()
 	end
 	self:_layout(entry)

@@ -26,10 +26,10 @@ local function attach(target: Player, character: Model)
 	prompt.HoldDuration = 0.25
 	prompt.MaxActivationDistance = Tuning.Challenge.range
 	prompt.RequiresLineOfSight = false
-	-- G, not F: F is the skateboard toggle (LarpClient.Skate, owner 2026-09-15) and a prompt
-	-- sharing the key would fire both when you walked past someone. E is taken by every other
-	-- prompt in the game (cars, doors, the practice NPC, the lounge sofas).
-	prompt.KeyboardKeyCode = Enum.KeyCode.G
+	-- R: F is the skateboard toggle (LarpClient.Skate), G opens Settings (CodexUI.InputPolicy)
+	-- and E is every other prompt in the game (cars, doors, the practice NPC, the lounge
+	-- sofas). A prompt sharing any of them would fire both when you walked past someone.
+	prompt.KeyboardKeyCode = Enum.KeyCode.R
 	prompt.Enabled = enabled
 	prompt.Triggered:Connect(function()
 		Net.get("RequestChallenge"):FireServer(target.UserId, {})

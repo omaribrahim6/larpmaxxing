@@ -66,7 +66,8 @@ function SkateService:Set(player: Player, on: boolean, force: boolean?): boolean
 	character:SetAttribute("Skating", true)
 	if not told[player] then
 		told[player] = true
-		notice(player, Skate.words.on, "success")
+		-- a phone has no Space or F to press (SettingsService records the Touch attribute)
+		notice(player, if player:GetAttribute("Touch") then Skate.words.onTouch else Skate.words.on, "success")
 	end
 	return true
 end

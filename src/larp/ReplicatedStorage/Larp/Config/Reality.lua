@@ -71,12 +71,16 @@ return {
 		taken = "Someone's already on it. Give them a sec!",
 		pickFit = "PICK YOUR FIT",
 		push = "TAP SPACE (OR THE BUTTON) TO PUSH!",
+		pushTouch = "TAP PUSH AS FAST AS YOU CAN!",
 		pushButton = "PUSH",
 		rep = "REP %d / %d",
 		pr = "500 LB PR 🏆",
 		prizeLines = { "And the Nobel Prize in %s goes to…", "%s!", "for %s." },
 		board = { runway = "NOW WALKING: %s in %s", bench = "%s · %d LB · REP %d/%d", pr = "%s · %d LB · NEW PR!", prize = "THE NOBEL PRIZE IN %s\n%s\nfor %s" },
+		-- the *Touch lines are for phones (the server picks by the player's Touch attribute)
 		carReady = "🏎️ Your %s is ready. W/S to drive, A/D to steer, Space to get out",
-		skateOn = "🛹 Skating in the kit! Space pushes: keep pushing to go faster. B (or the Skate button) hops off",
+		carReadyTouch = "🏎️ Your %s is ready. Steer with the stick, and jump to get out",
+		skateOn = "🛹 Skating in the kit! Space pushes: keep pushing to go faster. F (or the Skate button) hops off",
+		skateOnTouch = "🛹 Skating in the kit! Tap PUSH to push: keep pushing to go faster. The Skate button hops off",
 	},
 }

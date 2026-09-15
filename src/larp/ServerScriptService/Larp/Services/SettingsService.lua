@@ -38,6 +38,12 @@ function SettingsService:Init(services)
 end
 
 function SettingsService:Start()
+	-- The client says whether it is a phone or tablet with no keyboard, so server-sent hints
+	-- ("Space pushes", "F hops off") can say "tap" instead. Only ever picks which line of
+	-- text someone sees, so trusting the client costs nothing.
+	Net.get("ClientReady").OnServerEvent:Connect(function(player, info)
+		player:SetAttribute("Touch", if type(info) == "table" and info.touch == true then true else nil)
+	end)
 	Net.get("UpdateSetting").OnServerEvent:Connect(function(player, key, value)
 		local clean = SettingsService.sanitize(key, value)
 		if clean == nil then

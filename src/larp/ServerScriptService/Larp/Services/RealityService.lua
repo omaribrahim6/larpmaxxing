@@ -118,7 +118,8 @@ function RealityService:_drive(player: Player, id: string)
 		end
 	end
 	if self.Cars:Spawn(player, id, cf + UP * 0.4) then
-		notice(player, words.carReady:format(require(Larp.Config.Cars).cars[id].name), "success")
+		local line = if player:GetAttribute("Touch") then words.carReadyTouch else words.carReady
+		notice(player, line:format(require(Larp.Config.Cars).cars[id].name), "success")
 	end
 end
 
@@ -147,7 +148,7 @@ function RealityService:_skate(player: Player, on: boolean)
 				self:_skate(player, false)
 			end
 		end)
-		notice(player, words.skateOn, "success")
+		notice(player, if player:GetAttribute("Touch") then words.skateOnTouch else words.skateOn, "success")
 	else
 		self.Skate:Set(player, false)
 		if s.fit == Reality.skateFit.id then

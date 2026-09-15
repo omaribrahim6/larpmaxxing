@@ -9,6 +9,10 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+-- a phone or tablet with no keyboard: the bench says "tap PUSH", not "tap Space"
+local TOUCH = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
 local Larp = game:GetService("ReplicatedStorage"):WaitForChild("Larp")
 local Reality = require(Larp.Config.Reality)
@@ -259,7 +263,7 @@ local function bench(data)
 	hold(data.cam, 50) -- the server holds them on the bench; Space pushes the bar
 	local c = Colors
 	local p = panel("Bench", { anchor = Vector2.new(0.5, 1), position = UDim2.new(0.5, 0, 1, -30), box = UDim2.fromOffset(380, 130), z = 5, edge = Color3.fromRGB(255, 96, 80), edgeWidth = 3 })
-	Theme.text(p, { name = "Title", font = Theme.Small, text = words.push, size = 13, color = c.Accent, align = Enum.TextXAlignment.Center, position = UDim2.fromOffset(10, 8), box = UDim2.new(1, -20, 0, 18), scaled = true, maxSize = 13, stroke = false })
+	Theme.text(p, { name = "Title", font = Theme.Small, text = if TOUCH then words.pushTouch else words.push, size = 13, color = c.Accent, align = Enum.TextXAlignment.Center, position = UDim2.fromOffset(10, 8), box = UDim2.new(1, -20, 0, 18), scaled = true, maxSize = 13, stroke = false })
 	local rep = Theme.text(p, { name = "Rep", font = Theme.Display, text = words.rep:format(0, data.reps), size = 26, align = Enum.TextXAlignment.Center, position = UDim2.fromOffset(10, 28), box = UDim2.new(1, -20, 0, 32), stroke = 2.5 })
 	local track = Theme.new("Frame", p, { Name = "Track", BackgroundColor3 = c.Ink, BorderSizePixel = 0, Position = UDim2.fromOffset(16, 70), Size = UDim2.new(1, -140, 0, 24) })
 	Theme.corner(track, 8)

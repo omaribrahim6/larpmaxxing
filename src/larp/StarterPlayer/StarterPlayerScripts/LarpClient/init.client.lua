@@ -29,5 +29,7 @@ require(script:WaitForChild("ChallengePrompts")).start()
 require(script:WaitForChild("SceneDirector")).start(ui)
 
 -- Every listener is connected now: ask for the profile snapshot (the server also
--- sends one on load; whichever arrives, the UI renders the same data).
-Net.get("ClientReady"):FireServer()
+-- sends one on load; whichever arrives, the UI renders the same data). It carries whether
+-- this is a phone, so the server's hints can say "tap" instead of naming keys.
+local UserInputService = game:GetService("UserInputService")
+Net.get("ClientReady"):FireServer({ touch = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled })
