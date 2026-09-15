@@ -140,6 +140,11 @@ function Controller.start()
 		})
 	self.cleanup:Add(self.view)
 	self.cleanup:Add(InputController.new(self))
+	-- the minimap (LarpClient.Minimap) taps this to open the full map, same as pressing M
+	function self:ToggleMap()
+		self.view.map:Toggle()
+		self.view:Render(self.model)
+	end
 	function self:GetAudioGroup(kind)
 		return self.audioGroups[if kind=="Music" then "musicVolume" elseif kind=="SFX" then "sfxVolume" else ""]
 	end

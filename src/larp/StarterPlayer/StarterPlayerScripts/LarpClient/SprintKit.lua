@@ -1,4 +1,4 @@
--- Sprint toggle: Left Shift, the gamepad's left-stick click, or the HUD's Sprint button
+-- Sprint toggle: Ctrl, the gamepad's left-stick click, or the HUD's Sprint button
 -- (every device; it lights up while sprinting). Sprinting raises WalkSpeed (Tuning.Movement) and widens the camera a
 -- little; the toggle survives respawns. It never overrides a WalkSpeed something else set
 -- (a scene pinning it), and leaves scripted scene cameras alone.
@@ -55,13 +55,14 @@ function SprintKit.start(controller)
 			SprintKit.set(not sprinting)
 		end)
 	end
-	-- above the default controls, so Shift sprints instead of toggling Shift Lock
+	-- Ctrl, not Shift (owner 2026-09-15): Shift goes back to Roblox's own Shift Lock, which
+	-- this used to swallow. Nothing else binds Ctrl, so it can sink it safely.
 	ContextActionService:BindActionAtPriority(ACTION, function(_, state)
 		if state == Enum.UserInputState.Begin then
 			SprintKit.set(not sprinting)
 		end
 		return Enum.ContextActionResult.Sink
-	end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL3)
+	end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.LeftControl, Enum.KeyCode.RightControl, Enum.KeyCode.ButtonL3)
 	player:GetAttributeChangedSignal("SpeedMultiplier"):Connect(apply)
 	player.CharacterAdded:Connect(function(character)
 		character:WaitForChild("Humanoid", 10)

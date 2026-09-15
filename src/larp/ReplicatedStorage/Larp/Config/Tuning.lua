@@ -92,7 +92,7 @@ return {
 	-- so the later runs speed up. Shared.RebirthMath adds them up.
 	TouchGrass = { bonuses = { 0.10, 0.15, 0.20, 0.25, 0.30 }, cap = 2.0 },
 
-	-- Sprint toggle (LarpClient.SprintKit): Left Shift, gamepad left-stick click, or the
+	-- Sprint toggle (LarpClient.SprintKit): Ctrl, gamepad left-stick click, or the
 	-- on-screen button. walkSpeed must match StarterPlayer.CharacterWalkSpeed.
 	Movement = { walkSpeed = 16, sprintSpeed = 28, fov = 70, sprintFov = 8, fovSeconds = 0.3 },
 

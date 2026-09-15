@@ -38,7 +38,7 @@ return {
 			tip = "✨ Legendaries shoot a beam into the sky. Race for them!"},
 		{art = "map", color = Color3.fromRGB(96, 214, 200), title = "FIVE STATS, FIVE PLACES",
 			body = "Each place in the city grows one stat: the Car Lot for Money, the Café Strip for Aesthetic, the Mall for Drip, the Gym for Gains and the Library for Big Brain. The streets drop all five. Rank up to open their VIP rooms and Elite rooftops.",
-			tip = "🏃 Shift or the Sprint button runs. 🗺️ M opens the map."},
+			tip = "🏃 Ctrl or the Sprint button runs. 🗺️ M opens the map."},
 		{art = "ranks", color = Color3.fromRGB(176, 132, 255), title = "RANK UP",
 			body = "All your points add up to your rank. Start as an NPC and climb all the way to LARP Maxxer.",
 			tip = "📈 The card in the top left shows how close your next rank is."},

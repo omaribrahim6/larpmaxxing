@@ -211,7 +211,7 @@ function Hud:_fit()
 	local dock, corner = self.dock, self.corner
 	-- the minimap owns the top-right corner (LarpClient.Minimap), so the dock starts below it:
 	-- on a short screen it slides down rather than hiding behind the map
-	local MINIMAP = top + 212 -- the map's 188 plus its margins, below the topbar too
+	local MINIMAP = 208 -- the map's 188 plus its margins; it sits in the true corner
 	local half = dock.Size.Y.Offset * scale / 2
 	dock.Position = UDim2.new(1, -12, 0.5, math.max(-30, MINIMAP + half - size.Y * 0.5))
 	-- on short screens (phones) the dock reaches down past the corner buttons' top: the

@@ -1,7 +1,8 @@
 -- The minimap (owner 2026-09-14: "add a GTA5 style map in top right corner ... which means
 -- removing the button for map since itll always be open, and adding a map for the
 -- realityworld"). Always on, top right: the streets and the places around you on a dark
--- ground, turning with the camera while the blip turns to show which way you face. M opens
+-- ground, turning with the camera while the blip turns to show which way you face. Tapping
+-- it, or M, opens
 -- CodexUI's full map.
 --
 -- It draws once and then moves. Every street and place is a Frame laid out on one canvas at
@@ -22,7 +23,7 @@ local Minimap = {}
 local SIZE = 188 -- the viewport, a square in the corner
 local STUDS = 340 -- how much of the world it shows across that square
 local SCALE = SIZE / STUDS -- pixels per stud
-local EDGE = 12 -- margin from the screen corner
+local EDGE = 8 -- margin from the screen corner
 
 local GROUND = Color3.fromRGB(26, 25, 36)
 local ROAD = Color3.fromRGB(92, 92, 108)
@@ -211,7 +212,7 @@ local function inReality(position: Vector3): boolean
 	return x >= 0 and z >= 0 and x <= world.canvas.AbsoluteSize.X and z <= world.canvas.AbsoluteSize.Y
 end
 
-local function build()
+local function build(ui)
 	local gui = new("ScreenGui", player:WaitForChild("PlayerGui"), {
 		Name = "LarpMinimap",
 		ResetOnSpawn = false,
@@ -263,28 +264,34 @@ local function build()
 	new("UIStroke", you, { Color = Color3.fromRGB(12, 11, 18), Thickness = 2 })
 	triangle(you, 16, 8, YOU, 11)
 
-	return { gui = gui, frame = frame, pivot = pivot, you = you }
+	-- tapping the map opens the full one, the same as M (owner 2026-09-15). A transparent
+	-- button over the whole thing, above the canvas, so the whole corner is the target.
+	local open = new("TextButton", frame, {
+		Name = "Open",
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		Text = "",
+		AutoButtonColor = false,
+		ZIndex = 20,
+	})
+	open.Activated:Connect(function()
+		if ui and ui.ToggleMap then
+			ui:ToggleMap()
+		end
+	end)
+
+	return { gui = gui, frame = frame, pivot = pivot, you = you, open = open }
 end
 
-function Minimap.start()
-	view = build()
+function Minimap.start(ui)
+	view = build(ui)
 	worlds.City = buildCity(view.pivot)
 	if worlds.City then
 		showing = "City"
 	end
 
-	-- Below Roblox's own topbar icons: IgnoreGuiInset gives us the whole screen, so the map
-	-- steps round them itself. Read every frame rather than once at build, because the inset
-	-- is still 0 while the topbar is coming up, and it differs by device besides.
-	local GuiService = game:GetService("GuiService")
-	local lastInset = -1
 	local lastLook = 0
 	RunService.RenderStepped:Connect(function()
-		local inset = GuiService:GetGuiInset().Y
-		if inset ~= lastInset then
-			lastInset = inset
-			view.frame.Position = UDim2.new(1, -EDGE, 0, EDGE + inset)
-		end
 		local character = player.Character
 		local root = character and character:FindFirstChild("HumanoidRootPart")
 		local camera = workspace.CurrentCamera

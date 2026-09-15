@@ -185,49 +185,16 @@ local function buildScreen(part: BasePart)
 	local clock = text(root, UDim2.new(0, 230, 0, 40), UDim2.new(1, -230, 0, 0), "", 36, Enum.Font.GothamBold, INK)
 	clock.TextXAlignment = Enum.TextXAlignment.Right
 
-	local body = text(root, UDim2.new(1, 0, 0, 104), UDim2.fromOffset(0, 48), "", 42, Enum.Font.GothamBold, INK)
+	local body = text(root, UDim2.new(1, 0, 0, 280), UDim2.fromOffset(0, 68), "", 44, Enum.Font.GothamBold, INK)
 	body.TextYAlignment = Enum.TextYAlignment.Top
 
 	local bar = Instance.new("Frame")
 	bar.Size = UDim2.new(1, 0, 0, 8)
-	bar.Position = UDim2.new(0, 0, 0, 162)
+	bar.Position = UDim2.new(0, 0, 0, 50)
 	bar.BackgroundColor3 = room.color
 	bar.BorderSizePixel = 0
 	bar.Parent = root
 	corner(bar, 4)
-
-	-- a 2x2 block: the panel is about 2:1 now, so four across would squash them again
-	local grid = Instance.new("Frame")
-	grid.Size = UDim2.new(1, 0, 1, -182)
-	grid.Position = UDim2.fromOffset(0, 182)
-	grid.BackgroundTransparency = 1
-	grid.Parent = root
-	local layout = Instance.new("UIGridLayout")
-	layout.CellSize = UDim2.new(0.5, -8, 0.5, -8)
-	layout.CellPadding = UDim2.fromOffset(16, 16)
-	layout.Parent = grid
-
-	local tiles = {}
-	for i, choice in Quiz.choices do
-		local tile = Instance.new("Frame")
-		tile.BackgroundColor3 = choice.color
-		tile.BorderSizePixel = 0
-		tile.LayoutOrder = i
-		tile.Parent = grid
-		corner(tile, 10)
-		local mark = shape(tile, choice.shape, Color3.fromRGB(255, 255, 255), 34)
-		mark.Position = UDim2.fromOffset(12, 12)
-		local answer = text(tile, UDim2.new(1, -62, 1, -14), UDim2.fromOffset(54, 7), "", 24, Enum.Font.GothamBold, Color3.fromRGB(255, 255, 255))
-		answer.TextXAlignment = Enum.TextXAlignment.Left
-		-- the right answer is marked with a drawn outline, never a tick glyph (a missing glyph
-		-- renders as a blank box, and this is the one thing on screen that has to be readable)
-		local ring = Instance.new("UIStroke")
-		ring.Color = Color3.fromRGB(255, 255, 255)
-		ring.Thickness = 5
-		ring.Transparency = 1
-		ring.Parent = tile
-		tiles[i] = { frame = tile, answer = answer, ring = ring, color = choice.color }
-	end
 
 	-- the scoreboard, shown instead of the grid
 	local board = Instance.new("Frame")
@@ -240,7 +207,7 @@ local function buildScreen(part: BasePart)
 	rows.Padding = UDim.new(0, 8)
 	rows.Parent = board
 
-	return { part = part, room = room, gui = gui, root = root, head = head, clock = clock, body = body, bar = bar, grid = grid, tiles = tiles, board = board, flag = nil }
+	return { part = part, room = room, gui = gui, root = root, head = head, clock = clock, body = body, bar = bar, board = board, flag = nil }
 end
 
 local function boardRow(parent: Instance, place: number, name: string, score: number, color: Color3)
@@ -261,7 +228,6 @@ end
 
 local function paintScreen(s, state)
 	local phase = state and state.phase or "idle"
-	s.grid.Visible = phase == "question" or phase == "reveal"
 	s.board.Visible = phase == "results" or phase == "lobby"
 	s.bar.Visible = phase == "question"
 
@@ -297,28 +263,27 @@ local function paintScreen(s, state)
 	end
 
 	if phase == "question" or phase == "reveal" then
-		-- a flag question puts the flag beside the words, and the words make room for it
+		-- The answers are on your own pad, so the wall spends all of its room on the question
+		-- and, when there is one, a big flag (owner 2026-09-15). At the reveal the question
+		-- line becomes the answer, in the room's colour, so nothing has to move.
 		if s.flag then
 			s.flag:Destroy()
 			s.flag = nil
 		end
 		if state.flag then
-			s.flag = drawFlag(s.root, state.flag, UDim2.fromOffset(150, 100), UDim2.new(1, -150, 0, 48))
-			s.body.Size = UDim2.new(1, -168, 0, 104)
+			s.flag = drawFlag(s.root, state.flag, UDim2.fromOffset(460, 230), UDim2.new(0.5, -230, 0, 132))
+		end
+		local revealing = phase == "reveal" and state.correct ~= nil
+		if revealing then
+			s.body.Text = string.upper(state.answers and state.answers[state.correct] or "")
+			s.body.TextColor3 = s.room.color
+			s.body.TextSize = if state.flag then 46 else 62
 		else
-			s.body.Size = UDim2.new(1, 0, 0, 104)
+			s.body.Text = ("Q%d/%d   %s"):format(state.index or 1, state.count or Quiz.questions, state.question or "")
+			s.body.TextColor3 = INK
+			s.body.TextSize = if state.flag then 32 else 44
 		end
-		s.body.Text = ("Q%d/%d   %s"):format(state.index or 1, state.count or Quiz.questions, state.question or "")
-		for i, tile in s.tiles do
-			local answer = state.answers and state.answers[i]
-			tile.frame.Visible = answer ~= nil
-			tile.answer.Text = answer or ""
-			local right = state.correct and i == state.correct
-			tile.frame.BackgroundColor3 = tile.color
-			tile.frame.BackgroundTransparency = if state.correct and not right then 0.72 else 0
-			tile.answer.TextTransparency = if state.correct and not right then 0.5 else 0
-			tile.ring.Transparency = if right then 0 else 1
-		end
+		s.body.Size = if state.flag then UDim2.new(1, 0, 0, 54) else UDim2.new(1, 0, 0, 280)
 		return
 	end
 
