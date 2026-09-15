@@ -36,7 +36,6 @@ return {
 		expired = "%s didn't answer",
 		notAccepting = "%s isn't taking larp-offs right now",
 		cooldown = "Wait %d seconds before challenging %s again",
-		tooFar = "Get closer to challenge %s",
 		busy = "%s is busy",
 		queued = "You're #%d in line for the stage",
 		youAreBusy = "Finish your current larp-off first",

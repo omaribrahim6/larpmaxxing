@@ -58,6 +58,10 @@ function StatService:_refresh(player: Player, data)
 		folder.Wins.Value = snap.wins
 	end
 
+	-- every client reads this one: the Larp-off picker shows who it would be putting you up
+	-- against, and an attribute replicates to everyone without a remote of its own
+	player:SetAttribute("LarpRank", snap.rankIndex)
+
 	local old = rankCache[player]
 	rankCache[player] = snap.rankIndex
 	-- the best rank reached survives Touch Grass; a rank above it unlocks its cosmetic

@@ -65,7 +65,11 @@ local function close(id: number)
 	return c
 end
 
-local function distance(a: Player, b: Player): number
+-- How far apart two players are, or math.huge if either has no character. The Larp-off picker
+-- sorts by it; nothing gates on it any more (owner 2026-09-15: on a map this size, needing to
+-- physically find someone was why player-vs-player larp-offs never happened). A challenge
+-- still costs a request every 2s, and the target can turn them off or decline for 30s.
+function ChallengeService.distance(a: Player, b: Player): number
 	local ra = a.Character and a.Character:FindFirstChild("HumanoidRootPart")
 	local rb = b.Character and b.Character:FindFirstChild("HumanoidRootPart")
 	if not ra or not rb then
@@ -74,14 +78,15 @@ local function distance(a: Player, b: Player): number
 	return (ra.Position - rb.Position).Magnitude
 end
 
-function ChallengeService:_request(from: Player, targetUserId: any, options: any)
+-- `options` is unread now that a rematch is no different from any other challenge: both used
+-- to exist only so a rematch could skip the distance check, and nothing checks distance.
+function ChallengeService:_request(from: Player, targetUserId: any, _options: any)
 	if type(targetUserId) ~= "number" or targetUserId ~= targetUserId then
 		return
 	end
 	if not (requestLimiter:Allow(from, 1)) then
 		return
 	end
-	local rematch = type(options) == "table" and options.rematch == true
 	local to = Players:GetPlayerByUserId(targetUserId)
 	if not to or to == from then
 		return
@@ -107,13 +112,6 @@ function ChallengeService:_request(from: Player, targetUserId: any, options: any
 		notice(from, Text.Challenge.cooldown:format(math.ceil(waitLeft), to.DisplayName))
 		return
 	end
-	local isRematch = rematch
-		and self.Matches:WereRecentOpponents("u" .. from.UserId, "u" .. to.UserId, C.rematchWindowSeconds)
-	if not isRematch and distance(from, to) > C.range + C.rangeTolerance then
-		notice(from, Text.Challenge.tooFar:format(to.DisplayName))
-		return
-	end
-
 	nextId += 1
 	local id = nextId
 	pending[id] = { id = id, from = from, to = to, expiresAt = now() + C.acceptSeconds }

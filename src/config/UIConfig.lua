@@ -43,7 +43,7 @@ return {
 			body = "All your points add up to your rank. Start as an NPC and climb all the way to LARP Maxxer.",
 			tip = "📈 The card in the top left shows how close your next rank is."},
 		{art = "larpoff", color = Color3.fromRGB(240, 124, 167), title = "LARP-OFF!",
-			body = "Walk up to another player and press G, or up to the Practice Larper in the Plaza and press E, or tap ⚔ Larp-off on the right for a quick one. You each play one scene per stat, and whoever wins more rounds wins.",
+			body = "Tap ⚔ Larp-off on the right to see everyone in the server and pick one, or walk up to someone and press G. The Practice Larper is always up for one too. You each play one scene per stat, and whoever wins more rounds wins.",
 			tip = "🎯 New? The Practice Larper is an easy first win."},
 		{art = "scenes", color = Color3.fromRGB(255, 170, 60), title = "BIGGER STATS, BIGGER SCENES",
 			body = "The higher a stat, the crazier its scene. The bus becomes a scooter, then a sports car, then a private jet. The badge next to each stat shows its tier.",
@@ -143,6 +143,11 @@ return {
 		NewCosmetic = "%s  NEW: %s",
 		-- the bottom-right buttons and the city map
 		Map = "Map", Sprint = "Sprint", Sprinting = "Sprint ON", MapTitle = "CITY MAP",
+		-- the Larp-off picker (CodexUI.Opponents): who is in the server and how far off
+		LarpOffTitle = "PICK YOUR LARP-OFF", PracticeRow = "Practice Larper",
+		PracticeSub = "Always up for one, and matched to your stats",
+		NoOthers = "Nobody else is in this server yet. The Practice Larper is always up for one.",
+		InMatch = "IN A LARP-OFF", StudsAway = "%d studs away",
 		Plaza = "PLAZA", StreetsAll = "STREETS DROP ALL FIVE", You = "YOU", Vs = "VS", RoundPerStat = "ONE ROUND PER STAT",
 	},
 }

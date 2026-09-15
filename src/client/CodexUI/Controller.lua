@@ -122,6 +122,9 @@ function Controller.start()
 			inviteOpen=function() self:Invite() end,
 			-- a practice larp-off from anywhere (PracticeNpcService)
 			larpOffNow=function() if not self.adapter:Send("RequestPractice",{quick=true}) then notice(Config.Words.Unavailable,"warning") end end,
+			-- a row in the Larp-off picker: the server decides whether it goes through, and
+			-- says so with a Notice when it does not (busy, not accepting, on cooldown)
+			challenge=function(userId) if not self.adapter:Send("RequestChallenge",userId,{}) then notice(Config.Words.Unavailable,"warning") end end,
 			-- the Drip tab / Wardrobe (DripView) and the Robux shop, one at a time
 			dripOpen=function(tab) self.view.store:Close() self.view.drip:Open(tab) self.view:Render(self.model) end,
 			robuxOpen=function() self.view.drip:Close() self.view.store:Open() self.view:Render(self.model) end,

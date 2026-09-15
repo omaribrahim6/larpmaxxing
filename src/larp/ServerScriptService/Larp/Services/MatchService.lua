@@ -72,6 +72,17 @@ local function now()
 	return workspace:GetServerTimeNow()
 end
 
+-- busy[] is what the server's own rules read; the attribute is the same fact for every
+-- client, so the Larp-off picker can grey out whoever is already in one.
+local function setBusy(key: string, state: string?)
+	busy[key] = state
+	local userId = tonumber(string.match(key, "^u(%d+)$"))
+	local player = userId and Players:GetPlayerByUserId(userId)
+	if player then
+		player:SetAttribute("LarpBusy", if state then true else nil)
+	end
+end
+
 local sceneData = {}
 for _, id in Catalog.roundStatIds do
 	local scene = Catalog.statsById[id].scene
@@ -149,8 +160,8 @@ function MatchService:Start()
 			local entry = queue[i]
 			if entry.A.key == key or entry.B.key == key then
 				table.remove(queue, i)
-				busy[entry.A.key] = nil
-				busy[entry.B.key] = nil
+				setBusy(entry.A.key, nil)
+				setBusy(entry.B.key, nil)
 			end
 		end
 		recent[key] = nil
@@ -181,8 +192,8 @@ function MatchService:Enqueue(A, B)
 	if not show then
 		return nil, "no stage"
 	end
-	busy[A.key] = "queued"
-	busy[B.key] = "queued"
+	setBusy(A.key, "queued")
+	setBusy(B.key, "queued")
 	table.insert(queue, { A = A, B = B })
 	self:_pump()
 	for i, entry in queue do
@@ -211,15 +222,15 @@ function MatchService:_pump()
 				local ok, err = pcall(self._run, self, arena, entry.A, entry.B)
 				if not ok then
 					warn("[Larp] Larp-off crashed: " .. tostring(err))
-					busy[entry.A.key] = nil
-					busy[entry.B.key] = nil
+					setBusy(entry.A.key, nil)
+					setBusy(entry.B.key, nil)
 					arena.busy = false
 					self:_pump()
 				end
 			end)
 		else
-			busy[entry.A.key] = nil
-			busy[entry.B.key] = nil
+			setBusy(entry.A.key, nil)
+			setBusy(entry.B.key, nil)
 		end
 	end
 end
@@ -480,8 +491,8 @@ function MatchService:_run(arena, A, B)
 	nextMatchId += 1
 	local stage = arena
 	local match = { id = nextMatchId, arena = arena, stage = arena, A = A, B = B, aborted = false, reason = nil, seen = {} }
-	busy[A.key] = "match"
-	busy[B.key] = "match"
+	setBusy(A.key, "match")
+	setBusy(B.key, "match")
 	Combatant.refresh(A, self.Stats)
 	Combatant.refresh(B, self.Stats)
 
@@ -579,8 +590,8 @@ function MatchService:_run(arena, A, B)
 	end
 	restore(A, returnA)
 	restore(B, returnB)
-	busy[A.key] = nil
-	busy[B.key] = nil
+	setBusy(A.key, nil)
+	setBusy(B.key, nil)
 	if A.onFinished then
 		A.onFinished()
 	end
