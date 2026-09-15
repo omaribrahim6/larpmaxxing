@@ -2,6 +2,7 @@
 -- value, and progress to the next scene tier its larp-off round reaches), Wins with the
 -- Settings and Help buttons, the pickup combo meter, and each pickup's points flying from
 -- the player into its stat bar. Presentation only: every number comes from the profile.
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Theme = require(script.Parent.Theme)
@@ -23,6 +24,17 @@ local COMBO_COLORS = { -- the meter's colour from this combo length up
 }
 local CENTER = Enum.TextXAlignment.Center
 local MID = Vector2.new(0.5, 0.5)
+
+-- How far down the left column has to start so Roblox's own topbar icons never sit on it
+-- (owner 2026-09-15: "move the left side below the roblox icons"). The unibar is taller than
+-- the GUI inset, and both read 0 for the first frames of a session, so take whichever is
+-- larger and never less than the unibar's own height. Only this column moves: the minimap
+-- owns the true top-right corner and stays there.
+local TOPBAR_MIN = 54
+local function topbarBottom(): number
+	local bar = GuiService.TopbarInset
+	return math.max(if bar then bar.Max.Y else 0, GuiService:GetGuiInset().Y, TOPBAR_MIN)
+end
 
 local function comboColor(n)
 	for _, step in COMBO_COLORS do
@@ -174,6 +186,11 @@ function Hud.new(root, fx, deps)
 		root:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
 			self:_fit()
 		end),
+		-- the topbar reports its real height a little after the session starts, and grows when
+		-- Roblox adds an icon: refit so the left column keeps clearing it
+		GuiService:GetPropertyChangedSignal("TopbarInset"):Connect(function()
+			self:_fit()
+		end),
 		-- within 10% of the next rank the bar's outline breathes
 		RunService.RenderStepped:Connect(function()
 			if self.near then
@@ -202,10 +219,9 @@ function Hud:_fit()
 	local scale = math.clamp(math.min(size.Y / 700, size.X / 1000), 0.66, 1)
 	self.leftScale.Scale = scale
 	-- IgnoreGuiInset hands us the whole screen, including the strip Roblox's own topbar icons
-	-- sit in, so the left column starts below them (owner 2026-09-15: "roblox icons blocking
-	-- the left side stuff"). Asked of GuiService rather than hardcoded: it is taller on phones.
-	local top = game:GetService("GuiService"):GetGuiInset().Y
-	self.left.Position = UDim2.fromOffset(12, top + 8)
+	-- sit in, so the left column starts below them. Re-read every fit: the inset is 0 for the
+	-- first frames, which is how the column ended up under the icons.
+	self.left.Position = UDim2.fromOffset(12, topbarBottom() + 8)
 	self.dockScale.Scale = scale
 	self.cornerScale.Scale = scale
 	local dock, corner = self.dock, self.corner
