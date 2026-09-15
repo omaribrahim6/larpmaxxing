@@ -214,28 +214,39 @@ local function build()
 		BackgroundTransparency = 1,
 	})
 
-	-- you: a chevron that always points up the screen, because the map turns instead
+	-- You: a blip like GTA's — a pale disc with a blue arrow in it. The disc never turns; the
+	-- map turns underneath, so the arrow always points the way you are facing. The arrow is
+	-- the top half of a rotated square inside a clipping frame, because a triangle drawn from
+	-- frames can't fail to render the way a glyph can.
 	local you = new("Frame", frame, {
 		Name = "You",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromOffset(16, 16),
-		BackgroundTransparency = 1,
+		Size = UDim2.fromOffset(24, 24),
+		BackgroundColor3 = Color3.fromRGB(238, 240, 252),
+		BorderSizePixel = 0,
 		ZIndex = 10,
 	})
-	for _, lean in { -34, 34 } do
-		local blade = new("Frame", you, {
-			BackgroundColor3 = YOU,
-			BorderSizePixel = 0,
-			AnchorPoint = Vector2.new(0.5, 0),
-			Position = UDim2.new(0.5, if lean < 0 then -3 else 3, 0, 0),
-			Size = UDim2.fromOffset(3.5, 15),
-			Rotation = lean,
-			ZIndex = 10,
-		})
-		corner(blade, 2)
-		new("UIStroke", blade, { Color = Color3.fromRGB(12, 11, 18), Thickness = 1 })
-	end
+	corner(you, 12)
+	new("UIStroke", you, { Color = Color3.fromRGB(12, 11, 18), Thickness = 2 })
+	local nose = new("Frame", you, {
+		Name = "Arrow",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(0.5, 0, 0.5, -1),
+		Size = UDim2.fromOffset(16, 8),
+		BackgroundTransparency = 1,
+		ClipsDescendants = true, -- leaves the square's top corner: a triangle pointing up
+		ZIndex = 11,
+	})
+	new("Frame", nose, {
+		BackgroundColor3 = YOU,
+		BorderSizePixel = 0,
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(0.5, 0, 1, 0),
+		Size = UDim2.fromOffset(11, 11),
+		Rotation = 45,
+		ZIndex = 11,
+	})
 
 	return { gui = gui, frame = frame, pivot = pivot, you = you }
 end

@@ -114,7 +114,9 @@ function Cafe.build(): string
 	local flagship = 46
 	for _, side in { -1, 1 } do
 		local x = side * flagship / 2
-		while side * (c.halfWidth - side * x) > 16 do
+		-- both halves: the old test read `side * (halfWidth - side * x)`, which is only ever
+		-- positive for side = 1, so the whole -x half of the back row silently never built
+		while c.halfWidth - math.abs(x) > 16 do
 			local w = math.min(24 + 4 * rng:NextInteger(0, 2), c.halfWidth - math.abs(x))
 			if w < 16 then
 				break
