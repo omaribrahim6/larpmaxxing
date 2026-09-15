@@ -270,6 +270,7 @@ local function buildHud()
 	gui.Name = "LarpQuiz"
 	gui.ResetOnSpawn = false
 	gui.IgnoreGuiInset = true
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling -- Global lets children escape a clip
 	gui.DisplayOrder = 8
 	gui.Enabled = false
 	gui.Parent = player:WaitForChild("PlayerGui")

@@ -216,6 +216,10 @@ local function build()
 		Name = "LarpMinimap",
 		ResetOnSpawn = false,
 		IgnoreGuiInset = true, -- the true corner, not below Roblox's top bar
+		-- Sibling, not the Global a new ScreenGui defaults to: under Global, any descendant
+		-- with a higher ZIndex than its clipping ancestor draws straight through the clip, so
+		-- the streets (ZIndex 2) and blips (6) escaped the frame and covered the screen.
+		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 		DisplayOrder = 20,
 	})
 	-- A CanvasGroup, not a Frame: ClipsDescendants has no effect on a rotated descendant, and
