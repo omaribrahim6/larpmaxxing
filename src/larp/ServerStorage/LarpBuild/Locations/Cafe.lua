@@ -1,7 +1,7 @@
 -- The Café Strip (Aesthetic's home zone): a T (owner 2026-09-14, "bigger, more at the end").
 -- A brick promenade runs west from Latte Lane between cafés and their terraces under string
 -- lights (the stem), then opens into a square at the far end (the bar of the T) with cafés
--- down its back and both ends, terraces, and the flagship café behind a fountain.
+-- down its back and both ends, terraces, a fountain, and a way straight out the back to the ring road.
 --   require(game.ServerStorage.LarpBuild.Locations.Cafe).build()
 local Kit = require(script.Parent.Parent.Kit)
 local Buildings = require(script.Parent.Parent.Buildings)
@@ -19,8 +19,7 @@ Cafe.config = {
 	backDepth = 24, -- the cafés round the square
 	halfWidth = 126, -- how far the square reaches each way (its end cafés stand here)
 	spawns = 140,
-	names = { "MATCHA MOMENT", "OAT MILK CO.", "FILM & FOAM", "AESTHETIC ROAST", "PASTEL PATISSERIE", "SLOW POUR", "CROISSANT CLUB", "SOFT LIFE TEA", "CERAMIC & CO.", "THE SOFT SERVE", "LINEN & LATTE", "GOLDEN HOUR BAR" },
-	flagship = "MAIN CHARACTER CAFÉ",
+	names = { "MAIN CHARACTER CAFÉ", "MATCHA MOMENT", "OAT MILK CO.", "FILM & FOAM", "AESTHETIC ROAST", "PASTEL PATISSERIE", "SLOW POUR", "CROISSANT CLUB", "SOFT LIFE TEA", "CERAMIC & CO.", "THE SOFT SERVE", "LINEN & LATTE", "GOLDEN HOUR BAR" },
 	facades = {
 		{ Color3.fromRGB(238, 222, 200), Enum.Material.Plaster },
 		{ Color3.fromRGB(206, 226, 206), Enum.Material.Plaster },
@@ -110,10 +109,10 @@ function Cafe.build(): string
 		end
 	end
 
-	-- the square at the end: cafés along its back, either side of the flagship
-	local flagship = 46
+	-- the square at the end: cafés along its back, either side of the way out
+	local gap = 46 -- the opening in the back row that the promenade carries on through
 	for _, side in { -1, 1 } do
-		local x = side * flagship / 2
+		local x = side * gap / 2
 		-- both halves: the old test read `side * (halfWidth - side * x)`, which is only ever
 		-- positive for side = 1, so the whole -x half of the back row silently never built
 		while c.halfWidth - math.abs(x) > 16 do
@@ -145,11 +144,13 @@ function Cafe.build(): string
 		end
 	end
 
-	-- the flagship closes the far end, with a fountain in front of it
-	Buildings.building(plot.model, plot.pos(0, 0, squareBack), plot.dir(0, -1), flagship, c.backDepth, rng, {
-		shop = c.flagship, floors = 2, facade = c.facades[1], awning = Color3.fromRGB(128, 172, 136),
-	})
-	Plot.fountain(plot, 0, squareBack - 18, 14, 0.7)
+	-- The promenade doesn't dead-end (owner 2026-09-15: "theres a building straight in front of
+	-- you and a road behind it, remove that building and connect the road to the cafe strip").
+	-- The flagship used to close the far end; now the paving runs straight through the gap in
+	-- the back row and a little past the plot edge, so it meets the ring road's own pavement.
+	Plot.ground(plot, -gap / 2, squareBack, gap / 2, half + 8, c.paving, Enum.Material.Brick, 0.7, "Exit")
+	-- the fountain moves off the doorway, into the middle of the square where it belongs
+	Plot.fountain(plot, 0, squareBack - 34, 14, 0.7)
 
 	-- terraces out on the square, lights over both arms, and the arch at the entrance
 	for x = -c.halfWidth + 16, c.halfWidth - 16, 22 do
@@ -178,7 +179,7 @@ function Cafe.build(): string
 	-- one pickup zone over the whole T; the cafés and fillers in it are obstacles, so pickups
 	-- only land on the paving (PickupService checks before it places one)
 	Plot.zone(plot, -c.halfWidth + 6, -half + 4, c.halfWidth - 6, squareBack - 6, c.spawns, 0.7)
-	return ("%d cafés, %d filler blocks, %d parts"):format(count + 1, blocks, #plot.model:GetDescendants())
+	return ("%d cafés, %d filler blocks, %d parts"):format(count, blocks, #plot.model:GetDescendants())
 end
 
 return Cafe
