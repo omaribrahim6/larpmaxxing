@@ -27,7 +27,7 @@ local function label(parent, name, font, y, height)
 	l.Size = UDim2.fromScale(1, height)
 	l.Position = UDim2.fromScale(0, y)
 	local stroke = Instance.new("UIStroke")
-	stroke.Thickness = 2
+	stroke.Thickness = 1.2 -- thin: the plate shrinks with distance now, and a thick edge eats the letters
 	stroke.Color = Color3.fromRGB(16, 20, 16)
 	stroke.Parent = l
 	l.Parent = parent
@@ -50,8 +50,12 @@ local function build(model: Model)
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "LarpNameplate"
 	gui.Adornee = head
-	gui.Size = UDim2.fromOffset(230, 84)
-	gui.StudsOffset = Vector3.new(0, 2.8, 0)
+	-- In studs, not pixels (owner 2026-09-15: "everything needs to be smaller including ... your
+	-- title on top of your head"). A pixel size is the same on a phone as on a monitor, so on a
+	-- phone it covered a big share of the screen, and it never shrank as you zoomed out. In
+	-- studs it is the same size next to the character everywhere and shrinks with distance.
+	gui.Size = UDim2.fromScale(3.6, 1.3)
+	gui.StudsOffset = Vector3.new(0, 2.4, 0)
 	gui.MaxDistance = 120
 	gui.LightInfluence = 0
 	gui.ResetOnSpawn = false

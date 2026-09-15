@@ -65,8 +65,8 @@ function Hud.new(root, fx, deps)
 	local format = deps.format
 	local icons = deps.config.StatIcons or {}
 	local self = setmetatable({
-		deps = deps, root = root, fx = fx, rows = {}, rowOrder = {}, orbs = 0,
-		combo = 0, comboPoints = 0, lastCollect = -math.huge, glintAt = 0, hintY = 136,
+		deps = deps, root = root, fx = fx, rows = {}, orbs = 0,
+		combo = 0, comboPoints = 0, lastCollect = -math.huge, glintAt = 0,
 	}, Hud)
 	self.frame = Theme.new("Frame", root, { Name = "HUD", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) })
 
@@ -122,15 +122,12 @@ function Hud.new(root, fx, deps)
 		self.rows[id] = {
 			row = row, icon = icon, chip = chip, chipText = chipText, tierFill = tierFill, stat = stat,
 			pop = pop, popSum = 0, popAt = -math.huge, popTweens = {},
-			popFrom = UDim2.new(1, 6, 0.5, 0), popTo = UDim2.new(1, 14, 0.5, -10), -- see _arrange
 			counter = Juice.counter(value, format.short, 0.6),
 		}
-		table.insert(self.rowOrder, id)
 		y += ROW_H + ROW_GAP
 	end
 	-- LarpCoins (larp-offs pay them; they buy drip), under the stat bars
 	local coins = Theme.panel(self.left, { name = "Coins", position = UDim2.fromOffset(ROW_H / 2, y + 2), box = UDim2.fromOffset(ROW_W - ROW_H / 2, 36), radius = 10, color = Color3.fromRGB(96, 70, 18) })
-	self.coins = coins
 	-- a drawn coin (Roblox has no coin emoji)
 	local coin = Theme.new("Frame", coins, { Name = "Icon", BackgroundColor3 = Color3.fromRGB(255, 206, 84), BorderSizePixel = 0, Position = UDim2.fromOffset(9, 5), Size = UDim2.fromOffset(26, 26) })
 	Theme.corner(coin, 13)
@@ -220,7 +217,7 @@ function Hud.new(root, fx, deps)
 			end
 			if self.hintOn then
 				local wave = 0.5 + 0.5 * math.sin(os.clock() * 6)
-				self.hint.Position = UDim2.fromOffset(-16 - 10 * wave, self.hintY)
+				self.hint.Position = UDim2.fromOffset(-16 - 10 * wave, 136)
 				self.helpGlow.BackgroundTransparency = 0.35 + 0.45 * wave
 				self.helpGlow.Size = UDim2.fromOffset(146 + 12 * wave, 56 + 12 * wave)
 			end
@@ -237,14 +234,13 @@ function Hud:LayoutOptions()
 	return { touch = TOUCH, top = topbarBottom() }
 end
 
--- Lays the HUD out for this screen (Layout): a phone gets the compact arrangement.
+-- Lays the HUD out for this screen (Layout): on a phone, the same HUD drawn smaller.
 function Hud:_fit()
 	local size = self.root.AbsoluteSize
 	if size.X < 240 or size.Y < 250 then
 		return
 	end
 	local rects, meta = Layout.compute(size.X, size.Y, self:LayoutOptions())
-	self:_arrange(meta.compact)
 	place(self.left, self.leftScale, rects.left)
 	place(self.dock, self.dockScale, rects.dock)
 	place(self.corner, self.cornerScale, rects.corner)
@@ -254,58 +250,6 @@ function Hud:_fit()
 	if self.deps.onLayout then
 		self.deps.onLayout(rects, meta)
 	end
-end
-
--- The two arrangements of the left column and the side buttons (Layout.native): one column
--- each on a big screen, two to a row on a phone, so a short screen is filled across rather
--- than down. Only moves anything when the arrangement changes.
-function Hud:_arrange(compact: boolean)
-	if self.compact == compact then
-		return
-	end
-	self.compact = compact
-	local native = Layout.native
-
-	-- left: the rank card runs the full width, the stat bars fill it in order, and the coins
-	-- take the next slot after the last bar
-	local L = if compact then native.leftCompact else native.left
-	local columns = if compact then 2 else 1
-	local pitch = ROW_H + ROW_GAP
-	self.left.Size = UDim2.fromOffset(L.w, L.h)
-	self.card.Size = UDim2.fromOffset(L.w, CARD_H)
-	self.card.Position = UDim2.fromOffset(L.w / 2, CARD_H / 2)
-	for i, id in self.rowOrder do
-		local row = self.rows[id]
-		local col, line = (i - 1) % columns, (i - 1) // columns
-		row.row.Position = UDim2.fromOffset(col * (ROW_W + 8) + ROW_W / 2, CARD_H + 10 + line * pitch + ROW_H / 2)
-		-- "+15" pops off a bar's right end; in the left of two columns that would land on the
-		-- bar beside it, so there it pops over its own tier chip instead
-		local inside = col < columns - 1
-		row.popFrom = if inside then UDim2.new(1, -100, 0.5, 0) else UDim2.new(1, 6, 0.5, 0)
-		row.popTo = if inside then UDim2.new(1, -92, 0.5, -10) else UDim2.new(1, 14, 0.5, -10)
-		row.pop.Position = row.popFrom
-	end
-	local slot = #self.rowOrder
-	local col, line = slot % columns, slot // columns
-	self.coins.Position = UDim2.fromOffset(col * (ROW_W + 8) + ROW_H / 2, CARD_H + 10 + line * pitch + (if compact then 9 else 2))
-	-- the save note (shown only when saving is off) sits under everything
-	self.note.Position = UDim2.fromOffset(6, if compact then L.h + 2 else CARD_H + 10 + line * pitch + 44)
-	self.note.Size = UDim2.new(1, -12, 0, 16)
-
-	-- the side buttons, in reading order
-	local D = if compact then native.dockCompact else native.dock
-	self.dock.Size = UDim2.fromOffset(D.w, D.h)
-	local items = { self.winsChip, self.settingsButton, self.helpButton, self.shopButton, self.wardrobeButton, self.larpOffButton, self.grassButton }
-	local column = { 24, 82, 136, 190, 244, 298, 352 } -- one column: Wins is a little taller
-	for i, item in items do
-		item.Position = if compact
-			then UDim2.fromOffset(68 + ((i - 1) % 2) * 144, 24 + ((i - 1) // 2) * 54)
-			else UDim2.fromOffset(68, column[i])
-	end
-	-- the first-visit glow and pointer follow How to play
-	self.helpGlow.Position = self.helpButton.Position
-	self.hintY = self.helpButton.Position.Y.Offset
-	self.hint.Position = UDim2.fromOffset(-16, self.hintY)
 end
 
 function Hud:Render(model)
@@ -530,12 +474,12 @@ function Hud:_land(row, points, rarity)
 	local info = self.deps.catalog.rarities[rarity]
 	pop.Text = "+" .. self.deps.format.int(row.popSum)
 	pop.TextColor3 = if info and rarity ~= "Common" then info.color else row.stat.color:Lerp(Color3.new(1, 1, 1), 0.25)
-	pop.Position = row.popFrom
+	pop.Position = UDim2.new(1, 6, 0.5, 0)
 	pop.TextTransparency = 0
 	pop.UIStroke.Transparency = 0
 	Juice.punch(pop, 1.4, 0.25)
 	row.popTweens = {
-		Juice.tween(pop, 0.5, { Position = row.popTo, TextTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0.5),
+		Juice.tween(pop, 0.5, { Position = UDim2.new(1, 14, 0.5, -10), TextTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0.5),
 		Juice.tween(pop.UIStroke, 0.5, { Transparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0.5),
 	}
 end

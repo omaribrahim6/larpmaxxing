@@ -3,21 +3,18 @@
 -- { x, y, w, h } on screen; a HUD block also carries `scale`, the UIScale that shrinks its
 -- native size (Layout.native) down to w x h. Pure: no services, no instances.
 --
--- Phones (owner 2026-09-15: "on mobile the UI is HORRIBLE and doesnt utilize the width of the
--- phone fully, everything is just so big"). A phone on its side is short and wide, so under
--- COMPACT the HUD is laid out for width instead of height: the stat bars go two to a row under
--- a rank card that runs across both, the side buttons go two to a row, the minimap drops to
--- about a quarter of the screen's height, the notice feed sits between the stats and the
--- thumbstick, and Invite/Clip/Sprint/Skate line up beside the jump button instead of floating
--- above it in the middle of the screen.
+-- Phones (owner 2026-09-15: "the UI is taking too much of the screen"). The HUD keeps the one
+-- arrangement it has everywhere and is simply drawn smaller: about half size on a phone, with
+-- the stat column cut to end above the thumbstick, the side buttons to end above the jump
+-- button and the minimap at about a quarter of the screen's height. Invite/Clip/Sprint/Skate
+-- sit beside the jump button, and the notice feed beside the stat column rather than under it,
+-- where the thumbstick is.
 local Layout = {}
 
 -- The HUD blocks at scale 1, in pixels. Hud and Feed build them at these sizes.
 Layout.native = {
 	left = { w = 252, h = 470 }, -- the rank card over five stat bars and the coins
-	leftCompact = { w = 496, h = 280 }, -- the card across the top, the bars two to a row
-	dock = { w = 136, h = 380 }, -- Wins and the side buttons, one column
-	dockCompact = { w = 280, h = 208 }, -- the same, two to a row
+	dock = { w = 136, h = 380 }, -- Wins and the side buttons
 	corner = { w = 312, h = 72 }, -- Invite, Clip, Sprint, Skate
 	combo = { w = 220, h = 68 },
 	feed = { w = 520, h = 168 }, -- four lines
@@ -28,13 +25,15 @@ Layout.native = {
 local COMPACT = 540 -- a screen whose short side is under this is a phone
 local EDGE = 8 -- the minimap's margin from the corner
 
--- Roblox's own touch jump button (its TouchJump defaults): on a phone it is 70 across, 95 in
--- from the right edge and 20 up from the bottom; on a tablet 120 across, 170 in and 90 up.
-local function jump(short: number): (number, number)
+-- Roblox's own touch controls (its TouchJump and Thumbstick defaults). On a phone the jump
+-- button is 70 across, 95 in from the right edge and 20 up from the bottom, and the
+-- thumbstick reaches 110 up; on a tablet the button is 120 across, 170 in and 90 up, and the
+-- thumbstick reaches 210 up.
+local function controls(short: number)
 	if short <= 500 then
-		return 95, 20
+		return { right = 95, up = 20, size = 70, stick = 110 }
 	end
-	return 170, 90
+	return { right = 170, up = 90, size = 120, stick = 210 }
 end
 
 local function rect(x: number, y: number, w: number, h: number, scale: number?)
@@ -50,89 +49,104 @@ function Layout.compute(width, height, options)
 	local top = options.top or 0
 	local short = math.min(width, height)
 	local phone = short < COMPACT
-	-- A tablet gets the phone arrangement too, just bigger: Roblox's thumbstick and jump button
-	-- are on it as well, and the one-column layout put the side buttons on the jump button.
+	-- a tablet is laid out like a phone, only bigger: it has the touch controls too
 	local compact = phone or touch
+	local pad = controls(short)
 	local n = Layout.native
 	local out = {}
-	-- how far up from the bottom Roblox's thumbstick reaches (its own small/large sizes)
-	local stick = if short <= 500 then 110 else 210
 
-	-- every HUD block is drawn at this
-	local s = if compact
-		then math.clamp(short / 760, 0.42, if phone then 0.62 else 0.9)
+	-- every HUD block is drawn at this: about half size on a phone
+	local s = if phone
+		then math.clamp(short / 820, 0.4, 0.6)
+		elseif compact then math.clamp(short / 900, 0.6, 0.85)
 		else math.clamp(math.min(height / 700, width / 1000), 0.66, 1)
 
 	-- top right: the minimap, about a quarter of a phone's height
-	local map = if compact then math.floor(math.clamp(short * 0.27, 84, n.minimap) + 0.5) else n.minimap
+	local map = if phone then math.floor(math.clamp(short * 0.24, 80, n.minimap) + 0.5) else n.minimap
 	out.minimap = rect(width - EDGE - map, EDGE, map, map, map / n.minimap)
 
-	-- top left, under Roblox's icons: the rank card and the stat bars
-	local L = if compact then n.leftCompact else n.left
-	out.left = rect(12, top + (if compact then 6 else 8), L.w * s, L.h * s, s)
+	-- top left, under Roblox's icons: the rank card and the stat bars. With touch controls
+	-- it stops short of the thumbstick, shrinking further if it has to.
+	local leftY = top + (if compact then 6 else 8)
+	local ls = s
+	if touch then
+		ls = math.clamp((height - pad.stick - 8 - leftY) / n.left.h, 0.34, s)
+	end
+	out.left = rect(12, leftY, n.left.w * ls, n.left.h * ls, ls)
 
-	-- right edge, under the minimap: Wins and the side buttons
-	local D = if compact then n.dockCompact else n.dock
-	local dw, dh = D.w * s, D.h * s
-	local dockY = if compact
-		then EDGE + map + 8
+	-- right edge, under the minimap: Wins and the side buttons. With touch controls they stop
+	-- short of the jump button.
+	local ds = s
+	local dockY
+	if compact then
+		dockY = EDGE + map + 8
+		if touch then
+			ds = math.clamp((height - pad.up - pad.size - 8 - dockY) / n.dock.h, 0.3, s)
+		end
+	else
 		-- a big screen keeps the old rule: centred a little above the middle, pushed down
 		-- clear of the map when the screen is short
-		else math.max(height / 2 - 30, EDGE + map + 12 + dh / 2) - dh / 2
-	out.dock = rect(width - (if compact then EDGE else 12) - dw, dockY, dw, dh, s)
+		local half = n.dock.h * ds / 2
+		dockY = math.max(height / 2 - 30, EDGE + map + 12 + half) - half
+	end
+	local dw, dh = n.dock.w * ds, n.dock.h * ds
+	out.dock = rect(width - (if compact then EDGE else 12) - dw, dockY, dw, dh, ds)
 
 	-- bottom right: Invite, Clip, Sprint and Skate
 	local cw, ch = n.corner.w * s, n.corner.h * s
 	local cx, cy
 	if touch then
 		-- beside the jump button, level with it: it owns the corner
-		local right, up = jump(short)
-		cx, cy = width - right - 12 - cw, height - up - ch
+		cx, cy = width - pad.right - 12 - cw, height - pad.up - ch
 	else
 		cx, cy = width - 16 - cw, height - 20 - ch
-		-- when the dock reaches down that far, the row goes left of the dock instead
-		if not compact and out.dock.y + dh + 8 > cy then
+		-- when the side buttons reach down that far, the row goes left of them instead
+		if out.dock.y + dh + 8 > cy then
 			cx = out.dock.x - 12 - cw
 		end
 	end
 	out.corner = rect(cx, cy, cw, ch, s)
 
-	-- bottom left: the notice feed. On a phone it fits in whatever is left between the stat
-	-- bars and the thumbstick, and shows three lines rather than four.
-	local F = if compact then n.feedCompact else n.feed
-	local bottom, fs
+	-- the notice feed. On a big screen, bottom left. With the compact layout the bottom left
+	-- is the thumbstick's, so it sits beside the stat column, level with its bottom, and keeps
+	-- three lines rather than four.
 	if compact then
-		bottom = height - (if touch then stick else 16)
-		fs = math.clamp((bottom - (out.left.y + out.left.h) - 6) / F.h, 0.45, if phone then 0.6 else 0.9)
-		fs = math.min(fs, (width - 24) / F.w)
+		local F = n.feedCompact
+		local fx = out.left.x + out.left.w + 10
+		local fs = if phone then 0.5 else 0.8
+		fs = math.max(0.15, math.min(fs, width * 0.36 / F.w, (out.dock.x - 8 - fx) / F.w))
+		local bottom = out.left.y + out.left.h
+		out.feed = rect(fx, bottom - F.h * fs, F.w * fs, F.h * fs, fs)
 	else
-		bottom = height - (if touch then stick else 20)
-		fs = 1
+		local F = n.feed
+		out.feed = rect(16, height - (if touch then pad.stick else 20) - F.h, F.w, F.h, 1)
 	end
-	out.feed = rect(if compact then 12 else 16, bottom - F.h * fs, F.w * fs, F.h * fs, fs)
 
-	-- bottom middle: the pickup combo meter. On a phone the bottom is the thumbstick, the feed
-	-- and the corner row, so it goes in the middle of what's left between the last two.
+	-- bottom middle: the pickup combo meter, clear of the thumbstick, the feed and the corner
+	-- row; when there's no room between them it sits over the corner row
 	local ks = if phone then 0.6 elseif compact then 0.9 else 1
 	local kw, kh = n.combo.w * ks, n.combo.h * ks
 	local kx, ky = (width - kw) / 2, height - (if compact then 76 else 84) - kh
 	if compact then
-		local left, right = out.feed.x + out.feed.w + 8, out.corner.x - 8
-		if right - left >= kw then
-			kx = (left + right - kw) / 2
+		local from = math.max(out.feed.x + out.feed.w, if touch then width * 0.4 else 0) + 8
+		local to = out.corner.x - 8
+		if to - from >= kw then
+			kx = (from + to - kw) / 2
 		else
-			-- no room between them: right of the feed, lifted clear over the corner row
-			kx = math.min(math.max(kx, left), width - kw - 8)
-			ky = math.min(ky, out.corner.y - 8 - kh)
+			kx = out.corner.x + (out.corner.w - kw) / 2
+			ky = out.corner.y - 8 - kh
 		end
+		kx = math.clamp(kx, 8, width - kw - 8)
+		ky = math.max(ky, 0)
 	end
 	out.combo = rect(kx, ky, kw, kh, ks)
 
-	-- the new-player guide: on a phone, across the top between the stats and the side
-	-- buttons, where it covers neither the thumbstick nor the corner row
+	-- the new-player guide: with the compact layout, across the top between the stat column
+	-- and the side buttons, clear of the thumbstick and the corner row
 	local low = height < 480
 	local guideHeight = if compact then 104 elseif low then 116 else 128
-	local from, to = out.left.x + out.left.w + 8, out.dock.x - 8
+	-- (the map can be wider than the side buttons under it, so it bounds the gap too)
+	local from, to = out.left.x + out.left.w + 8, math.min(out.dock.x, out.minimap.x) - 8
 	if compact and to - from >= 220 then
 		local gw = math.min(to - from, 440)
 		out.guide = rect(from + (to - from - gw) / 2, math.max(top, 46) + 6, gw, guideHeight)
