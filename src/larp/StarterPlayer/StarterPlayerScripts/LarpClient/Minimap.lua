@@ -218,7 +218,11 @@ local function build()
 		IgnoreGuiInset = true, -- the true corner, not below Roblox's top bar
 		DisplayOrder = 20,
 	})
-	local frame = new("Frame", gui, {
+	-- A CanvasGroup, not a Frame: ClipsDescendants has no effect on a rotated descendant, and
+	-- the map inside here rotates, so a plain frame let the whole city draw across the screen.
+	-- A CanvasGroup renders its children into its own buffer first, so they really are cut to
+	-- its bounds however they are turned.
+	local frame = new("CanvasGroup", gui, {
 		Name = "Minimap",
 		AnchorPoint = Vector2.new(1, 0),
 		Position = UDim2.new(1, -EDGE, 0, EDGE),
