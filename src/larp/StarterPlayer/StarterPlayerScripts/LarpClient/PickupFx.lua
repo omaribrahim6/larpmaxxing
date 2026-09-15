@@ -114,7 +114,12 @@ local function floatText(position: Vector3, text: string, color: Color3)
 	anchor.Parent = workspace
 
 	local gui = Instance.new("BillboardGui")
-	gui.Size = UDim2.fromOffset(200, 60)
+	-- Small, and sized in studs rather than pixels (owner 2026-09-14: "theres so much of it
+	-- that it gets distracting", and "im zoomed out but its the same size"). A pixel size is
+	-- the same however far away the camera is, so zooming out to see your character buried it
+	-- behind a wall of text; in studs it shrinks as you pull back, like everything else.
+	gui.Size = UDim2.fromScale(4.2, 1)
+	gui.MaxDistance = 130 -- far-off pops aren't yours to read
 	gui.AlwaysOnTop = true
 	gui.LightInfluence = 0
 	gui.Parent = anchor
@@ -126,7 +131,7 @@ local function floatText(position: Vector3, text: string, color: Color3)
 	label.Text = text
 	label.TextColor3 = color
 	local stroke = Instance.new("UIStroke")
-	stroke.Thickness = 2.5
+	stroke.Thickness = 1.4 -- scaled down with the text, or it eats the letters
 	stroke.Color = Color3.fromRGB(20, 20, 24)
 	stroke.Parent = label
 	label.Parent = gui
@@ -196,8 +201,10 @@ function PickupFx.start(ui)
 			-- each pickup in a chain rings a little higher
 			local combo = ui:Collected(statId, points, rarityName, at) or 1
 			local big = rarityName == "Legendary" -- only Legendaries get the big sound (owner: Epics' got annoying)
+			-- quiet (owner 2026-09-14: "reduce the sound of the pickup"): you collect these in
+			-- long chains, so one has to sit under the music rather than on top of it
 			SoundKit.play(if big then "PickupRare" else "Pickup", {
-				volume = if rarityName == "Legendary" then 0.7 else 0.4,
+				volume = if rarityName == "Legendary" then 0.34 else 0.16,
 				speed = 1 + math.min(combo - 1, 16) * 0.03,
 			})
 		end)

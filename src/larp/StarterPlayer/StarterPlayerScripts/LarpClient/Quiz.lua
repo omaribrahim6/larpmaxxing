@@ -106,7 +106,10 @@ local function buildScreen(part: BasePart)
 	local gui = Instance.new("SurfaceGui")
 	gui.Name = "LarpQuizSurface"
 	gui.Face = Enum.NormalId.Front
-	gui.PixelsPerStud = 26
+	-- The panel is about three times as wide as it is tall, so everything below is laid out
+	-- for that shape — the four answers run in one row across the bottom, not a 2x2 block that
+	-- squashes them (owner 2026-09-14: "the screens in the lounges are kinda stretched").
+	gui.PixelsPerStud = 32
 	gui.LightInfluence = 0
 	gui.Adornee = part
 	gui.Parent = part
@@ -121,31 +124,31 @@ local function buildScreen(part: BasePart)
 	pad.PaddingTop, pad.PaddingBottom = UDim.new(0, 20), UDim.new(0, 20)
 	pad.Parent = root
 
-	local head = text(root, UDim2.new(1, 0, 0, 34), UDim2.fromOffset(0, 0), room.name, 30, Enum.Font.LuckiestGuy, room.color)
+	local head = text(root, UDim2.new(1, -240, 0, 40), UDim2.fromOffset(0, 0), room.name, 36, Enum.Font.LuckiestGuy, room.color)
 	head.TextXAlignment = Enum.TextXAlignment.Left
-	local clock = text(root, UDim2.new(0, 220, 0, 34), UDim2.new(1, -220, 0, 0), "", 30, Enum.Font.GothamBold, INK)
+	local clock = text(root, UDim2.new(0, 230, 0, 40), UDim2.new(1, -230, 0, 0), "", 36, Enum.Font.GothamBold, INK)
 	clock.TextXAlignment = Enum.TextXAlignment.Right
 
-	local body = text(root, UDim2.new(1, 0, 0, 108), UDim2.fromOffset(0, 46), "", 40, Enum.Font.GothamBold, INK)
+	local body = text(root, UDim2.new(1, 0, 0, 104), UDim2.fromOffset(0, 48), "", 42, Enum.Font.GothamBold, INK)
 	body.TextYAlignment = Enum.TextYAlignment.Top
 
 	local bar = Instance.new("Frame")
 	bar.Size = UDim2.new(1, 0, 0, 8)
-	bar.Position = UDim2.new(0, 0, 0, 160)
+	bar.Position = UDim2.new(0, 0, 0, 162)
 	bar.BackgroundColor3 = room.color
 	bar.BorderSizePixel = 0
 	bar.Parent = root
 	corner(bar, 4)
 
-	-- the 2x2 answer grid
+	-- the answers: one wide row of four, which is the shape this panel actually is
 	local grid = Instance.new("Frame")
-	grid.Size = UDim2.new(1, 0, 1, -184)
-	grid.Position = UDim2.fromOffset(0, 184)
+	grid.Size = UDim2.new(1, 0, 1, -182)
+	grid.Position = UDim2.fromOffset(0, 182)
 	grid.BackgroundTransparency = 1
 	grid.Parent = root
 	local layout = Instance.new("UIGridLayout")
-	layout.CellSize = UDim2.new(0.5, -8, 0.5, -8)
-	layout.CellPadding = UDim2.fromOffset(16, 16)
+	layout.CellSize = UDim2.new(0.25, -9, 1, 0)
+	layout.CellPadding = UDim2.fromOffset(12, 0)
 	layout.Parent = grid
 
 	local tiles = {}
@@ -157,9 +160,9 @@ local function buildScreen(part: BasePart)
 		tile.Parent = grid
 		corner(tile, 10)
 		local mark = shape(tile, choice.shape, Color3.fromRGB(255, 255, 255), 34)
-		mark.Position = UDim2.fromOffset(14, 14)
-		local answer = text(tile, UDim2.new(1, -66, 1, -16), UDim2.fromOffset(58, 8), "", 26, Enum.Font.GothamBold, Color3.fromRGB(255, 255, 255))
-		answer.TextXAlignment = Enum.TextXAlignment.Left
+		mark.Position = UDim2.fromOffset(14, 12)
+		local answer = text(tile, UDim2.new(1, -24, 1, -60), UDim2.fromOffset(12, 52), "", 26, Enum.Font.GothamBold, Color3.fromRGB(255, 255, 255))
+		answer.TextYAlignment = Enum.TextYAlignment.Top
 		-- the right answer is marked with a drawn outline, never a tick glyph (a missing glyph
 		-- renders as a blank box, and this is the one thing on screen that has to be readable)
 		local ring = Instance.new("UIStroke")
@@ -172,8 +175,8 @@ local function buildScreen(part: BasePart)
 
 	-- the scoreboard, shown instead of the grid
 	local board = Instance.new("Frame")
-	board.Size = UDim2.new(1, 0, 1, -184)
-	board.Position = UDim2.fromOffset(0, 184)
+	board.Size = UDim2.new(1, 0, 1, -182)
+	board.Position = UDim2.fromOffset(0, 182)
 	board.BackgroundTransparency = 1
 	board.Visible = false
 	board.Parent = root

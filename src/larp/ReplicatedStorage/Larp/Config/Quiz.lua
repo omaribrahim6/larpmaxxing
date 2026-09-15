@@ -10,7 +10,7 @@ local rgb = Color3.fromRGB
 
 local Quiz = {}
 
-Quiz.minPlayers = 2 -- two people have to be in the lounge and ready
+Quiz.minPlayers = 1 -- owner 2026-09-14: one person can run a quiz on their own
 Quiz.questions = 6 -- questions in a round
 Quiz.lobbySeconds = 30 -- how long a lobby waits for company
 Quiz.readySeconds = 8 -- once enough are ready, the countdown drops to this
@@ -35,7 +35,7 @@ Quiz.choices = {
 Quiz.words = {
 	play = "START A QUIZ",
 	idle = "PRESS E TO START A QUIZ",
-	needPlayers = "Two people have to be sitting in here to start a quiz.",
+	needPlayers = "Sit down in the lounge to start a quiz.",
 	waiting = "WAITING FOR LARPERS",
 	ready = "READY",
 	starting = "STARTING",

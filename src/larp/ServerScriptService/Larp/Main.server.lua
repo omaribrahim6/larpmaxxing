@@ -52,6 +52,9 @@ if game:GetService("RunService"):IsStudio() then
 	local hook = Instance.new("BindableFunction")
 	hook.Name = "LarpDebug"
 	hook.OnInvoke = function(command, userId, ...)
+		if command == "tests" then
+			return require(game:GetService("ServerStorage").UnitTest.RunUnitTest)()
+		end
 		local target = game:GetService("Players"):GetPlayerByUserId(userId)
 		if not target then
 			return "no player"
@@ -89,4 +92,17 @@ if game:GetService("RunService"):IsStudio() then
 		return "unknown command"
 	end
 	hook.Parent = game:GetService("ServerStorage")
+
+	-- Studio only: run the unit suite once a playtest starts and print the summary, so every
+	-- playtest is a regression check and the result is readable straight from the output
+	-- window. Live servers never get here.
+	task.spawn(function()
+		task.wait(5)
+		local ok, result = pcall(require(game:GetService("ServerStorage").UnitTest.RunUnitTest))
+		if ok and type(result) == "table" then
+			print(("[Larp] unit tests: %d run, %d passed, %d failed"):format(result.run, result.passed, result.failed))
+		else
+			warn("[Larp] unit tests could not run: " .. tostring(result))
+		end
+	end)
 end

@@ -7,7 +7,7 @@
 -- and a zone with none plays nothing.
 return {
 	default = "Street", -- outside every zone below: the main theme
-	volume = 0.3, -- before the player's Music volume setting
+	volume = 0.55, -- before the player's Music volume setting (owner: it was too quiet)
 	fade = 2.5, -- crossfade seconds between zones
 	duck = 0.35, -- volume multiplier while a larp-off plays, so its stings read
 	tracks = {

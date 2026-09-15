@@ -194,7 +194,7 @@ return function(t)
 	t.test("quiz banks are well-formed", function()
 		local Quiz = require(Larp.Config.Quiz)
 		expect.equal(#Quiz.choices, 4)
-		expect.truthy(Quiz.minPlayers >= 2 and Quiz.questions > 0 and Quiz.answerSeconds > 0)
+		expect.truthy(Quiz.minPlayers >= 1 and Quiz.questions > 0 and Quiz.answerSeconds > 0)
 		for subject, bank in Quiz.banks do
 			expect.truthy(#bank >= Quiz.questions)
 			for _, item in bank do

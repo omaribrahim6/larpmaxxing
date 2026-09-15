@@ -139,11 +139,28 @@ local function start(character: Model)
 	RunService:BindToRenderStep("LarpSkateCam", Enum.RenderPriority.Camera.Value + 1, cameraApply)
 	-- after the controls have had their say each frame, so letting go keeps you rolling
 	-- instead of the controller stopping you dead
-	local glide = Vector3.zero -- the way you were last heading, for a free roll
+	local heading = Vector3.zero -- the way the board is actually pointing
 	RunService:BindToRenderStep(RIDE, Enum.RenderPriority.Character.Value, function(dt)
 		local move = humanoid.MoveDirection
-		if move.Magnitude > 0.1 then
-			glide = move.Unit
+		local holding = move.Magnitude > 0.1
+		if holding then
+			local want = move.Unit
+			if heading.Magnitude < 0.1 then
+				heading = want
+			end
+			-- A board carves, it doesn't pivot: the sharper the change you ask for the more
+			-- speed it costs, and the faster you're going the slower it comes round. So
+			-- pressing back at full tilt scrubs you down and swings you through the turn
+			-- instead of spinning you on the spot.
+			local angle = math.acos(math.clamp(heading:Dot(want), -1, 1))
+			if angle > 1e-3 then
+				speed = math.max(0, speed - Skate.turnScrub * (angle / math.pi) * speed * dt)
+				local rate = math.rad(Skate.turnRate) * (Skate.turnEase / (Skate.turnEase + speed)) * dt
+				local turned = heading:Lerp(want, math.clamp(rate / angle, 0, 1))
+				if turned.Magnitude > 1e-4 then
+					heading = turned.Unit
+				end
+			end
 			-- steering pushes off: the first press, then again every autoPush seconds
 			if os.clock() - lastPush >= Skate.autoPush then
 				push()
@@ -152,9 +169,10 @@ local function start(character: Model)
 		else
 			-- let go and the board keeps rolling, slowing gently to a stop
 			speed = math.max(0, speed - Skate.glideDecay * dt)
-			if speed > Skate.glideStop and glide.Magnitude > 0 then
-				humanoid:Move(glide, false)
-			end
+		end
+		-- the board goes where it is pointing, not where the stick is
+		if heading.Magnitude > 0 and (holding or speed > Skate.glideStop) then
+			humanoid:Move(heading, false)
 		end
 		humanoid.WalkSpeed = math.max(speed, 0.1)
 	end)

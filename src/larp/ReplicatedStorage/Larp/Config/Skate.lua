@@ -15,6 +15,16 @@ return {
 	cooldown = 0.34,
 	glideDecay = 3,
 	glideStop = 4,
+
+	-- Turning (owner 2026-09-14: "if im going forward at max speed and i press back it does a
+	-- 180 right away at the same speed, rather than slowing down"). A board carves, it doesn't
+	-- pivot. `turnRate` is how fast it comes round at a standstill, in degrees a second, and it
+	-- halves each time your speed passes `turnEase` — so the faster you go, the wider you turn.
+	-- Asking for a change of direction also scrubs speed: `turnScrub` of it a second at a full
+	-- reversal, less for a gentle lean. A U-turn is a slow-down and a carve, not a flick.
+	turnRate = 260,
+	turnEase = 22,
+	turnScrub = 2.2,
 	-- the wheels and the push's scrape (owner: they were way too loud)
 	volume = { roll = 0.22, scrape = 0.25 },
 	lift = 0.5, -- how much higher the board stands you (its deck is under your soles)
