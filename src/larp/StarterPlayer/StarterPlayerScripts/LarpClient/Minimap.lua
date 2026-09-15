@@ -1,7 +1,7 @@
 -- The minimap (owner 2026-09-14: "add a GTA5 style map in top right corner ... which means
 -- removing the button for map since itll always be open, and adding a map for the
 -- realityworld"). Always on, top right: the streets and the places around you on a dark
--- ground, turning under a fixed arrow so up is always the way you're facing. M still opens
+-- ground, turning under a fixed arrow so up is always the way your character faces. M opens
 -- CodexUI's full map.
 --
 -- It draws once and then moves. Every street and place is a Frame laid out on one canvas at
@@ -276,8 +276,7 @@ function Minimap.start()
 	RunService.RenderStepped:Connect(function()
 		local character = player.Character
 		local root = character and character:FindFirstChild("HumanoidRootPart")
-		local camera = workspace.CurrentCamera
-		if not root or not camera then
+		if not root then
 			view.frame.Visible = false
 			return
 		end
@@ -301,14 +300,22 @@ function Minimap.start()
 		if not world then
 			return
 		end
-		-- the canvas slides so that where you are sits on the pivot, and the pivot turns the
-		-- other way to the camera, so the top of the map is always the way you're looking
+		-- the canvas slides so that where you are sits on the pivot
 		world.canvas.Position = UDim2.fromOffset(
 			-(at.X - world.minX) * SCALE,
 			-(at.Z - world.minZ) * SCALE
 		)
-		local look = camera.CFrame.LookVector
-		view.pivot.Rotation = math.deg(math.atan2(look.X, -look.Z))
+		-- Turn the canvas so the way the CHARACTER faces is up the screen; the arrow itself
+		-- never moves. Off the character, not the camera, so swinging the camera round does
+		-- not swing the map under you.
+		--
+		-- The canvas lays world +X to the right and world +Z down, so a heading (fx, fz) sits
+		-- at that same screen vector. Roblox's Rotation is clockwise, which takes (a, b) to
+		-- (a·cos - b·sin, a·sin + b·cos); solving that for "heading ends up pointing up the
+		-- screen" gives atan2(-fx, -fz). Using atan2(fx, -fz) mirrors it instead, which is why
+		-- the arrow read back to front.
+		local face = root.CFrame.LookVector
+		view.pivot.Rotation = math.deg(math.atan2(-face.X, -face.Z))
 	end)
 end
 
