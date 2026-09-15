@@ -130,6 +130,7 @@ local function packet(game, reveal: boolean?)
 	}
 	if game.phase == "question" or game.phase == "reveal" then
 		out.question = game.question.q
+		out.flag = game.question.flag -- a drawn flag, when the question shows one
 		out.answers = game.answers
 		out.answered = {}
 		for player, entry in game.players do

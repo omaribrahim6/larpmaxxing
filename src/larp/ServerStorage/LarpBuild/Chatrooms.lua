@@ -58,9 +58,11 @@ local function room(parent: Instance, spec, rng: Random)
 	Kit.label(sign, Enum.NormalId.Front, spec.name, { font = Enum.Font.LuckiestGuy, color = P.white, stroke = 3, pad = 0.1 })
 
 	-- the quiz screen: a dark panel in a lit bezel, high enough to read from every sofa
-	local bezel = Kit.block(model, "ScreenBezel", cf * CFrame.new(0, 8.4, d / 2 - 0.7), Vector3.new(w - 8, 13.6, 0.5), spec.color, Enum.Material.Neon)
+	-- 26 x 12.8 studs, about 2:1. It used to run nearly the full 46-stud wall, which made a
+	-- letterbox three times as wide as it was tall and everything on it looked stretched.
+	local bezel = Kit.block(model, "ScreenBezel", cf * CFrame.new(0, 8.4, d / 2 - 0.7), Vector3.new(28, 13.6, 0.5), spec.color, Enum.Material.Neon)
 	bezel.CastShadow = false
-	local screen = Kit.block(model, "Screen", cf * CFrame.new(0, 8.4, d / 2 - 1.05), Vector3.new(w - 9, 12.8, 0.3), Color3.fromRGB(14, 13, 20), Enum.Material.SmoothPlastic)
+	local screen = Kit.block(model, "Screen", cf * CFrame.new(0, 8.4, d / 2 - 1.05), Vector3.new(26, 12.8, 0.3), Color3.fromRGB(14, 13, 20), Enum.Material.SmoothPlastic)
 	screen.CastShadow = false
 	screen:SetAttribute("Room", spec.id)
 	CollectionService:AddTag(screen, SCREEN_TAG)
@@ -85,7 +87,9 @@ local function room(parent: Instance, spec, rng: Random)
 		light.Brightness = 1.2
 		light.Parent = shade
 	end
-	Kit.tree(model, (cf * CFrame.new(-w / 2 + 6, 0.6, -d / 2 + 6)).Position, rng, 0.7)
+	-- outside the wall and in front, well clear of the name: in the front corner inside the
+	-- room it stood right in front of the sign (owner 2026-09-15)
+	Kit.tree(model, (cf * CFrame.new(-w / 2 - 7, 0.6, -d / 2 - 5)).Position, rng, 0.7)
 	model.Parent = parent
 end
 

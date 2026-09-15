@@ -118,7 +118,7 @@ local function floatText(position: Vector3, text: string, color: Color3)
 	-- that it gets distracting", and "im zoomed out but its the same size"). A pixel size is
 	-- the same however far away the camera is, so zooming out to see your character buried it
 	-- behind a wall of text; in studs it shrinks as you pull back, like everything else.
-	gui.Size = UDim2.fromScale(4.2, 1)
+	gui.Size = UDim2.fromScale(2.4, 0.58) -- smaller again, twice asked (owner 2026-09-15)
 	gui.MaxDistance = 130 -- far-off pops aren't yours to read
 	gui.AlwaysOnTop = true
 	gui.LightInfluence = 0

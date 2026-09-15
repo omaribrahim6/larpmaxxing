@@ -9,6 +9,7 @@
 local Kit = require(script.Parent.Kit)
 local Layout = require(script.Parent.Layout)
 local Buildings = require(script.Parent.Buildings)
+local Lounges = require(game:GetService("ReplicatedStorage"):WaitForChild("Larp"):WaitForChild("Config"):WaitForChild("Chatrooms"))
 local P = Kit.Palette
 
 local City = {}
@@ -167,6 +168,17 @@ local function rasterize()
 	grid = table.create(N * N, EMPTY)
 	for _, rect in Layout.plots do
 		fill(rect, RESERVED)
+	end
+	-- The LARP lounges sit outside the ring, and `fill.reach` carries block filler up to 150
+	-- studs from any street, which put whole shopfronts inside them. They are reserved the
+	-- same way a location's plot is, with a margin so nothing crowds the doorway. Their
+	-- footprint turns with `facing`: facing along Z means the width runs along X.
+	local lounge = Lounges.size
+	for _, room in Lounges.rooms do
+		local alongX = math.abs(room.facing.Z) > 0.5
+		local halfX = (if alongX then lounge.X else lounge.Z) / 2 + 12
+		local halfZ = (if alongX then lounge.Z else lounge.X) / 2 + 12
+		fill({ room.at.X - halfX, room.at.Z - halfZ, room.at.X + halfX, room.at.Z + halfZ }, RESERVED)
 	end
 	for _, s in Layout.streets do
 		fill(streetRect(s), ROAD)

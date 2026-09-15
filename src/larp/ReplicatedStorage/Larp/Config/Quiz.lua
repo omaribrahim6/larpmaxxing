@@ -34,7 +34,11 @@ Quiz.choices = {
 
 Quiz.words = {
 	play = "START A QUIZ",
-	idle = "PRESS E TO START A QUIZ",
+	-- what the wall screen says when the room is quiet. It has to name the couch: the button
+	-- only binds once you are sitting down, so "press E" alone leaves you standing there
+	-- pressing E at nothing (owner 2026-09-15).
+	idle = "SIT ON THE COUCH AND PRESS E TO START A GAME",
+	idleTouch = "SIT ON THE COUCH AND TAP START A QUIZ",
 	needPlayers = "Sit down in the lounge to start a quiz.",
 	waiting = "WAITING FOR LARPERS",
 	ready = "READY",
@@ -50,8 +54,34 @@ Quiz.words = {
 	sitFirst = "Sit down in the lounge first.",
 }
 
+-- flag colours, shared by the drawn flags below
+local WHITE, BLACK = rgb(245, 245, 245), rgb(24, 24, 28)
+local RED, BLUE, GREEN = rgb(206, 43, 55), rgb(32, 70, 160), rgb(24, 128, 72)
+local GOLD, ORANGE = rgb(250, 200, 40), rgb(240, 140, 50)
+
 Quiz.banks = {
 	Geography = {
+		-- Flags you have to actually recognise (owner 2026-09-15). They are drawn from plain
+		-- frames by LarpClient.Quiz, never a flag emoji, which renders as a blank box on a lot
+		-- of devices. `bands` are equal stripes, "v" down the flag or "h" across; `disc` is a
+		-- circle on a field; `cross` is an offset Nordic cross. The wrong answers are always
+		-- flags that look like it, so guessing off a vague memory of the colours doesn't work.
+		{ q = "Which country's flag is this?", flag = { bands = "h", colors = { WHITE, RED } }, a = { "Poland", "Indonesia", "Monaco", "Austria" } },
+		{ q = "Which country's flag is this?", flag = { bands = "h", colors = { RED, WHITE } }, a = { "Indonesia", "Poland", "Malta", "Denmark" } },
+		{ q = "Which country's flag is this?", flag = { field = WHITE, disc = RED }, a = { "Japan", "Bangladesh", "Laos", "Palau" } },
+		{ q = "Which country's flag is this?", flag = { field = GREEN, disc = RED }, a = { "Bangladesh", "Japan", "Portugal", "Morocco" } },
+		{ q = "Which country's flag is this?", flag = { bands = "v", colors = { BLUE, WHITE, RED } }, a = { "France", "the Netherlands", "Russia", "Luxembourg" } },
+		{ q = "Which country's flag is this?", flag = { bands = "h", colors = { RED, WHITE, BLUE } }, a = { "the Netherlands", "France", "Russia", "Croatia" } },
+		{ q = "Which country's flag is this?", flag = { bands = "h", colors = { WHITE, BLUE, RED } }, a = { "Russia", "the Netherlands", "Slovakia", "Serbia" } },
+		{ q = "Which country's flag is this?", flag = { bands = "v", colors = { GREEN, WHITE, RED } }, a = { "Italy", "Ireland", "Mexico", "Hungary" } },
+		{ q = "Which country's flag is this?", flag = { bands = "v", colors = { GREEN, WHITE, ORANGE } }, a = { "Ireland", "Italy", "Ivory Coast", "India" } },
+		{ q = "Which country's flag is this?", flag = { bands = "h", colors = { BLACK, RED, GOLD } }, a = { "Germany", "Belgium", "Uganda", "Angola" } },
+		{ q = "Which country's flag is this?", flag = { bands = "v", colors = { BLACK, GOLD, RED } }, a = { "Belgium", "Germany", "Chad", "Romania" } },
+		{ q = "Which country's flag is this?", flag = { bands = "h", colors = { BLUE, GOLD } }, a = { "Ukraine", "Sweden", "Kazakhstan", "Palau" } },
+		{ q = "Which country's flag is this?", flag = { field = RED, cross = WHITE }, a = { "Denmark", "Switzerland", "Norway", "England" } },
+		{ q = "Which country's flag is this?", flag = { field = BLUE, cross = GOLD }, a = { "Sweden", "Finland", "Ukraine", "Iceland" } },
+		{ q = "Which country's flag is this?", flag = { bands = "v", colors = { GREEN, WHITE, GREEN } }, a = { "Nigeria", "Pakistan", "Italy", "Algeria" } },
+		{ q = "Which country's flag is this?", flag = { bands = "h", colors = { RED, WHITE, RED } }, a = { "Austria", "Peru", "Latvia", "Lebanon" } },
 		{ q = "Which country's flag is a plain red circle on white?", a = { "Japan", "South Korea", "Bangladesh", "Laos" } },
 		{ q = "What is the capital of Australia?", a = { "Canberra", "Sydney", "Melbourne", "Perth" } },
 		{ q = "What is the capital of Canada?", a = { "Ottawa", "Toronto", "Vancouver", "Montreal" } },

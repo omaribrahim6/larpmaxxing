@@ -10,6 +10,7 @@
 local CollectionService = game:GetService("CollectionService")
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
@@ -27,6 +28,8 @@ local DIM = Color3.fromRGB(150, 146, 170)
 local BACK = Color3.fromRGB(14, 13, 20)
 
 local player = Players.LocalPlayer
+-- a phone has no E to press, so the idle card names the touch button instead
+local TOUCH = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 local rooms = {}
 for _, room in Config.rooms do
 	rooms[room.id] = room
@@ -94,6 +97,59 @@ local function shape(parent: Instance, kind: string, color: Color3, px: number)
 	return holder
 end
 
+-- A flag, drawn from frames. Equal `bands` down ("v") or across ("h"), a `disc` on a field,
+-- or an offset Nordic `cross` -- enough shapes for the flags worth asking about, and none of
+-- it can land as a blank box the way a flag emoji does on half the devices out there.
+local function drawFlag(parent: Instance, spec, size: UDim2, pos: UDim2)
+	local holder = Instance.new("Frame")
+	holder.Name = "Flag"
+	holder.Size = size
+	holder.Position = pos
+	holder.BackgroundColor3 = spec.field or Color3.fromRGB(245, 245, 245)
+	holder.BorderSizePixel = 0
+	holder.ClipsDescendants = true
+	holder.Parent = parent
+	Instance.new("UIStroke", holder).Color = Color3.fromRGB(16, 15, 22)
+	if spec.bands then
+		for i, color in spec.colors do
+			local band = Instance.new("Frame")
+			band.BackgroundColor3 = color
+			band.BorderSizePixel = 0
+			if spec.bands == "v" then
+				band.Size = UDim2.fromScale(1 / #spec.colors, 1)
+				band.Position = UDim2.fromScale((i - 1) / #spec.colors, 0)
+			else
+				band.Size = UDim2.fromScale(1, 1 / #spec.colors)
+				band.Position = UDim2.fromScale(0, (i - 1) / #spec.colors)
+			end
+			band.Parent = holder
+		end
+	elseif spec.disc then
+		local disc = Instance.new("Frame")
+		disc.AnchorPoint = Vector2.new(0.5, 0.5)
+		disc.Position = UDim2.fromScale(0.5, 0.5)
+		disc.Size = UDim2.fromScale(0.42, 0.62)
+		disc.BackgroundColor3 = spec.disc
+		disc.BorderSizePixel = 0
+		disc.Parent = holder
+		Instance.new("UICorner", disc).CornerRadius = UDim.new(1, 0)
+	elseif spec.cross then
+		local arm = Instance.new("Frame")
+		arm.Size = UDim2.fromScale(1, 0.2)
+		arm.Position = UDim2.fromScale(0, 0.4)
+		arm.BackgroundColor3 = spec.cross
+		arm.BorderSizePixel = 0
+		arm.Parent = holder
+		local up = Instance.new("Frame")
+		up.Size = UDim2.fromScale(0.13, 1)
+		up.Position = UDim2.fromScale(0.28, 0) -- offset toward the hoist, as a Nordic cross is
+		up.BackgroundColor3 = spec.cross
+		up.BorderSizePixel = 0
+		up.Parent = holder
+	end
+	return holder
+end
+
 --------------------------------------------------------------------------------------------
 -- the wall screen
 --------------------------------------------------------------------------------------------
@@ -140,15 +196,15 @@ local function buildScreen(part: BasePart)
 	bar.Parent = root
 	corner(bar, 4)
 
-	-- the answers: one wide row of four, which is the shape this panel actually is
+	-- a 2x2 block: the panel is about 2:1 now, so four across would squash them again
 	local grid = Instance.new("Frame")
 	grid.Size = UDim2.new(1, 0, 1, -182)
 	grid.Position = UDim2.fromOffset(0, 182)
 	grid.BackgroundTransparency = 1
 	grid.Parent = root
 	local layout = Instance.new("UIGridLayout")
-	layout.CellSize = UDim2.new(0.25, -9, 1, 0)
-	layout.CellPadding = UDim2.fromOffset(12, 0)
+	layout.CellSize = UDim2.new(0.5, -8, 0.5, -8)
+	layout.CellPadding = UDim2.fromOffset(16, 16)
 	layout.Parent = grid
 
 	local tiles = {}
@@ -160,9 +216,9 @@ local function buildScreen(part: BasePart)
 		tile.Parent = grid
 		corner(tile, 10)
 		local mark = shape(tile, choice.shape, Color3.fromRGB(255, 255, 255), 34)
-		mark.Position = UDim2.fromOffset(14, 12)
-		local answer = text(tile, UDim2.new(1, -24, 1, -60), UDim2.fromOffset(12, 52), "", 26, Enum.Font.GothamBold, Color3.fromRGB(255, 255, 255))
-		answer.TextYAlignment = Enum.TextYAlignment.Top
+		mark.Position = UDim2.fromOffset(12, 12)
+		local answer = text(tile, UDim2.new(1, -62, 1, -14), UDim2.fromOffset(54, 7), "", 24, Enum.Font.GothamBold, Color3.fromRGB(255, 255, 255))
+		answer.TextXAlignment = Enum.TextXAlignment.Left
 		-- the right answer is marked with a drawn outline, never a tick glyph (a missing glyph
 		-- renders as a blank box, and this is the one thing on screen that has to be readable)
 		local ring = Instance.new("UIStroke")
@@ -184,7 +240,7 @@ local function buildScreen(part: BasePart)
 	rows.Padding = UDim.new(0, 8)
 	rows.Parent = board
 
-	return { part = part, room = room, gui = gui, head = head, clock = clock, body = body, bar = bar, grid = grid, tiles = tiles, board = board }
+	return { part = part, room = room, gui = gui, root = root, head = head, clock = clock, body = body, bar = bar, grid = grid, tiles = tiles, board = board, flag = nil }
 end
 
 local function boardRow(parent: Instance, place: number, name: string, score: number, color: Color3)
@@ -210,7 +266,11 @@ local function paintScreen(s, state)
 	s.bar.Visible = phase == "question"
 
 	if phase == "idle" then
-		s.body.Text = Quiz.words.idle
+		if s.flag then
+			s.flag:Destroy()
+			s.flag = nil
+		end
+		s.body.Text = if TOUCH then Quiz.words.idleTouch else Quiz.words.idle
 		s.clock.Text = ""
 		s.board:ClearAllChildren()
 		local rows = Instance.new("UIListLayout")
@@ -220,6 +280,10 @@ local function paintScreen(s, state)
 	end
 
 	if phase == "lobby" then
+		if s.flag then
+			s.flag:Destroy()
+			s.flag = nil
+		end
 		local ready = state.board and #state.board or 0
 		s.body.Text = ("%s  —  %d/%d %s"):format(Quiz.words.waiting, ready, Quiz.minPlayers, Quiz.words.ready)
 		s.board:ClearAllChildren()
@@ -233,6 +297,17 @@ local function paintScreen(s, state)
 	end
 
 	if phase == "question" or phase == "reveal" then
+		-- a flag question puts the flag beside the words, and the words make room for it
+		if s.flag then
+			s.flag:Destroy()
+			s.flag = nil
+		end
+		if state.flag then
+			s.flag = drawFlag(s.root, state.flag, UDim2.fromOffset(150, 100), UDim2.new(1, -150, 0, 48))
+			s.body.Size = UDim2.new(1, -168, 0, 104)
+		else
+			s.body.Size = UDim2.new(1, 0, 0, 104)
+		end
 		s.body.Text = ("Q%d/%d   %s"):format(state.index or 1, state.count or Quiz.questions, state.question or "")
 		for i, tile in s.tiles do
 			local answer = state.answers and state.answers[i]
