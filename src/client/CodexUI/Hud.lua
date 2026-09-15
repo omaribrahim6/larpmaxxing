@@ -201,12 +201,17 @@ function Hud:_fit()
 	end
 	local scale = math.clamp(math.min(size.Y / 700, size.X / 1000), 0.66, 1)
 	self.leftScale.Scale = scale
+	-- IgnoreGuiInset hands us the whole screen, including the strip Roblox's own topbar icons
+	-- sit in, so the left column starts below them (owner 2026-09-15: "roblox icons blocking
+	-- the left side stuff"). Asked of GuiService rather than hardcoded: it is taller on phones.
+	local top = game:GetService("GuiService"):GetGuiInset().Y
+	self.left.Position = UDim2.fromOffset(12, top + 8)
 	self.dockScale.Scale = scale
 	self.cornerScale.Scale = scale
 	local dock, corner = self.dock, self.corner
 	-- the minimap owns the top-right corner (LarpClient.Minimap), so the dock starts below it:
 	-- on a short screen it slides down rather than hiding behind the map
-	local MINIMAP = 212 -- the map's 188 plus its margins
+	local MINIMAP = top + 212 -- the map's 188 plus its margins, below the topbar too
 	local half = dock.Size.Y.Offset * scale / 2
 	dock.Position = UDim2.new(1, -12, 0.5, math.max(-30, MINIMAP + half - size.Y * 0.5))
 	-- on short screens (phones) the dock reaches down past the corner buttons' top: the

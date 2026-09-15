@@ -1,7 +1,7 @@
 -- The minimap (owner 2026-09-14: "add a GTA5 style map in top right corner ... which means
 -- removing the button for map since itll always be open, and adding a map for the
 -- realityworld"). Always on, top right: the streets and the places around you on a dark
--- ground, turning under a fixed arrow so up is always the way your character faces. M opens
+-- ground, turning with the camera while the blip turns to show which way you face. M opens
 -- CodexUI's full map.
 --
 -- It draws once and then moves. Every street and place is a Frame laid out on one canvas at
@@ -63,7 +63,7 @@ local function triangle(parent: Instance, width: number, height: number, color: 
 	local holder = new("Frame", parent, {
 		Name = "Arrow",
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.new(0.5, 0, 0.5, -1),
+		Position = UDim2.fromScale(0.5, 0.5),
 		Size = UDim2.fromOffset(width, height),
 		BackgroundTransparency = 1,
 		ZIndex = z,
@@ -247,8 +247,9 @@ local function build()
 		BackgroundTransparency = 1,
 	})
 
-	-- You: a blip like GTA's — a pale disc with a blue arrow in it. The disc never turns; the
-	-- map turns underneath, so the arrow always points the way you are facing.
+	-- You: a blip like GTA's — a pale disc with a blue arrow in it. The disc is round, so only
+	-- the arrow reads as turning; it points where the body faces, within a map held to the
+	-- camera.
 	local you = new("Frame", frame, {
 		Name = "You",
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -272,11 +273,22 @@ function Minimap.start()
 		showing = "City"
 	end
 
+	-- Below Roblox's own topbar icons: IgnoreGuiInset gives us the whole screen, so the map
+	-- steps round them itself. Read every frame rather than once at build, because the inset
+	-- is still 0 while the topbar is coming up, and it differs by device besides.
+	local GuiService = game:GetService("GuiService")
+	local lastInset = -1
 	local lastLook = 0
 	RunService.RenderStepped:Connect(function()
+		local inset = GuiService:GetGuiInset().Y
+		if inset ~= lastInset then
+			lastInset = inset
+			view.frame.Position = UDim2.new(1, -EDGE, 0, EDGE + inset)
+		end
 		local character = player.Character
 		local root = character and character:FindFirstChild("HumanoidRootPart")
-		if not root then
+		local camera = workspace.CurrentCamera
+		if not root or not camera then
 			view.frame.Visible = false
 			return
 		end
@@ -305,17 +317,20 @@ function Minimap.start()
 			-(at.X - world.minX) * SCALE,
 			-(at.Z - world.minZ) * SCALE
 		)
-		-- Turn the canvas so the way the CHARACTER faces is up the screen; the arrow itself
-		-- never moves. Off the character, not the camera, so swinging the camera round does
-		-- not swing the map under you.
+		-- A radar the way GTA does it (owner 2026-09-15: "when the character changes direction
+		-- the circle moves, when the camera changes direction the whole map moves"): the map
+		-- is aligned to the CAMERA, and the blip turns inside it to show where the BODY faces.
 		--
-		-- The canvas lays world +X to the right and world +Z down, so a heading (fx, fz) sits
-		-- at that same screen vector. Roblox's Rotation is clockwise, which takes (a, b) to
-		-- (a·cos - b·sin, a·sin + b·cos); solving that for "heading ends up pointing up the
-		-- screen" gives atan2(-fx, -fz). Using atan2(fx, -fz) mirrors it instead, which is why
-		-- the arrow read back to front.
+		-- The canvas lays world +X right and world +Z down, so a heading (vx, vz) sits at that
+		-- same screen vector, and Rotation is clockwise. Bringing a heading to the top of the
+		-- screen is atan2(-vx, -vz), which is the canvas's turn. An arrow drawn pointing up
+		-- aims along a heading at atan2(vx, -vz) on an unrotated canvas, so on the turned one
+		-- it takes that plus the canvas's own turn.
+		local look = camera.CFrame.LookVector
 		local face = root.CFrame.LookVector
-		view.pivot.Rotation = math.deg(math.atan2(-face.X, -face.Z))
+		local turn = math.deg(math.atan2(-look.X, -look.Z))
+		view.pivot.Rotation = turn
+		view.you.Rotation = math.deg(math.atan2(face.X, -face.Z)) + turn
 	end)
 end
 
