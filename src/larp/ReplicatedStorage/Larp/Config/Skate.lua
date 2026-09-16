@@ -16,6 +16,13 @@ return {
 	glideDecay = 3,
 	glideStop = 4,
 
+	-- Inside LARP to Reality the same board is a different machine (owner 2026-09-15: "make the
+	-- skateboard in larp to reality significantly faster since its the premium"): each push is
+	-- half again as strong, the top is nearly double the city's, and it holds its speed better,
+	-- so the sidewalk ring is a proper run rather than a shove every second. LarpClient.Skate
+	-- multiplies these in while you are in that world and drops them the moment you leave.
+	reality = { boost = 1.5, top = 1.9, decay = 0.6, glideDecay = 0.55, autoPush = 0.85 },
+
 	-- Turning. A board carves rather than pivoting, but the carve has to be tight (owner
 	-- 2026-09-15: "the turn radius isnt tight enough"). `turnRate` is how fast it can come
 	-- round, in degrees a second. How much of that you get depends on your speed AND on how

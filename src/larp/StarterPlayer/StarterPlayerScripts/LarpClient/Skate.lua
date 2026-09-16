@@ -32,6 +32,73 @@ local function onBoard(): boolean
 	return character ~= nil and character:GetAttribute("Skating") == true
 end
 
+-- The same board is a faster machine inside LARP to Reality, which is what you paid for
+-- (Config.Skate.reality). There is no flag for being in that world, so this asks the only thing
+-- that knows: whether you are standing inside the world the server built at
+-- Map.Premium.Plaza.Reality. Its extents are worked out once it exists and again if it is
+-- rebuilt, and looked at every half second while you ride, so the speed drops as you walk out.
+local REALITY_NONE = { minX = 0, maxX = 0, minZ = 0, maxZ = 0 }
+local realityWorld: Instance? = nil
+local realityBox = REALITY_NONE
+local realityAt = -math.huge
+
+local function realityBounds()
+	local larp = workspace:FindFirstChild("Larp")
+	local map = larp and larp:FindFirstChild("Map")
+	local premium = map and map:FindFirstChild("Premium")
+	local plaza = premium and premium:FindFirstChild("Plaza")
+	local world = plaza and plaza:FindFirstChild("Reality")
+	if not world then
+		realityWorld, realityBox = nil, REALITY_NONE
+		return
+	end
+	if world == realityWorld and realityBox ~= REALITY_NONE then
+		return
+	end
+	local minX, minZ, maxX, maxZ = math.huge, math.huge, -math.huge, -math.huge
+	for _, d in world:GetDescendants() do
+		-- the floors it is built from, the same ones the minimap draws it by
+		if d:IsA("BasePart") and d.Size.Y <= 3 and d.Size.X * d.Size.Z >= 120 then
+			minX = math.min(minX, d.Position.X - d.Size.X / 2)
+			minZ = math.min(minZ, d.Position.Z - d.Size.Z / 2)
+			maxX = math.max(maxX, d.Position.X + d.Size.X / 2)
+			maxZ = math.max(maxZ, d.Position.Z + d.Size.Z / 2)
+		end
+	end
+	realityWorld = world
+	realityBox = if minX == math.huge then REALITY_NONE else { minX = minX - 40, maxX = maxX + 40, minZ = minZ - 40, maxZ = maxZ + 40 }
+end
+
+-- How much of Config.Skate.reality applies right now: 1 in the city, the multiplier inside.
+local inReality = false
+local function realityCheck()
+	local now = os.clock()
+	if now - realityAt < 0.5 then
+		return inReality
+	end
+	realityAt = now
+	realityBounds()
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	local box = realityBox
+	if not root or box == REALITY_NONE then
+		inReality = false
+		return false
+	end
+	local p = root.Position
+	inReality = p.X >= box.minX and p.X <= box.maxX and p.Z >= box.minZ and p.Z <= box.maxZ
+	return inReality
+end
+
+-- A tuning number, with the premium world's multiplier on it where there is one.
+local function tuned(key: string): number
+	local base = Skate[key]
+	if not inReality then
+		return base
+	end
+	return base * ((Skate.reality and Skate.reality[key]) or 1)
+end
+
 local function toggle()
 	if ui and ui.model and ui.model.inMatch then
 		return
@@ -44,7 +111,7 @@ local function push()
 		return
 	end
 	lastPush = os.clock()
-	speed = math.min(Skate.top, speed + Skate.boost)
+	speed = math.min(tuned("top"), speed + tuned("boost"))
 	SkateFx.pushNow(player.Character)
 	Net.get("SkatePush"):FireServer()
 end
@@ -72,7 +139,7 @@ local function cameraApply(dt: number)
 		return
 	end
 	local C = Skate.camera
-	local share = math.clamp(speed / Skate.top, 0, 1)
+	local share = math.clamp(speed / tuned("top"), 0, 1)
 	local p = pulse()
 	local target = Tuning.Movement.fov + share * C.speedFov + p * C.kick
 	fov = if fov then fov + (target - fov) * math.min(1, dt * 12) else camera.FieldOfView
@@ -141,6 +208,7 @@ local function start(character: Model)
 	-- instead of the controller stopping you dead
 	local heading = Vector3.zero -- the way the board is actually pointing
 	RunService:BindToRenderStep(RIDE, Enum.RenderPriority.Character.Value, function(dt)
+		realityCheck() -- the premium world's speed, dropped again as you leave it
 		local move = humanoid.MoveDirection
 		local holding = move.Magnitude > 0.1
 		if holding then
@@ -166,13 +234,13 @@ local function start(character: Model)
 				end
 			end
 			-- steering pushes off: the first press, then again every autoPush seconds
-			if os.clock() - lastPush >= Skate.autoPush then
+			if os.clock() - lastPush >= tuned("autoPush") then
 				push()
 			end
-			speed = math.max(0, speed - Skate.decay * dt)
+			speed = math.max(0, speed - tuned("decay") * dt)
 		else
 			-- let go and the board keeps rolling, slowing gently to a stop
-			speed = math.max(0, speed - Skate.glideDecay * dt)
+			speed = math.max(0, speed - tuned("glideDecay") * dt)
 		end
 		-- the board goes where it is pointing, not where the stick is
 		if heading.Magnitude > 0 and (holding or speed > Skate.glideStop) then

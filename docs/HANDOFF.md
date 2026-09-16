@@ -843,3 +843,13 @@ The answer pad was a fixed 560x280 on every screen, swamping a phone and running
 along the bottom. A UIScale on the pad now sizes it from the viewport: 0.5 on a phone (280x140),
 up to 0.8 on a tablet, capped so it is never wider than the screen, 1.0 on desktop. It is
 anchored bottom-centre so it stays put as it shrinks, and it refits when the viewport changes.
+
+### Premium board — Claude, 2026-09-15
+Inside LARP to Reality the board is now significantly faster: Config.Skate.reality holds a
+multiplier per tuning value (boost 1.5, top 1.9, decay 0.6, glideDecay 0.55, autoPush 0.85), so
+top speed goes 64 -> 122 studs/s and it holds speed instead of needing a shove a second. The city
+board is untouched, as are the carve values and glideStop. Nothing marks a player as being in
+that world, so LarpClient.Skate tests position against the floors at Map.Premium.Plaza.Reality
+(the extents the minimap draws it by), re-checked twice a second while riding so speed drops on
+the way out. The camera's speed share divides by the same tuned top, or it would overshoot at
+122.
