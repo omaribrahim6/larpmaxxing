@@ -1,19 +1,23 @@
--- Background music by zone. Owner's rule: every track is vocal-only (voices, humming,
--- beatboxing and natural ambience; no instruments). They're generated with Lyria 3 and
--- screened by tools/audio (see docs/DECISIONS.md), and the owner picks the takes.
--- Each zone rotates through its takes (one plays through, then the next); a zone with a
--- single take loops it. file = .local/audio/final/<file>.ogg; id = its Roblox audio asset
--- id (uploaded 2026-09-13 through Open Cloud), 0 until uploaded. Takes with id 0 are skipped,
--- and a zone with none plays nothing.
+-- Background music. Owner's rule: every track is vocal-only (voices, humming, beatboxing and
+-- natural ambience; no instruments). They're generated with Lyria 3 and screened by
+-- tools/audio (see docs/DECISIONS.md), and the owner picks the takes.
+--
+-- One playlist for the whole city, bar the Gym, which keeps its own (owner 2026-09-15: "just
+-- make it all the street tracks, no need to have multiple", then "keep the gym one"). A track
+-- rotates through its takes, one playing through before the next, and a single take loops. A
+-- track with a `zone` plays there instead of the default -- Workspace.Larp.Map.<zone>.ZoneBounds,
+-- with its VIP and Elite rooms following -- and walking in crossfades to it.
+--
+-- file = .local/audio/final/<file>.ogg; id = its Roblox audio asset id (uploaded 2026-09-13
+-- through Open Cloud), 0 until uploaded. Takes with id 0 are skipped, and a track with none
+-- plays nothing.
 return {
-	default = "Street", -- outside every zone below: the main theme
+	default = "Street", -- what plays wherever no track names a zone: everywhere but the Gym
 	volume = 0.55, -- before the player's Music volume setting (owner: it was too quiet)
-	fade = 2.5, -- crossfade seconds between zones
+	fade = 2.5, -- crossfade seconds when the track changes
 	duck = 0.35, -- volume multiplier while a larp-off plays, so its stings read
 	tracks = {
-		-- main theme: the Plaza, the roads, the Library, the Mall, the Car Lot -- anywhere
-		-- without its own track (owner 2026-09-15: "make the mall and lot music the same as
-		-- street", so neither has an entry below any more and both fall through to this)
+		-- the city's playlist: five takes, rotating, everywhere but the Gym
 		Street = {
 			takes = {
 				{ file = "street_take05", id = 111534084467965 },
@@ -23,8 +27,7 @@ return {
 				{ file = "street_take15", id = 135466702944457 },
 			},
 		},
-		-- a zone is Workspace.Larp.Map.<zone>.ZoneBounds
-		Cafe = { zone = "Cafe", takes = { { file = "cafe_take01", id = 115139198722736 }, { file = "cafe_take03", id = 109622764899733 } } },
+		-- the one place with its own: a zone is Workspace.Larp.Map.<zone>.ZoneBounds
 		Gym = { zone = "Gym", takes = { { file = "gym_take01", id = 123673749187290 } } },
 	},
 }

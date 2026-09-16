@@ -822,3 +822,10 @@ dropped takes (carlot_take06/07, mall_take01/05) stay uploaded and live in this 
 Milestone words now scale with the combo meter (34px cap becomes ~20px on a phone) and stay
 where _fit puts them, on top of the meter. _callout used to overwrite that with a fixed
 mid-screen position on every milestone, so the fit never held.
+
+### Zone music, second pass — Claude, 2026-09-15
+Supersedes the entry above: the Cafe Strip lost its track too, so the whole city plays the five
+street takes. The Gym is the one place that keeps its own (single take, looping), and its VIP and
+Elite rooms follow it. MusicKit is unchanged, so restoring a place's music is one config line
+(`zone = "<name>"`). Dropped takes: cafe_take01/03, carlot_take06/07, mall_take01/05 -- still
+uploaded, still in this file's history.
