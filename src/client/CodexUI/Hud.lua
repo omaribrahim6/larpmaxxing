@@ -187,9 +187,13 @@ function Hud.new(root, fx, deps)
 	self.comboScale = Theme.new("UIScale", self.comboGroup, { Name = "Fit" })
 	self.comboCount = Theme.text(self.comboGroup, { name = "Count", font = Theme.Display, size = 34, align = CENTER, position = UDim2.fromOffset(0, 2), box = UDim2.new(1, 0, 0, 40), stroke = 2.5 })
 	self.comboLabel = Theme.text(self.comboGroup, { name = "Label", size = 15, align = CENTER, position = UDim2.fromOffset(0, 42), box = UDim2.new(1, 0, 0, 22), stroke = 2 })
-	-- words at combo milestones ("ON A ROLL!"), just above the meter, not mid-screen
+	-- words at combo milestones ("ON A ROLL!"), sitting on top of the meter, not mid-screen.
+	-- _fit sizes and places them against the meter; these are only what they start as.
 	self.callout = Theme.text(self.frame, { name = "Callout", font = Theme.Display, size = 30, align = CENTER, anchor = MID, position = UDim2.new(0.5, 0, 1, -176), box = UDim2.new(0.6, 0, 0, 40), scaled = true, maxSize = 34, stroke = 3 })
 	self.callout.Visible = false
+	self.calloutFit = self.callout:FindFirstChildOfClass("UITextSizeConstraint")
+	self.calloutAt = self.callout.Position -- where _fit put it; _callout rises from here
+	self.calloutRise = 20
 	-- a running 2x boost counts down under the event timer (text, no card)
 	self.boost = Theme.text(self.frame, { name = "Boost", font = Theme.Display, size = 22, color = c.Accent, align = CENTER, anchor = Vector2.new(0.5, 0), position = UDim2.new(0.5, 0, 0, 48), box = UDim2.new(0.5, 0, 0, 30), stroke = 2.5 })
 	self.boost.Visible = false
@@ -234,8 +238,19 @@ function Hud:_fit()
 	place(self.dock, self.dockScale, rects.dock)
 	place(self.corner, self.cornerScale, rects.corner)
 	place(self.comboGroup, self.comboScale, rects.combo)
-	-- combo milestones ("ON A ROLL!") sit just above the meter, wherever it went
-	self.callout.Position = UDim2.fromOffset(rects.combo.x + rects.combo.w / 2, rects.combo.y - 22)
+	-- Combo milestones ("UNSTOPPABLE!") sit on top of the meter, wherever it went, and shrink
+	-- with it: on a phone the meter draws at about 0.6 while the words stayed full size and
+	-- took half the screen (owner 2026-09-15: "still big for no reason ... move it on top of
+	-- the combo stuff").
+	local ks = rects.combo.scale or 1
+	local height = 40 * ks
+	self.callout.Size = UDim2.fromOffset(math.max(140, rects.combo.w * 2), height)
+	if self.calloutFit then
+		self.calloutFit.MaxTextSize = math.max(11, math.floor(34 * ks))
+	end
+	self.calloutRise = 20 * ks
+	self.calloutAt = UDim2.fromOffset(rects.combo.x + rects.combo.w / 2, math.max(height / 2, rects.combo.y - height / 2 - 4 * ks))
+	self.callout.Position = self.calloutAt
 	if self.deps.onLayout then
 		self.deps.onLayout(rects, meta)
 	end
@@ -394,9 +409,11 @@ function Hud:_callout(text, color)
 	label.Visible = true
 	label.TextTransparency = 0
 	label.UIStroke.Transparency = 0
-	label.Position = UDim2.new(0.5, 0, 1, -176)
+	-- from where _fit put it, drifting up as it fades (it used to snap back to a fixed spot
+	-- mid-screen here, undoing the fit)
+	label.Position = self.calloutAt
 	Juice.punch(label, 1.5, 0.4)
-	Juice.tween(label, 0.6, { TextTransparency = 1, Position = UDim2.new(0.5, 0, 1, -196) }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 1)
+	Juice.tween(label, 0.6, { TextTransparency = 1, Position = self.calloutAt - UDim2.fromOffset(0, self.calloutRise) }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 1)
 	Juice.tween(label.UIStroke, 0.6, { Transparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 1)
 	self.deps.play("UiSelect", 0.5)
 end

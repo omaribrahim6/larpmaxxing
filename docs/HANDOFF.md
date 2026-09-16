@@ -817,3 +817,8 @@ The Mall and the Car Lot no longer have their own tracks in Config.Music, so bot
 to `default` = Street, as the owner asked; their VIP/Elite rooms follow the zone and play it too.
 Walking in and out of them is now seamless instead of a crossfade. Cafe and Gym keep theirs. The
 dropped takes (carlot_take06/07, mall_take01/05) stay uploaded and live in this file's history.
+
+### Combo callout — Claude, 2026-09-15
+Milestone words now scale with the combo meter (34px cap becomes ~20px on a phone) and stay
+where _fit puts them, on top of the meter. _callout used to overwrite that with a fixed
+mid-screen position on every milestone, so the fit never held.
