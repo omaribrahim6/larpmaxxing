@@ -933,3 +933,9 @@ Bundle for free, since the bundle grants the Speed pass and both set the same at
 with the pass: push 36, top 128 (was 18/64). It stacks with Config.Skate.reality, so the premium
 board with the pass tops out at 243 studs/s -- flagged to the owner as possibly too fast to
 steer; capping would go in `tuned`. Store wording updated in three places.
+
+### Board speed trimmed — Claude, 2026-09-16
+Config.Skate boost 18 -> 15 and top 64 -> 54, per the owner's -3/-10. Because the pass and the
+Reality block are multipliers over these, 2x Speed lands on 30/108 (the -6/-20 asked for) and
+Reality on 22.5/102.6, 45/205.2 with the pass. Nothing else changed: decay, carve and glideStop
+are untouched, so the board slows the same way it did.

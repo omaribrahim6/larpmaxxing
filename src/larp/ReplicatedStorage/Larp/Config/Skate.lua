@@ -8,8 +8,8 @@ return {
 	-- whenever you like, down to `cooldown` apart. Each push adds `boost`, up to `top`, and
 	-- speed always bleeds off: `decay` a second while you're steering, `glideDecay` when you
 	-- let go (a free roll), down to `glideStop`, where it rolls to a stop.
-	boost = 18,
-	top = 64,
+	boost = 15, -- owner 2026-09-16: 3 off the push and 10 off the top, so 6 and 20 with 2x Speed
+	top = 54,
 	decay = 4.5,
 	autoPush = 1.6,
 	cooldown = 0.34,
