@@ -148,7 +148,11 @@ function Layout.compute(width, height, options)
 	local sw = math.min(width * (if compact then 0.86 else 0.94), if compact then 400 else 450)
 	local sh = math.min(height * (if compact then 0.86 else 0.94), if compact then 420 else 480)
 	out.settings = rect((width - sw) / 2, (height - sh) / 2, sw, sh)
-	out.rematch = rect((width - math.min(236, width - 32)) / 2, height - 64, math.min(236, width - 32), 52)
+	-- Rematch: smaller on a phone, where 236x52 in the middle of the bottom edge was a lot
+	-- of the screen (owner 2026-09-15). Never under 44 tall: it is a tap target.
+	local rw = math.min(if compact then 188 else 236, width - 32)
+	local rh = if compact then 46 else 52
+	out.rematch = rect((width - rw) / 2, height - rh - 12, rw, rh)
 	return out, { compact = compact, scale = s }
 end
 
