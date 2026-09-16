@@ -11,7 +11,9 @@ return {
 	fade = 2.5, -- crossfade seconds between zones
 	duck = 0.35, -- volume multiplier while a larp-off plays, so its stings read
 	tracks = {
-		-- main theme: the Plaza, the Road, the Library, anywhere without its own track
+		-- main theme: the Plaza, the roads, the Library, the Mall, the Car Lot -- anywhere
+		-- without its own track (owner 2026-09-15: "make the mall and lot music the same as
+		-- street", so neither has an entry below any more and both fall through to this)
 		Street = {
 			takes = {
 				{ file = "street_take05", id = 111534084467965 },
@@ -22,9 +24,7 @@ return {
 			},
 		},
 		-- a zone is Workspace.Larp.Map.<zone>.ZoneBounds
-		CarLot = { zone = "CarLot", takes = { { file = "carlot_take06", id = 86973883646504 }, { file = "carlot_take07", id = 136709803224228 } } },
 		Cafe = { zone = "Cafe", takes = { { file = "cafe_take01", id = 115139198722736 }, { file = "cafe_take03", id = 109622764899733 } } },
 		Gym = { zone = "Gym", takes = { { file = "gym_take01", id = 123673749187290 } } },
-		Mall = { zone = "Mall", takes = { { file = "mall_take01", id = 105003983632401 }, { file = "mall_take05", id = 90318297536258 } } },
 	},
 }

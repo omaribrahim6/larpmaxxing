@@ -811,3 +811,9 @@ constant). The whole larp-off cannot be recorded: Roblox stops a recording at 30
 limit is not configurable, while a match runs about a minute. A recording that hits the cap
 returns TimeLimitReached and used to be discarded by a Success-only check; it is kept now.
 Owner's playtest was stopped to install this, per their standing instruction.
+
+### Zone music — Claude, 2026-09-15
+The Mall and the Car Lot no longer have their own tracks in Config.Music, so both fall through
+to `default` = Street, as the owner asked; their VIP/Elite rooms follow the zone and play it too.
+Walking in and out of them is now seamless instead of a crossfade. Cafe and Gym keep theirs. The
+dropped takes (carlot_take06/07, mall_take01/05) stay uploaded and live in this file's history.
