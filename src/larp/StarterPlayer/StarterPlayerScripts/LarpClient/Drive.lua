@@ -59,7 +59,8 @@ local function makeHud()
 	end
 	local speed = Theme.text(panel, { name = "Speed", font = Theme.Display, text = "0", size = 46, align = Enum.TextXAlignment.Center, position = UDim2.fromOffset(0, 2), box = UDim2.new(1, 0, 0, 52), stroke = 2.5 })
 	Theme.text(panel, { name = "Unit", font = Theme.Small, text = "MPH", size = 12, align = Enum.TextXAlignment.Center, position = UDim2.fromOffset(0, 50), box = UDim2.new(1, 0, 0, 14), stroke = false })
-	local hint = Theme.text(panel, { name = "Hint", font = Theme.Small, text = "SPACE: GET OUT  ·  H: HORN  ·  C: CAMERA", size = 11, align = Enum.TextXAlignment.Center, position = UDim2.fromOffset(0, 68), box = UDim2.new(1, 0, 0, 16), stroke = false })
+	local words = Cars.words or {}
+	local hint = Theme.text(panel, { name = "Hint", font = Theme.Small, text = if TOUCH then words.hintTouch or "" else words.hint or "", size = 11, align = Enum.TextXAlignment.Center, position = UDim2.fromOffset(0, 68), box = UDim2.new(1, 0, 0, 16), stroke = false })
 	hint.TextTransparency = 0.25
 	return { gui = gui, speed = speed }
 end

@@ -10,6 +10,14 @@
 return {
 	mph = 0.627, -- studs/s to mph (1 stud = 0.28 m)
 	leaveSeconds = 20, -- an empty car waits this long for its driver before it's towed
+	-- the line under the speedometer. A phone gets its own: the horn and the chase camera are
+	-- bound to keys and the gamepad's buttons with no touch button of their own, so there is
+	-- nothing to name there but getting out (owner 2026-09-15: "says space for get out H for
+	-- horn C for camera but this is mobile").
+	words = {
+		hint = "SPACE: GET OUT  ·  H: HORN  ·  C: CAMERA",
+		hintTouch = "JUMP: GET OUT",
+	},
 	cars = {
 		T5 = {
 			name = "T5 Supercar",

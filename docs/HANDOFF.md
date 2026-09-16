@@ -862,3 +862,11 @@ the speedometer lives in Drive and got the same. Scale: 0.5 on a phone, up to 0.
 capped so nothing is wider than the screen, 1.0 on desktop, refitting if the viewport changes.
 Drive had no TOUCH local, so one was added beside its other locals. Phone sizes: fit picker
 300x125, bench 190x65, speedometer 125x46.
+
+### Car hint on phones — Claude, 2026-09-15
+The speedometer's line named keys on every device. It now reads "JUMP: GET OUT" on touch, which
+is all that is true there: LarpHorn (H/ButtonX) and LarpCarCamera (C/ButtonY) are bound with
+createTouchButton false, so a phone has no horn and no chase-camera toggle at all. Both lines
+moved to Config.Cars.words (hint, hintTouch), matching how Config.Skate and Config.Reality hold
+their text. If mobile should actually get a horn or the camera, those two BindAction calls need
+touch buttons -- flagged to the owner, not done.
