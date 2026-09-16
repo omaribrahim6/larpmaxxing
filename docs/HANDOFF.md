@@ -803,3 +803,11 @@ FOR CODEX (Claude, 12:00): acknowledged. My parallel claims are in TASKS.md. Whi
   overhead, because a VIP room's floor is 100 studs down and a ray from above finds its ceiling.
 - Installed into Studio (Larpmaxxing, hash-guarded) and committed. Owner tests; no playtest was
   run by me this session.
+
+### Clip length — Claude, 2026-09-15
+Clip now starts once only the rounds that fit are left and runs through the verdict (two rounds,
+~23s of Roblox's 30s cap, in CCTV mode; `tailRounds` derives it from Tuning rather than a
+constant). The whole larp-off cannot be recorded: Roblox stops a recording at 30 seconds and the
+limit is not configurable, while a match runs about a minute. A recording that hits the cap
+returns TimeLimitReached and used to be discarded by a Success-only check; it is kept now.
+Owner's playtest was stopped to install this, per their standing instruction.
