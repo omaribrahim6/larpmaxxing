@@ -891,3 +891,15 @@ FRIEND.
 
 If clips are wanted later, the only route to filming actual rounds is playing them as real 3D
 sets for the recording client (what SceneMode "Screen" already does) -- not a Clips change.
+
+### Code grants a pass — Claude, 2026-09-15
+REAL1TYAWA1TS hands over LARP to Reality. Codes could only give a boost or a stat rush, so
+`pass` is a new reward kind on Config.Codes entries: it names a key from Config.Store, and
+_grant records it in the profile's `granted`, calls applyPass and MakeSupporter -- the same three
+steps _grantOwned does for the Owners list -- so the pass survives rejoins and opens the VIP++
+Arena. Unknown keys grant nothing. Put in _grant rather than _redeem so products and referrals
+can grant passes too. New line Text.Store.codePass.
+
+Scope trap worth remembering in this file: _grant sits above applyPass, which was a `local
+function`, so calling it from _grant would have been a nil call at redeem time. applyPass is now
+forward-declared at the top beside passByKey.

@@ -24,6 +24,8 @@ local passById: { [number]: any } = {}
 local productById: { [number]: any } = {}
 local owned: { [Player]: { [string]: boolean } } = {}
 local passByKey: { [string]: any } = {}
+-- declared here because _grant hands out passes and is written above it
+local applyPass
 for _, pass in Store.passes do
 	passByKey[pass.key] = pass
 end
@@ -61,8 +63,20 @@ local function showBoost(player: Player, data)
 	player:SetAttribute("BoostEndsAt", if left > 0 then workspace:GetServerTimeNow() + left else nil)
 end
 
--- Gives what a product or a code grants: a boost, and/or a stat rush for the server.
+-- Gives what a product or a code grants: a pass, a boost, and/or a stat rush for the server.
 function MonetizationService:_grant(player: Player, data, reward)
+	-- `pass` names a key in Config.Store. It goes into the profile's `granted` and is applied
+	-- the same way the Owners list is on every join, so it is kept and reapplied rather than
+	-- lasting the session, and it makes the player a supporter like any other purchase does
+	-- (owner 2026-09-15: the REAL1TYAWA1TS code hands over LARP to Reality).
+	local pass = reward.pass and passByKey[reward.pass]
+	if pass then
+		data.granted = data.granted or {}
+		data.granted[pass.key] = true
+		applyPass(player, pass)
+		self:MakeSupporter(player)
+		notice(player, Text.Store.codePass:format(pass.name))
+	end
 	if reward.boostMinutes then
 		data.boostUntil = math.max(os.time(), data.boostUntil or 0) + reward.boostMinutes * 60
 		showBoost(player, data)
@@ -86,7 +100,7 @@ function MonetizationService:Grant(player: Player, reward): boolean
 	return true
 end
 
-local function applyPass(player: Player, pass)
+function applyPass(player: Player, pass)
 	owned[player] = owned[player] or {}
 	owned[player][pass.key] = true
 	player:SetAttribute("Owns" .. pass.key, true)

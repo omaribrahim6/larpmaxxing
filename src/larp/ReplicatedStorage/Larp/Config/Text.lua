@@ -52,6 +52,7 @@ return {
 	Store = {
 		boost = "⚡ 2x pickups for %d minutes!",
 		thanks = "Thanks! Your pass is active",
+		codePass = "🎁 %s is yours! It's on your account for good",
 		badCode = "That code doesn't exist (or it expired)",
 		usedCode = "You've already used that code",
 		slow = "Slow down a little",
