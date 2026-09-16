@@ -909,3 +909,11 @@ The icons that fly from the player into a stat bar were a fixed 26-48 px on ever
 are built in the full-screen Fx layer, not inside the HUD column, so they never shrank with it.
 _fit now records the left column's scale as self.orbScale and _fly multiplies ORB_SIZE by it:
 legendary 48 on desktop, ~22 on a phone. Flight path, spacing and the "+N" pop are unchanged.
+
+### Plaza direction sign removed — Claude, 2026-09-15
+Owner: "remove the sign in the plaza that shows what direction everything is in, map is enough."
+Deleted from the place (Workspace.Larp.Map.Plaza): three ArrowSign boards -- "LARP-OFF STAGE",
+"CAR LOT >", "< CAFE STRIP" -- and the SignPost pole they hung on, around (18, -12). Checked
+first: no script anywhere in the place mentions ArrowSign, and LarpBuild is never required at
+runtime (it lives in ServerStorage and is run by hand), so nothing rebuilds them. This is a
+place change, not a repo one -- it needs the owner's Ctrl+S to stick.
