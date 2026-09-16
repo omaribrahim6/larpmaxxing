@@ -177,10 +177,12 @@ function Hud.new(root, fx, deps)
 	self.skateKey = if TOUCH then "" else "\n[F]"
 	self.corner = Theme.new("Frame", self.frame, { Name = "Corner", BackgroundTransparency = 1, Size = UDim2.fromOffset(Layout.native.corner.w, Layout.native.corner.h) })
 	self.cornerScale = Theme.new("UIScale", self.corner, { Name = "Fit" })
+	-- No Clip button (owner 2026-09-15: "we can just remove clipping fully for now, remove the
+	-- UI button for it but keep its logic"). LarpClient.Clips is untouched and still binds
+	-- through the Controller, so putting the button back is this line and the width in Layout.
 	self.inviteButton = deps.button(self.corner, { name = "Invite", text = "📨\n" .. words.Invite, size = 15, position = UDim2.fromOffset(36, 36), box = UDim2.fromOffset(70, 70) }, deps.inviteOpen)
-	self.clipButton = deps.button(self.corner, { name = "Clip", text = "🎥\n" .. words.Clip, size = 15, position = UDim2.fromOffset(116, 36), box = UDim2.fromOffset(70, 70) }, deps.clipToggle)
-	self.sprintButton = deps.button(self.corner, { name = "Sprint", text = "🏃\n" .. words.Sprint .. self.sprintKey, size = 15, position = UDim2.fromOffset(196, 36), box = UDim2.fromOffset(70, 70) }, deps.sprintToggle)
-	self.skateButton = deps.button(self.corner, { name = "Skate", text = "🛹\n" .. words.Skate .. self.skateKey, size = 15, position = UDim2.fromOffset(276, 36), box = UDim2.fromOffset(70, 70) }, deps.skateToggle)
+	self.sprintButton = deps.button(self.corner, { name = "Sprint", text = "🏃\n" .. words.Sprint .. self.sprintKey, size = 15, position = UDim2.fromOffset(116, 36), box = UDim2.fromOffset(70, 70) }, deps.sprintToggle)
+	self.skateButton = deps.button(self.corner, { name = "Skate", text = "🛹\n" .. words.Skate .. self.skateKey, size = 15, position = UDim2.fromOffset(196, 36), box = UDim2.fromOffset(70, 70) }, deps.skateToggle)
 
 	-- the combo meter, bottom centre above the rematch button (small: it's up a lot)
 	self.comboGroup = Theme.new("CanvasGroup", self.frame, { Name = "Combo", BackgroundTransparency = 1, Size = UDim2.fromOffset(Layout.native.combo.w, Layout.native.combo.h), GroupTransparency = 1 })
@@ -328,13 +330,9 @@ function Hud:SetSprinting(on)
 	Theme.setText(self.sprintButton, "🏃\n" .. (if on then words.Sprinting else words.Sprint) .. self.sprintKey)
 end
 
--- The Clip button, red while the next larp-off is set to record (LarpClient.Clips).
-function Hud:SetClipArmed(on)
-	local c = self.deps.config.Colors
-	local words = self.deps.config.Words
-	self.clipButton.BackgroundColor3 = if on then c.Negative else c.Raised
-	Theme.setText(self.clipButton, "🎥\n" .. (if on then words.ClipArmed else words.Clip))
-end
+-- Clips still reports whether it is armed through the Controller, but there is no button to
+-- show it on any more (see the corner row). Kept so that path stays whole.
+function Hud:SetClipArmed(_on) end
 
 -- The Skate button, lit while you're on the board (LarpClient.Skate).
 function Hud:SetSkating(on)

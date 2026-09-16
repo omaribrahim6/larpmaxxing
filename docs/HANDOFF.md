@@ -875,3 +875,19 @@ touch buttons -- flagged to the owner, not done.
 Compact screens cap the settings panel at 400x420 and 86% of the viewport (was 450x480 and 94%
 everywhere). Desktop unchanged. Rows are fixed height and the list scrolls, so the shorter box
 shows fewer rows; scroll room stays well above the 100px the layout test requires.
+
+### Clip button removed — Claude, 2026-09-15
+A clip could never show the larp-off: Roblox hides all in-experience UI from a capture ("Video
+captures will hide core GUI and in-experience UI regardless of the property values"), and in CCTV
+mode the round lives inside ViewportFrames (Cctv.lua builds a WorldModel *inside* the viewport),
+so only the stage, the titles and the verdict were ever recorded. The screen itself is fine --
+the owner confirmed it works live.
+
+Per the owner, the button is gone and the logic stays: LarpClient.Clips is untouched and still
+binds through the Controller, Hud:SetClipArmed is a no-op, and with no button it never arms.
+Restoring it is one line in Hud plus Layout.native.corner.w. The corner row is now three buttons
+(Invite, Sprint, Skate), 232 wide instead of 312. The guide's INVITE & CLIP step became INVITE A
+FRIEND.
+
+If clips are wanted later, the only route to filming actual rounds is playing them as real 3D
+sets for the recording client (what SceneMode "Screen" already does) -- not a Clips change.

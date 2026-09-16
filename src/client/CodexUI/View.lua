@@ -398,7 +398,7 @@ function View:CoachTargets(name)
 	elseif name == "wins" then return {hud.winsChip}
 	elseif name == "sprint" then return {hud.sprintButton}
 	elseif name == "skate" then return {hud.skateButton}
-	elseif name == "invite" then return {hud.inviteButton, hud.clipButton}
+	elseif name == "invite" then return {hud.inviteButton}
 	elseif name == "larpOff" then return {hud.larpOffButton}
 	elseif name == "shop" then return {hud.shopButton}
 	elseif name == "wardrobe" then return {hud.wardrobeButton}

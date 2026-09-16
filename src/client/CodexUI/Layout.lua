@@ -15,7 +15,7 @@ local Layout = {}
 Layout.native = {
 	left = { w = 252, h = 470 }, -- the rank card over five stat bars and the coins
 	dock = { w = 136, h = 380 }, -- Wins and the side buttons
-	corner = { w = 312, h = 72 }, -- Invite, Clip, Sprint, Skate
+	corner = { w = 232, h = 72 }, -- Invite, Sprint, Skate (Clip's button was taken out)
 	combo = { w = 220, h = 68 },
 	feed = { w = 520, h = 168 }, -- four lines
 	feedCompact = { w = 520, h = 126 }, -- three
