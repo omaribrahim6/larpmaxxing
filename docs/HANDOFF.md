@@ -903,3 +903,9 @@ can grant passes too. New line Text.Store.codePass.
 Scope trap worth remembering in this file: _grant sits above applyPass, which was a `local
 function`, so calling it from _grant would have been a nil call at redeem time. applyPass is now
 forward-declared at the top beside passByKey.
+
+### Pickup icons on phones — Claude, 2026-09-15
+The icons that fly from the player into a stat bar were a fixed 26-48 px on every screen. They
+are built in the full-screen Fx layer, not inside the HUD column, so they never shrank with it.
+_fit now records the left column's scale as self.orbScale and _fly multiplies ORB_SIZE by it:
+legendary 48 on desktop, ~22 on a phone. Flight path, spacing and the "+N" pop are unchanged.

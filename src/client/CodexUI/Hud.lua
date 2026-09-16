@@ -236,6 +236,10 @@ function Hud:_fit()
 		return
 	end
 	local rects, meta = Layout.compute(size.X, size.Y, self:LayoutOptions())
+	-- the points fly into the stat bars, so they are drawn at the same scale as the column
+	-- those bars are in (owner 2026-09-15: full-size icons were far too big on a phone, where
+	-- the column is about half size)
+	self.orbScale = rects.left.scale or 1
 	place(self.left, self.leftScale, rects.left)
 	place(self.dock, self.dockScale, rects.dock)
 	place(self.corner, self.cornerScale, rects.corner)
@@ -435,7 +439,7 @@ function Hud:_fly(statId, points, rarity, position)
 	local origin = self.fx.AbsolutePosition
 	local from = Vector2.new(screen.X, screen.Y) - origin
 	local target = row.icon.AbsolutePosition + row.icon.AbsoluteSize / 2 - origin
-	local size = ORB_SIZE[rarity] or ORB_SIZE.Common
+	local size = (ORB_SIZE[rarity] or ORB_SIZE.Common) * (self.orbScale or 1)
 	local info = self.deps.catalog.rarities[rarity]
 	local orb = Theme.new("Frame", self.fx, { Name = "Orb", AnchorPoint = MID, Position = UDim2.fromOffset(from.X, from.Y), Size = UDim2.fromOffset(size, size), BackgroundColor3 = row.stat.color, BorderSizePixel = 0 })
 	Theme.corner(orb)
