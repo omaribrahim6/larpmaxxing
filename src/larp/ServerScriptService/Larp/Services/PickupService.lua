@@ -32,6 +32,11 @@ local started = false
 -- a lawn or road cut below it, the tables and chairs above it, or a room's ceiling -- which is
 -- why it starts at the plane rather than overhead: a VIP room's floor is a hundred studs down,
 -- and a ray from above would only ever find its ceiling.
+--
+-- Grass is a floor when it belongs to the place itself and not otherwise (owner 2026-09-15:
+-- "anything within the library bounds should have items"). The Library is lawn as much as it
+-- is pebble, and both are part of it; the grass around the Cafe Strip belongs to the city, and
+-- the Pocket Park's lawn to the park.
 local FLOOR_ABOVE = 1 -- studs above the spawn plane the ray starts, so a kerb still counts
 local FLOOR_BELOW = 0.35 -- how far below the plane still counts as the same floor
 local GRASS = { [Enum.Material.Grass] = true, [Enum.Material.LeafyGrass] = true }
@@ -145,7 +150,10 @@ function PickupService:_placement(slot)
 	local function onFloor(x, z)
 		local hit = workspace:Raycast(ground(x, z) + Vector3.new(0, FLOOR_ABOVE, 0),
 			Vector3.new(0, -(FLOOR_ABOVE + FLOOR_BELOW), 0), floorRay)
-		return hit ~= nil and not GRASS[hit.Material]
+		if not hit then
+			return false
+		end
+		return not GRASS[hit.Material] or hit.Instance:IsDescendantOf(zone)
 	end
 	local position = Scatter.sample(bounds.Size.X, bounds.Size.Z, occupied,
 		function() return rng:NextNumber() end, spacing, diameter / 2,

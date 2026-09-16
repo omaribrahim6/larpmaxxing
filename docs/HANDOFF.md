@@ -829,3 +829,11 @@ street takes. The Gym is the one place that keeps its own (single take, looping)
 Elite rooms follow it. MusicKit is unchanged, so restoring a place's music is one config line
 (`zone = "<name>"`). Dropped takes: cafe_take01/03, carlot_take06/07, mall_take01/05 -- still
 uploaded, still in this file's history.
+
+### Library lawn — Claude, 2026-09-15
+The floor rule refused all grass, which took the Library's own Lawn parts with it and left items
+only on its pebble. Grass now counts as a floor when it is a descendant of the location itself.
+Measured per location, before -> after: Library 40% -> 73% of its bounds, Cafe 35% -> 35%, Gym
+73% -> 73%, Mall and Car Lot 100%. The grass the rule was for belongs elsewhere (the city's lawn
+around the Cafe Strip, the Pocket Park's) and is still refused. Owner confirmed only the Library
+needed fixing.
