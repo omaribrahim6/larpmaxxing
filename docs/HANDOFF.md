@@ -779,3 +779,27 @@ FOR CODEX (Claude, 12:00): acknowledged. My parallel claims are in TASKS.md. Whi
 1. Check COMMS/mode/lease; install Scatter before PickupService with live Source comparison. No other Larp files are owned.
 2. In a granted lease run PickupLayout.server.lua, PlayerExperienceRuntime.client.lua and guarded SettingsRoundTrip.client.lua. Observe real collection with PickupFeedback.client.lua in a memory-only session; verify floating text without a card, replacement at a fresh position and clean console.
 3. Save results, compare sources, update task states, release global lease and temporary PickupService ownership, commit explicit paths and push. Preserve Claude's dirty scene files.
+
+## Session — Claude, 2026-09-15 (owner-directed: first-run guide, pickup floors)
+- The How to play book and the old two-step guide panel are gone. New players get a guide that
+  points: CodexUI.Coach dims the screen except the button a step is about, rings it, bounces an
+  arrow at it, and runs a trail of chevrons along the ground to the nearest prop and to the
+  Practice Larper. CodexUI.Onboarding keeps the progress (pure; tests/PlayerExperience.luau
+  covers it) and UIConfig.Tour holds the steps.
+- Most steps only finish once the player has done the thing (run, grab five props, ride, open
+  the map, play a larp-off, open the shop); a step that cannot be finished offers Next after
+  UIConfig.Tour.patience seconds, and every step can be skipped -- the first has a full-size
+  JUST PLAY. Progress saves as the new `tourStep` setting (SettingsService/DataService), so a
+  rejoin carries on; the HUD's How to play button is now Guide and replays the whole thing.
+- Coach took over the Wayfinder ModuleScript in Studio (a tool cannot add a script to that tree
+  and Wayfinder's only user was the guide panel that this replaces). Wayfinder.lua is deleted
+  from the repo.
+- PickupService placement now checks what a pickup would stand on: a short ray from just above
+  the spawn plane, rejecting grass and anything below the plane or well above it. ZoneBounds at
+  the Cafe Strip is a box of which only ~35% is the strip, so items had been landing on the
+  lawn. Measured across every spawning area: Cafe keeps brick and pavement (all 252 grass
+  samples of 400 rejected), Mall 98%, Car Lot 100%, Gym 78%, Library its pebble floor, VIP and
+  Elite rooms 80-100%, streets their road and pavement. The ray starts at the plane, not
+  overhead, because a VIP room's floor is 100 studs down and a ray from above finds its ceiling.
+- Installed into Studio (Larpmaxxing, hash-guarded) and committed. Owner tests; no playtest was
+  run by me this session.

@@ -47,3 +47,14 @@ Live Studio inventory: 54 scripts and assembled map/stage/assets, matching Claud
 - Codex personally implemented random PickupService placement after temporary ownership transfer. Commit 5e648cf is not installed yet because Claude is playtesting; Scatter is repository-only until installation. Reward validation, weights, rate limits, respawn delays and map Parts are unchanged.
 - Fresh positions stay within ZoneBounds, have an 8-stud default gap and exclude solid map obstacles. SpawnPoints determine population/floor height instead of grid coordinates. Crowded zones retry after the existing respawn minimum.
 - 67 local checks and GitHub run 34649348517 pass. Twenty read-only native geometry trials placed 40/40 items with zero failures; minimum observed gap 8.0019 studs. Actual collection/respawn checks remain pending.
+
+## Owner-directed session — Claude, 2026-09-15
+- First-run experience replaced: a pointing guide (CodexUI.Coach + Onboarding + UIConfig.Tour)
+  instead of the How to play book and the old guide panel. Steps wait on the real action, save
+  progress in the new `tourStep` setting, and can always be skipped. The HUD's Guide button
+  replays it.
+- Pickup placement keeps items on a floor rather than the grass beside it (PickupService
+  _placement). Measured per area before and after; the Cafe Strip was the bad case at ~35% of
+  its ZoneBounds being real floor.
+- Not verified by me: nothing was playtested this session (owner tests). The guide's world trail
+  and the new placement rule have been checked by geometry probes in Edit mode only.

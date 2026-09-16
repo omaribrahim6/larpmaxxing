@@ -2,8 +2,9 @@
 -- the server, not models: each client gets a snapshot when it asks and batched changes after
 -- (Shared.PickupWire), and builds models only for the ones near it (LarpClient.PickupWorld).
 -- As server models, 3,700+ pickups of about 10 parts were 35,000 parts every client streamed.
--- Each SpawnPoint keeps Tuning.Pickup.slotsPerSpawnPoint pickups on the map; ZoneBounds
--- controls placement.
+-- Each SpawnPoint keeps Tuning.Pickup.slotsPerSpawnPoint pickups on the map; ZoneBounds bounds
+-- placement, and a short ray keeps each one on the floor of its place rather than the grass
+-- around it (see _placement).
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -20,6 +21,20 @@ local PickupService = {}
 local rng = Random.new()
 local limiter = nil
 local started = false
+
+-- A pickup has to sit on the floor of the place it belongs to, not on the lawn beside it
+-- (owner 2026-09-15: "some are on the grass/basically out of bounds ... gotta keep the items on
+-- the brick area of the strip"). A zone's ZoneBounds is a plain box, and at the Cafe Strip only
+-- about a third of that box is actually the strip: the rest is lawn, road and buildings.
+--
+-- So a short ray from just above the spawn plane says what a pickup would be standing on. It
+-- reaches a kerb or pavement slightly above the plane and the floor itself, and never reaches
+-- a lawn or road cut below it, the tables and chairs above it, or a room's ceiling -- which is
+-- why it starts at the plane rather than overhead: a VIP room's floor is a hundred studs down,
+-- and a ray from above would only ever find its ceiling.
+local FLOOR_ABOVE = 1 -- studs above the spawn plane the ray starts, so a kerb still counts
+local FLOOR_BELOW = 0.35 -- how far below the plane still counts as the same floor
+local GRASS = { [Enum.Material.Grass] = true, [Enum.Material.LeafyGrass] = true }
 
 -- Weighted pick over { key = weight } in a stable order.
 local function weightedPick(order: { string }, weights: { [string]: number }): string?
@@ -122,9 +137,22 @@ function PickupService:_placement(slot)
 	local function ground(x, z)
 		return bounds.CFrame:PointToWorldSpace(Vector3.new(x, localY, z))
 	end
+	-- what a pickup here would stand on (see FLOOR_ABOVE): the floor, or nothing to stand on
+	local floorRay = RaycastParams.new()
+	floorRay.FilterType = Enum.RaycastFilterType.Exclude
+	floorRay.FilterDescendantsInstances = { bounds }
+	floorRay.RespectCanCollide = true
+	local function onFloor(x, z)
+		local hit = workspace:Raycast(ground(x, z) + Vector3.new(0, FLOOR_ABOVE, 0),
+			Vector3.new(0, -(FLOOR_ABOVE + FLOOR_BELOW), 0), floorRay)
+		return hit ~= nil and not GRASS[hit.Material]
+	end
 	local position = Scatter.sample(bounds.Size.X, bounds.Size.Z, occupied,
 		function() return rng:NextNumber() end, spacing, diameter / 2,
 		Tuning.Pickup.placementAttempts or 64, function(x, z)
+			if not onFloor(x, z) then
+				return false
+			end
 			local checkCenter = ground(x, z) + Vector3.new(0, 0.5 + checkHeight / 2, 0)
 			return #workspace:GetPartBoundsInBox(CFrame.new(checkCenter), Vector3.new(diameter, checkHeight, diameter), overlap) == 0
 		end)
