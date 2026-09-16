@@ -141,20 +141,6 @@ function Layout.compute(width, height, options)
 	end
 	out.combo = rect(kx, ky, kw, kh, ks)
 
-	-- the new-player guide: with the compact layout, across the top between the stat column
-	-- and the side buttons, clear of the thumbstick and the corner row
-	local low = height < 480
-	local guideHeight = if compact then 104 elseif low then 116 else 128
-	-- (the map can be wider than the side buttons under it, so it bounds the gap too)
-	local from, to = out.left.x + out.left.w + 8, math.min(out.dock.x, out.minimap.x) - 8
-	if compact and to - from >= 220 then
-		local gw = math.min(to - from, 440)
-		out.guide = rect(from + (to - from - gw) / 2, math.max(top, 46) + 6, gw, guideHeight)
-	else
-		local gw = math.min(width - 24, 440)
-		out.guide = rect((width - gw) / 2, if low then height - guideHeight - 8 else 176, gw, guideHeight)
-	end
-
 	out.challenge = rect((width - math.min(width * 0.9, 438)) / 2, (height - 250) / 2, math.min(width * 0.9, 438), 250)
 	out.settings = rect((width - math.min(width * 0.94, 450)) / 2, (height - math.min(height * 0.94, 480)) / 2, math.min(width * 0.94, 450), math.min(height * 0.94, 480))
 	out.rematch = rect((width - math.min(236, width - 32)) / 2, height - 64, math.min(236, width - 32), 52)

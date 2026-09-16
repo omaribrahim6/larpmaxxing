@@ -1,6 +1,7 @@
--- Native Roblox UI. Hud draws the always-on HUD and Celebrate the full-screen moments;
--- this module owns the rest: the guide, settings, the challenge popup, the rematch button,
--- stamps, the round chip and toasts. Scene cameras, world effects and rewards belong
+-- Native Roblox UI. Hud draws the always-on HUD, Celebrate the full-screen moments and Coach
+-- the first-run guide; this module owns the rest: settings, the challenge popup, the rematch
+-- button, stamps, the round chip and toasts, and decides when the guide shows and what it
+-- lights up. Scene cameras, world effects and rewards belong
 -- elsewhere.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -12,6 +13,7 @@ local Juice = require(script.Parent.Juice)
 local Hud = require(script.Parent.Hud)
 local Celebrate = require(script.Parent.Celebrate)
 local Tutorial = require(script.Parent.Tutorial)
+local Coach = require(script.Parent.Coach)
 local Store = require(script.Parent.Store)
 local Rebirth = require(script.Parent.Rebirth)
 local Feed = require(script.Parent.Feed)
@@ -24,7 +26,7 @@ local new = Theme.new
 local CENTER = Enum.TextXAlignment.Center
 local MID = Vector2.new(0.5, 0.5)
 -- each Layout rectangle and the frame it places
-local PLACED = { guide = "guide", challenge = "challenge", settings = "settings", rematch = "rematchHolder" }
+local PLACED = { challenge = "challenge", settings = "settings", rematch = "rematchHolder" }
 
 -- extras: play(key, volume, speed), tiers (Shared.Tiers), floors (Tuning.Tiers),
 -- reduce() (Reduce effects is on), scene(statId) -> the stat's Config.Scenes entry
@@ -71,7 +73,7 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 	self.hud = Hud.new(self.root, self.fx, {config = config, catalog = catalog, rankMath = rankMath, format = format,
 		tiers = extras.tiers, floors = extras.floors or {}, play = play, button = button,
 		settingsOpen = function() callbacks.settingsOpen() end,
-		helpOpen = function() callbacks.helpOpen() end,
+		guideOpen = function() callbacks.guideOpen() end,
 		shopOpen = function() callbacks.shopOpen() end,
 		grassOpen = function() callbacks.grassOpen() end,
 		mapOpen = function() callbacks.mapOpen() end,
@@ -86,11 +88,10 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 		onLayout = function(rects, meta) self.feed:Fit(rects.feed, meta.compact) end,
 		onTierUp = tierUp})
 	self.settingsOpen = self.hud.settingsButton
-	self.helpOpen = self.hud.helpButton
-	-- the How to play book (over the HUD, under Settings and the challenge popup)
-	self.tutorial = Tutorial.new(self.root, {config = config, catalog = catalog, format = format, play = play, button = button,
-		rankIndex = function() return self.rankIndex or 1 end,
-		onClose = function() callbacks.tutorialClosed() end})
+	-- the first-run guide: it lights up one thing at a time and waits for you to do it
+	-- (Onboarding keeps its place; the steps are UIConfig.Tour)
+	self.coach = Coach.new(playerGui, {config = config, play = play, button = button,
+		next = function() callbacks.coachNext() end, skip = function() callbacks.coachSkip() end})
 	-- the shop and codes box
 	self.store = Store.new(self.root, {config = config, store = extras.store or {passes = {}, products = {}}, play = play, button = button,
 		redeem = function(code) callbacks.redeem(code) end, info = function(item) self:ShowInfo(item) end,
@@ -111,13 +112,6 @@ function View.new(playerGui, config, catalog, rankMath, format, callbacks, extra
 	self.drip = DripView.new(self.root, {config = config, drip = extras.drip or {slots = {}, tiers = {}, items = {}}, format = format, play = play, button = button,
 		buy = function(id) callbacks.dripBuy(id) end, equip = function(slot, id) callbacks.dripEquip(slot, id) end,
 		robux = function() callbacks.robuxOpen() end})
-
-	self.guide = Theme.panel(self.root, {name = "Guide", anchor = MID, box = UDim2.fromOffset(440,128), z = 10, edge = c.Accent})
-	self.guide.Visible = false
-	self.guideTitle = Theme.text(self.guide, {name = "Title", font = Theme.Display, size = 19, color = c.Accent, position = UDim2.fromOffset(16,8), box = UDim2.new(1,-76,0,26), stroke = 2})
-	self.guideBody = Theme.text(self.guide, {name = "Body", size = 15, position = UDim2.fromOffset(16,36), box = UDim2.new(1,-32,1,-64), wrap = true, top = true, stroke = 1.2})
-	self.guideLocation = Theme.text(self.guide, {name = "Location", font = Theme.Small, size = 12, color = c.Accent, position = UDim2.new(0,16,1,-26), box = UDim2.new(1,-32,0,18), scaled = true, maxSize = 12, stroke = false})
-	self.guideDismiss = button(self.guide, {name = "Dismiss", text = "×", size = 24, position = UDim2.new(1,-28,0,26), box = UDim2.fromOffset(40,40)}, function() callbacks.helpDismiss() end)
 
 	self.event = Theme.text(self.root, {name = "Event", font = Theme.Display, size = 22, color = c.Accent, align = CENTER, anchor = Vector2.new(0.5,0), position = UDim2.new(0.5,0,0,10), box = UDim2.new(0.4,0,0,36), stroke = 2.5})
 	self.event.Visible = false
@@ -219,11 +213,9 @@ function View:Render(model)
 	self:SetNotificationsPaused(model.inMatch, os.clock())
 	self.celebrate:SetPaused(model.inMatch)
 	self.sessionNote.Text = if model.persistent == false then "Session only: saving is unavailable." elseif not model.loaded then "Settings load with your profile." else words.SessionPreferences
-	local guide = model.onboarding
 	local size = self.root.AbsoluteSize
 	if size.X >= 240 and size.Y >= 250 then
-		-- the same rects the HUD lays itself out by, so on a phone the guide lands in the gap
-		-- it leaves (between the stat bars and the side buttons)
+		-- the same rects the HUD lays itself out by
 		local rects = Layout.compute(size.X, size.Y, self.hud:LayoutOptions())
 		for name, rect in rects do
 			local frame = self[PLACED[name]]
@@ -234,23 +226,12 @@ function View:Render(model)
 			end
 		end
 	end
-	-- a first-time player reads How to play before the step-by-step guide appears
-	local unread = model.loaded and model.settings.tutorialSeen == false
-	if model.inMatch and self.tutorial:IsOpen() then self.tutorial:Close() end
 	if model.inMatch and self.info:IsOpen() then self.info:Close() end
 	self.feed:SetVisible(not model.inMatch)
-	self.guide.Visible = guide ~= nil and guide:Visible(model.inMatch or model.incoming ~= nil or self.settings.Visible or model.rematch ~= nil
-		or unread or self.tutorial:IsOpen())
-	self.hud:SetHelpHighlight(unread and not model.inMatch and not self.tutorial:IsOpen())
 	if model.loaded then self.rankIndex = self.rankMath.indexFor(model.total, self.catalog.ranks) end
-	if guide then
-		local copy = self.config.Guide[guide:Step()]
-		-- a step that names keys has a touch version for phones (bodyTouch)
-		if copy then self.guideTitle.Text = copy.title self.guideBody.Text = if self.hints == "touch" and copy.bodyTouch then copy.bodyTouch else copy.body end
-	end
-	self.guideLocation.Text = if model.guideLocation then "📍 "..model.guideLocation else ""
 	self.hud.frame.Visible = not model.inMatch
 	self.hud:Render(model)
+	self.coach:Show(self:_coachSpec(model))
 	if self.store:IsOpen() then self.store:Refresh() end
 
 	if self.settings.Visible and not self.settingsWas then
@@ -404,6 +385,68 @@ function View:ShowInfo(item)
 	self.info:Open()
 end
 
+-- What a guide step lights up (UIConfig.Tour `target`): pieces of the HUD, a button in an open
+-- panel, or for the minimap (LarpClient draws it) the rect Layout gives it.
+function View:CoachTargets(name)
+	local hud = self.hud
+	if name == "rank" then return {hud.card}
+	elseif name == "stats" then
+		local rows = {}
+		for _, row in hud.rows do table.insert(rows, row.row) end
+		return rows
+	elseif name == "coins" then return {hud.coinsPanel}
+	elseif name == "wins" then return {hud.winsChip}
+	elseif name == "sprint" then return {hud.sprintButton}
+	elseif name == "skate" then return {hud.skateButton}
+	elseif name == "invite" then return {hud.inviteButton, hud.clipButton}
+	elseif name == "larpOff" then return {hud.larpOffButton}
+	elseif name == "shop" then return {hud.shopButton}
+	elseif name == "wardrobe" then return {hud.wardrobeButton}
+	elseif name == "guide" then return {hud.guideButton}
+	elseif name == "minimap" then
+		local size = self.root.AbsoluteSize
+		if size.X < 240 or size.Y < 250 then return {} end
+		return {Layout.compute(size.X, size.Y, hud:LayoutOptions()).minimap}
+	elseif name == "practiceRow" then
+		local row = self.opponents.rows[1]
+		return if row then {row.button} else {}
+	elseif name == "mapClose" then return {self.map.closeButton}
+	elseif name == "shopInside" then
+		-- the Drip tab's button, or once you're in the Drip tab, its close button
+		return if self.drip:IsOpen() then {self.drip.closeButton} else {self.store.dripButton}
+	end
+	return {}
+end
+
+-- The guide's step as the Coach draws it, or nil while something else has the screen: a
+-- larp-off, a challenge, a full-screen moment, Settings, the shop's ? pages, or a panel the
+-- step isn't about. A step about a panel shows its `open` page while that panel is open.
+function View:_coachSpec(model)
+	local tour = model.onboarding
+	local step = tour and model.loaded and tour:Step()
+	if not step or model.inMatch or model.incoming or self.celebrate.showing or self.settings.Visible
+		or self.info:IsOpen() or self.rebirth:IsOpen() then return nil end
+	local open = {map = self.map:IsOpen(), picker = self.opponents:IsOpen(), shop = self.store:IsOpen() or self.drip:IsOpen()}
+	for name, isOpen in open do
+		if isOpen and name ~= step.modal then return nil end
+	end
+	local inside = step.modal ~= nil and open[step.modal] and step.open ~= nil
+	local page = if inside then step.open else step
+	local words = self.config.Words
+	return {
+		key = step.id .. (if inside then ":open" else ""),
+		page = page,
+		eyebrow = words.TourEyebrow:format(tour:Index(), tour:Count()),
+		canNext = tour:CanNext(model.clock()),
+		nextText = step.nextText,
+		last = tour:Index() == tour:Count(),
+		progress = if step.done == "collect" then words.TourProps:format(tour.count, step.count or 1) else nil,
+		targets = if page.target then self:CoachTargets(page.target) else nil,
+		world = page.world,
+		center = page.center,
+	}
+end
+
 function View:FocusTargets()
 	if self.challenge.Visible then return {self.decline, self.accept} end
 	if self.settings.Visible then
@@ -412,12 +455,12 @@ function View:FocusTargets()
 		return targets
 	end
 	if self.info:IsOpen() then return self.info:FocusTargets() end
-	if self.tutorial:IsOpen() then return self.tutorial:FocusTargets() end
 	if self.drip:IsOpen() then return self.drip:FocusTargets() end
 	if self.store:IsOpen() then return self.store:FocusTargets() end
 	if self.rebirth:IsOpen() then return self.rebirth:FocusTargets() end
 	if self.map:IsOpen() then return self.map:FocusTargets() end
 	if self.opponents:IsOpen() then return self.opponents:FocusTargets() end
+	if self.coach:IsShowing() then return self.coach:FocusTargets() end
 	return {}
 end
 
@@ -500,7 +543,7 @@ function View:Destroy()
 	self.step:Disconnect()
 	self.hud:Destroy()
 	self.celebrate:Destroy()
-	self.tutorial:Destroy()
+	self.coach:Destroy()
 	self.info:Destroy()
 	self.store:Destroy()
 	self.rebirth:Destroy()

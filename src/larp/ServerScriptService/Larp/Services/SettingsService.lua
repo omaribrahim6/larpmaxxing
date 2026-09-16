@@ -15,7 +15,8 @@ local ALLOWED = {
 	showCosmetics = "boolean",
 	musicVolume = "number",
 	sfxVolume = "number",
-	tutorialSeen = "boolean", -- the player has read How to play (the HUD stops pointing at it)
+	tutorialSeen = "boolean", -- the first-run tour is over: finished or skipped (CodexUI.Onboarding)
+	tourStep = "number", -- how many of the tour's steps are done, so a rejoin carries on from there
 }
 
 -- Cleans a value that passed the type check. Returns nil to reject it.
@@ -26,6 +27,9 @@ function SettingsService.sanitize(key: string, value: any): any
 	if type(value) == "number" then
 		if value ~= value or math.abs(value) == math.huge then
 			return nil
+		end
+		if key == "tourStep" then
+			return math.clamp(math.floor(value), 0, 100)
 		end
 		-- volumes: 0..1 in steps of 0.05
 		return math.floor(math.clamp(value, 0, 1) * 20 + 0.5) / 20

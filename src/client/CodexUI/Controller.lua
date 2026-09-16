@@ -11,7 +11,6 @@ local Config=require(script.Parent.UIConfig)
 local Onboarding=require(script.Parent.Onboarding)
 local InputController=require(script.Parent.InputController)
 local SettingValue=require(script.Parent.SettingValue)
-local Wayfinder=require(script.Parent.Wayfinder)
 local Juice=require(script.Parent.Juice)
 local Controller={}
 local active
@@ -25,7 +24,7 @@ function Controller.start()
 	local text=require(larp.Config.Text)
 	local tuning=require(larp.Config.Tuning)
 	local self={model=Model.new(Config),cleanup=Cleanup.new(),destroyed=false,settingsListeners={}}
-	self.model.onboarding=Onboarding.new(Config.GuideStatId)
+	self.model.onboarding=Onboarding.new(Config.Tour.steps,Config.Tour.patience)
 	active=self
 	local function notice(message,kind) self.view:Toast(message,kind,os.clock()) end
 	function self:GetSetting(key) return self.model.settings[key] end
@@ -78,12 +77,24 @@ function Controller.start()
 		elseif kind=="Player" then self.adapter:Send(remoteName,userId,{rematch=true}) end
 		self.view:Render(self.model)
 	end
-	-- Remembers, in the profile, that this player has read How to play.
+	-- Remembers, in the profile, that this player's first-run guide is over.
 	function self:MarkTutorialSeen()
 		if self.model.settings.tutorialSeen then return end
 		self.model:SetSetting("tutorialSeen",true)
 		if self.model.loaded and self.adapter and self.adapter:IsReady("UpdateSetting") then self.adapter:Send("UpdateSetting","tutorialSeen",true) end
 		settingChanged("tutorialSeen")
+	end
+	-- Saves how far the guide has got, so a rejoin carries on from there, and that it's over
+	-- once it is. A replay from the Guide button isn't saved.
+	function self:SaveTour()
+		local tour=self.model.onboarding
+		if tour.replaying then return end
+		local done=tour:Done()
+		if self.model.settings.tourStep~=done then
+			self.model:SetSetting("tourStep",done)
+			if self.model.loaded and self.adapter and self.adapter:IsReady("UpdateSetting") then self.adapter:Send("UpdateSetting","tourStep",done) end
+		end
+		if tour:Finished() then self:MarkTutorialSeen() end
 	end
 	-- Client-owned groups: assign scene Sound.SoundGroup to these; no existing sounds are changed.
 	self.audioGroups={}
@@ -103,15 +114,14 @@ function Controller.start()
 			settingsClose=function() self.view:SetSettings(false) self.view:Render(self.model) end,
 			setting=function(key,direction) self:ChangeSetting(key,direction) end,
 			respond=function(accept) self:Respond(accept) end,
-			helpOpen=function() self.view.tutorial:Open() self.view:Render(self.model) end,
-			tutorialClosed=function()
-				local first=not self.model.settings.tutorialSeen
-				self:MarkTutorialSeen()
-				-- after the first read, the step-by-step guide takes over
-				if first then self.model.onboarding:Reopen() end
-				task.defer(function() if not self.destroyed then self.view:Render(self.model) end end)
+			-- the HUD's Guide button: the first-run guide again, from the top
+			guideOpen=function()
+				if not self.model.loaded then notice(Config.Words.Unavailable,"warning") return end
+				self.model.onboarding:Restart() self:SaveTour() self.view:Render(self.model)
 			end,
-			helpDismiss=function() self.model.onboarding:Dismiss() self.view:Render(self.model) end,
+			-- the guide's bubble (Coach): Next, and Skip guide / JUST PLAY
+			coachNext=function() if self.model.onboarding:Next(os.clock()) then self:SaveTour() end self.view:Render(self.model) end,
+			coachSkip=function() self.model.onboarding:Skip() self:SaveTour() self.view:Render(self.model) end,
 			rematch=function() self:RequestRematch() end,
 			shopOpen=function() self.view.store:Open() self.view:Render(self.model) end,
 			redeem=function(code) if not self.adapter:Send("RedeemCode",code) then notice(Config.Words.Unavailable,"warning") end end,
@@ -167,8 +177,7 @@ function Controller.start()
 	function self:SetMatchActive(isActive)
 		self.model.inMatch=isActive==true
 		if isActive then
-			self.model.onboarding:MatchStarted()
-			self:Respond(false) self.model.rematch=nil self.view:SetSettings(false) self.view.tutorial:Close() self.view.info:Close() self.view.store:Close() self.view.rebirth:Close() self.view.map:Close() self.view.drip:Close()
+			self:Respond(false) self.model.rematch=nil self.view:SetSettings(false) self.view.info:Close() self.view.store:Close() self.view.rebirth:Close() self.view.map:Close() self.view.drip:Close()
 		else self.view:ClearRound() end
 		-- promotions and tier-ups wait until the larp-off is off screen
 		self.view.celebrate:SetPaused(self.model.inMatch)
@@ -186,7 +195,6 @@ function Controller.start()
 	function self:ClearRound() self.view:ClearRound() end
 	function self:ShowRematch(kind,userId,seconds)
 		local ok=self.model:SetRematch(kind,userId,seconds or tuning.Challenge.rematchWindowSeconds)
-		if ok then self.model.onboarding:MatchFinished() end
 		self.view:Render(self.model) return ok
 	end
 	-- LarpClient.PickupFx: a pickup's points just popped off the player at `position`. They
@@ -194,6 +202,8 @@ function Controller.start()
 	-- server already added the points); returns the combo length.
 	function self:Collected(statId,points,rarity,position)
 		if not catalog.statsById[statId] or not finite(points) then return 0 end
+		-- the guide's GRAB PROPS step counts them
+		if self.model.onboarding:Collected() then self:SaveTour() end
 		return self.view.hud:Collected(statId,points,rarity,position)
 	end
 	-- SceneDirector, for a participant: the result card, shown once the larp-off ends.
@@ -216,13 +226,13 @@ function Controller.start()
 	function self:Feed(text,color,big,seconds) if self.view then self.view.feed:Push(text,color,big,seconds) end end
 	-- the Sprint button drives SprintKit (LarpClient), which reports back so the button shows it
 	function self:BindSprint(toggle) self.sprintToggle=toggle end
-	function self:SetSprinting(on) if self.view then self.view.hud:SetSprinting(on) end end
+	function self:SetSprinting(on) self.sprinting=on==true if self.view then self.view.hud:SetSprinting(on) end end
 	-- the Clip button drives LarpClient.Clips, which reports back so the button shows it's armed
 	function self:BindClip(toggle) self.clipToggle=toggle end
 	function self:SetClipArmed(on) if self.view then self.view.hud:SetClipArmed(on) end end
 	-- the Skate button drives LarpClient.Skate, which reports back so the button shows it
 	function self:BindSkate(toggle) self.skateToggle=toggle end
-	function self:SetSkating(on) if self.view then self.view.hud:SetSkating(on) end end
+	function self:SetSkating(on) self.skating=on==true if self.view then self.view.hud:SetSkating(on) end end
 	-- each larp-off round as it starts (LarpClient.Clips records the last one)
 	function self:OnRound(listener) self.roundListener=listener end
 	-- the Invite button: Roblox's own invite prompt (ReferralService rewards whoever it brings)
@@ -240,8 +250,10 @@ function Controller.start()
 		local before=table.clone(self.model.settings)
 		local first=not self.model.loaded
 		if self.model:SetProfile(packet) then
-			self.model.onboarding:Profile(self.model.stats,self.model.wins)
-			-- players who've already won a larp-off aren't new: no How to play pointer
+			-- the guide runs for a new player, from wherever they'd got to; anyone who's won a
+			-- larp-off already knows the game
+			self.model.onboarding:Load(self.model.settings.tourStep,self.model.settings.tutorialSeen or self.model.wins>0)
+			-- players who've already won a larp-off aren't new: the guide never starts
 			if first and self.model.wins>0 then self:MarkTutorialSeen() end
 			for key,value in self.model.settings do if before[key]~=value then settingChanged(key) end end
 			if not self.model.settings.acceptLarpOffs then self:Respond(false) end
@@ -261,7 +273,6 @@ function Controller.start()
 			else self.view:Render(self.model) end
 		end,
 		ChallengeClosed=function(id) self.model:Close(id) self.view:Render(self.model) end,
-		MatchAborted=function() self.model.onboarding:ResetTransient() end,
 		Notice=notice, Announce=function(message) notice(message,"info") end,
 		-- a locked door opens the shop, so the way in is right there (at that item's ? page)
 		OpenShop=function(key)
@@ -288,23 +299,6 @@ function Controller.start()
 	end
 	self.cleanup:Add(player:GetAttributeChangedSignal("LarpCoins"):Connect(coins))
 	coins()
-	local function updateGuideLocation()
-		self.model.guideLocation=nil
-		if not self.view.guide.Visible then return end
-		local def=Config.GuideTargets[self.model.onboarding:Step()]
-		local root=player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-		local camera=workspace.CurrentCamera
-		if not def or not root or not camera then return end
-		local target=workspace
-		for _,name in def.path do target=target:FindFirstChild(name) if not target then return end end
-		if not target:IsA("BasePart") then return end
-		local delta=target.Position-root.Position
-		local forward=camera.CFrame.LookVector
-		local location=Wayfinder.locate(delta.X,delta.Z,forward.X,forward.Z,Config.GuideNearDistance)
-		if not location then return end
-		self.model.guideLocation=def.label.." · "..(if location.near then Config.Words.Nearby
-			else tostring(location.distance).." "..Config.Words.DistanceUnit.." · "..Config.GuideDirections[location.direction])
-	end
 	local elapsed=0
 	self.cleanup:Add(RunService.Heartbeat:Connect(function(dt)
 		elapsed+=dt if elapsed<0.1 then return end elapsed=0
@@ -317,11 +311,16 @@ function Controller.start()
 			self.view.event.Text=self.eventInfo.label.."  "..string.format("%d:%02d",math.floor(left/60),left%60)
 			if left==0 then self.eventInfo=nil end
 		end
-		updateGuideLocation()
+		-- the guide moves on when you've done what its step asks (Onboarding)
+		local view=self.view
+		if self.model.onboarding:Update({sprinting=self.sprinting,skating=self.skating,inMatch=self.model.inMatch,
+			celebrating=view.celebrate.showing==true,
+			open={map=view.map:IsOpen(),picker=view.opponents:IsOpen(),shop=view.store:IsOpen() or view.drip:IsOpen()}},now) then
+			self:SaveTour()
+		end
 		self.view:Tick(now) self.view:Render(self.model)
 	end))
 	self.cleanup:Add(player.CharacterAdded:Connect(function()
-		self.model.onboarding:ResetTransient()
 		-- ScreenGui survives respawn. Clear only transient interaction state.
 		self:Respond(false) self.model.rematch=nil self:SetMatchActive(false) self.view:SetSettings(false)
 	end))

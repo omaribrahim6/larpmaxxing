@@ -1,6 +1,6 @@
 -- The always-on HUD: the rank card (progress to the next rank), one bar per stat (its
 -- value, and progress to the next scene tier its larp-off round reaches), Wins with the
--- Settings and Help buttons, the pickup combo meter, and each pickup's points flying from
+-- Settings and Guide buttons, the pickup combo meter, and each pickup's points flying from
 -- the player into its stat bar. Presentation only: every number comes from the profile.
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
@@ -58,7 +58,7 @@ local function comboColor(n)
 end
 
 -- deps: config, catalog, rankMath, format, tiers (Shared.Tiers), floors (Tuning.Tiers),
--- play, button(parent, props, onClick), settingsOpen, helpOpen, onTierUp(statId, tier)
+-- play, button(parent, props, onClick), settingsOpen, guideOpen, onTierUp(statId, tier)
 function Hud.new(root, fx, deps)
 	local c = deps.config.Colors
 	local words = deps.config.Words
@@ -128,6 +128,7 @@ function Hud.new(root, fx, deps)
 	end
 	-- LarpCoins (larp-offs pay them; they buy drip), under the stat bars
 	local coins = Theme.panel(self.left, { name = "Coins", position = UDim2.fromOffset(ROW_H / 2, y + 2), box = UDim2.fromOffset(ROW_W - ROW_H / 2, 36), radius = 10, color = Color3.fromRGB(96, 70, 18) })
+	self.coinsPanel = coins -- the tour lights it up
 	-- a drawn coin (Roblox has no coin emoji)
 	local coin = Theme.new("Frame", coins, { Name = "Icon", BackgroundColor3 = Color3.fromRGB(255, 206, 84), BorderSizePixel = 0, Position = UDim2.fromOffset(9, 5), Size = UDim2.fromOffset(26, 26) })
 	Theme.corner(coin, 13)
@@ -139,7 +140,7 @@ function Hud.new(root, fx, deps)
 	y += 44
 	self.note = Theme.text(self.left, { name = "SaveStatus", font = Theme.Small, size = 11, color = c.Muted, position = UDim2.fromOffset(6, y), box = UDim2.new(1, -12, 0, 16), stroke = false })
 
-	-- right edge, middle (clear of the player list): Wins, Settings, Help, Shop, Wardrobe,
+	-- right edge, middle (clear of the player list): Wins, Settings, Guide, Shop, Wardrobe,
 	-- Larp-off, and Touch Grass at the top rank
 	self.dock = Theme.new("Frame", self.frame, { Name = "Dock", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -12, 0.5, -30), Size = UDim2.fromOffset(136, 380) })
 	self.dockScale = Theme.new("UIScale", self.dock, { Name = "Fit" })
@@ -154,15 +155,9 @@ function Hud.new(root, fx, deps)
 	Theme.corner(self.keyChip, 6)
 	Theme.border(self.keyChip, c.Accent, 1.5)
 	self.keyText = Theme.text(self.keyChip, { name = "Key", font = Theme.Small, text = "G", size = 12, color = c.Accent, align = CENTER, stroke = false })
-	-- first visit: a glow behind How to play and a pointer bouncing beside it (SetHelpHighlight)
-	self.helpGlow = Theme.new("Frame", self.dock, { Name = "HelpGlow", BackgroundColor3 = c.Accent, BackgroundTransparency = 0.5, BorderSizePixel = 0, AnchorPoint = MID, Position = UDim2.fromOffset(68, 136), Size = UDim2.fromOffset(150, 60), Visible = false })
-	Theme.corner(self.helpGlow, 18)
-	self.helpButton = deps.button(self.dock, { name = "Help", text = "❓  " .. words.Help, size = 15, position = UDim2.fromOffset(68, 136), box = UDim2.fromOffset(136, 46) }, deps.helpOpen)
-	self.hint = Theme.new("Frame", self.dock, { Name = "Hint", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.fromOffset(-16, 136), Size = UDim2.fromOffset(176, 46), Visible = false })
-	local pointer = Theme.new("Frame", self.hint, { Name = "Pointer", BackgroundColor3 = c.Accent, BorderSizePixel = 0, AnchorPoint = MID, Position = UDim2.new(1, -3, 0.5, 0), Size = UDim2.fromOffset(20, 20), Rotation = 45 })
-	Theme.border(pointer, c.Ink, 2.5)
-	local bubble = Theme.panel(self.hint, { name = "Bubble", color = c.Accent, radius = 12 })
-	Theme.text(bubble, { name = "Text", font = Theme.Display, text = words.NewHere, size = 18, color = c.Ink, align = CENTER, position = UDim2.fromOffset(8, 2), box = UDim2.new(1, -16, 1, -4), scaled = true, maxSize = 18, stroke = false })
+	-- the Guide: the first-run tour (CodexUI.Coach) from the top, whenever you want it again.
+	-- It replaced How to play (owner 2026-09-15).
+	self.guideButton = deps.button(self.dock, { name = "Guide", text = "🧭  " .. words.Guide, size = 16, position = UDim2.fromOffset(68, 136), box = UDim2.fromOffset(136, 46) }, deps.guideOpen)
 	self.shopButton = deps.button(self.dock, { name = "Shop", text = "🛒  " .. words.Shop, size = 16, color = c.Accent, position = UDim2.fromOffset(68, 190), box = UDim2.fromOffset(136, 46) }, deps.shopOpen)
 	-- the Wardrobe: what you wear, from your drip (DripView)
 	self.wardrobeButton = deps.button(self.dock, { name = "Wardrobe", text = "👕  " .. words.Wardrobe, size = 15, color = Color3.fromRGB(214, 150, 30), position = UDim2.fromOffset(68, 244), box = UDim2.fromOffset(136, 46) }, deps.wardrobeOpen)
@@ -214,12 +209,6 @@ function Hud.new(root, fx, deps)
 				self.trackEdge.Transparency = 0.3 + 0.35 * math.sin(os.clock() * 6)
 			elseif self.trackEdge.Transparency ~= 1 then
 				self.trackEdge.Transparency = 1
-			end
-			if self.hintOn then
-				local wave = 0.5 + 0.5 * math.sin(os.clock() * 6)
-				self.hint.Position = UDim2.fromOffset(-16 - 10 * wave, 136)
-				self.helpGlow.BackgroundTransparency = 0.35 + 0.45 * wave
-				self.helpGlow.Size = UDim2.fromOffset(146 + 12 * wave, 56 + 12 * wave)
 			end
 		end),
 	}
@@ -489,21 +478,6 @@ function Hud:SetSettingsKey(key)
 	self.keyChip.Visible = key ~= nil
 	if key then
 		self.keyText.Text = key
-	end
-end
-
--- New players: How to play turns gold, glows, and a "NEW? START HERE" pointer bounces
--- beside it until they've read it.
-function Hud:SetHelpHighlight(on)
-	if self.hintOn == on then
-		return
-	end
-	self.hintOn = on
-	self.hint.Visible = on
-	self.helpGlow.Visible = on
-	self.helpButton.BackgroundColor3 = if on then self.deps.config.Colors.Accent else self.deps.config.Colors.Raised
-	if on then
-		Juice.punch(self.hint, 0.4, 0.5)
 	end
 end
 

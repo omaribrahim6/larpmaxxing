@@ -1,19 +1,56 @@
 -- Codex-owned presentation only. Gameplay definitions remain in Larp.Config.
 local Tuning = require(game:GetService("ReplicatedStorage"):WaitForChild("Larp").Config.Tuning)
 return {
-	GuideStatId="Money",
-	GuideTargets={
-		Collect={path={"Larp","Map","CarLot","ZoneBounds"},label="Car Lot"},
-		Practice={path={"Larp","Map","PracticeNpcSpot"},label="Practice Larper"},
-	},
-	GuideDirections={"Ahead","Ahead right","Turn right","Behind right","Behind you","Behind left","Turn left","Ahead left"},
-	GuideNearDistance=12,
-	Guide={
-		Collect={title="1 / 2  GET THAT MONEY",body="Walk over Money pickups in the Car Lot to grow your Money stat. Then try your first larp-off."},
-		Practice={title="2 / 2  TRY A LARP-OFF",body="Click ⚔ Larp-off on the right, or find the Practice Larper in the plaza and press E, to start your first match.",
-			bodyTouch="Tap ⚔ Larp-off on the right, or walk up to the Practice Larper in the plaza and tap the prompt, to start your first match."},
-		Complete={title="YOU KNOW THE BASICS",body="Collect more Money, practice again, or challenge another player. Close this guide whenever you're ready."},
-		Loading={title="CONNECTING",body="Waiting for your profile."},
+	-- The first-run tour (Onboarding keeps its place, Coach draws it). It lights up one thing at
+	-- a time and waits for you to do it. `target` is what it lights (View:CoachTargets), `world`
+	-- where the trail on the ground leads (a `places` name, or "pickup" for the nearest prop),
+	-- `done` what finishes the step: next (the Next button), sprint, skate, collect (`count`
+	-- props), visit (open `modal` and close it again) or match (play a larp-off). While `modal`
+	-- is open the step shows `open` instead. `bodyTouch` is for phones.
+	Tour = {
+		patience = 15, -- seconds before a step you have to do offers Next anyway
+		places = {
+			practice = { path = { "Larp", "Map", "PracticeNpcSpot" }, at = Vector3.new(-22, 0, -30), label = "PRACTICE LARPER" },
+			carLot = { path = { "Larp", "Map", "CarLot", "ZoneBounds" }, at = Vector3.new(377, 10, 0), label = "CAR LOT" },
+		},
+		steps = {
+			{ id = "welcome", center = true, done = "next", nextText = "LET'S GO!", title = "WELCOME TO LARPMAXXING",
+				body = "Here's a quick tour: about a minute, and you do each thing yourself. Follow the arrows!" },
+			{ id = "rank", target = "rank", done = "next", title = "YOUR RANK",
+				body = "Every point you earn fills this bar. Climb from NPC all the way to LARP Maxxer." },
+			{ id = "stats", target = "stats", done = "next", title = "FIVE STATS",
+				body = "Money, Aesthetic, Drip, Gains and Big Brain. Each one is a round in a larp-off, and the higher it is, the crazier your scene." },
+			{ id = "sprint", target = "sprint", done = "sprint", title = "RUN",
+				body = "Press CTRL (or click Sprint) to run.", bodyTouch = "Tap Sprint to run." },
+			{ id = "collect", world = "pickup", done = "collect", count = 5, title = "GRAB PROPS",
+				body = "Follow the arrow and walk into props. Each one adds points to a stat." },
+			{ id = "skate", target = "skate", done = "skate", title = "HOP ON YOUR BOARD",
+				body = "Press F (or click Skate) to ride, and Space to push.", bodyTouch = "Tap Skate to ride, then PUSH to roll." },
+			{ id = "map", target = "minimap", done = "visit", modal = "map", title = "THE CITY MAP",
+				body = "Press M or click the minimap to open the map.", bodyTouch = "Tap the minimap to open the map.",
+				open = { target = "mapClose", title = "FIVE PLACES",
+					body = "Each place grows one stat: the Car Lot 💰, the Café Strip 🍵, the Mall 👟, the Gym 💪 and the Library 🧠. The streets drop all five. Close the map to carry on." } },
+			{ id = "larpoff", target = "larpOff", world = "practice", done = "match", modal = "picker", title = "YOUR FIRST LARP-OFF",
+				body = "Click ⚔ Larp-off, or follow the arrow to the Practice Larper and press E.",
+				bodyTouch = "Tap ⚔ Larp-off, or follow the arrow to the Practice Larper and tap the prompt.",
+				open = { target = "practiceRow", title = "PICK WHO",
+					body = "Everyone in the server is on this list. For your first one, pick the Practice Larper: an easy win." } },
+			{ id = "wins", target = "wins", done = "next", title = "WINS",
+				body = "Every larp-off you win lands here, with bonus points. Lost one? Hit Rematch and run it back." },
+			{ id = "coins", target = "coins", done = "next", title = "LARPCOINS",
+				body = "Larp-offs pay LarpCoins: a win pays more, an upset pays double." },
+			{ id = "shop", target = "shop", done = "visit", modal = "shop", title = "SPEND THEM",
+				body = "Open the 🛒 Shop.",
+				open = { target = "shopInside", title = "DRIP",
+					body = "Fits, hats, chains and skateboards cost LarpCoins in the Drip tab. Close the shop to carry on." } },
+			{ id = "wardrobe", target = "wardrobe", done = "next", title = "WARDROBE",
+				body = "Pick what you wear from everything you own, boards included." },
+			{ id = "invite", target = "invite", done = "next", title = "INVITE & CLIP",
+				body = "Invite friends and you both get 2x points for 15 minutes. Clip records the end of your next larp-off to share." },
+			{ id = "done", target = "guide", done = "next", nextText = "FINISH", title = "YOU'RE READY!",
+				body = "Larp off anyone: ⚔ Larp-off lists the whole server, or walk up to someone and press R. 🧭 Guide runs this again any time.",
+				bodyTouch = "Larp off anyone: ⚔ Larp-off lists the whole server, or walk up to someone and tap the prompt over their head. 🧭 Guide runs this again any time." },
+		},
 	},
 	ChallengeMaxSeconds = Tuning.Challenge.acceptSeconds,
 	RematchMaxSeconds = math.max(Tuning.Challenge.rematchWindowSeconds, Tuning.Practice.rematchWindowSeconds),
@@ -30,40 +67,8 @@ return {
 	Combo = { window = 2.2, milestones = { [10] = "ON A ROLL!", [25] = "UNSTOPPABLE!", [50] = "LARP FRENZY!", [100] = "MAXXED OUT!" } },
 	-- how long each moment holds (Celebrate); a promotion's banner is gone in about 3 s with its fade
 	CelebrateSeconds = { rank = 2.6, tier = 2.8, reward = 3.4 },
-	-- the How to play book (Tutorial): one page per mechanic. `art` picks the picture
-	-- TutorialArt draws from the game's own models; `image` (an uploaded screenshot's
-	-- rbxassetid) replaces it when set.
-	Tutorial = {
-		{art = "props", color = Color3.fromRGB(255, 198, 64), title = "COLLECT PROPS",
-			body = "Walk near props to grab them. Every prop adds points to one of your five stats, and the rarer it is, the more it's worth.",
-			tip = "✨ Legendaries shoot a beam into the sky. Race for them!"},
-		{art = "map", color = Color3.fromRGB(96, 214, 200), title = "FIVE STATS, FIVE PLACES",
-			body = "Each place in the city grows one stat: the Car Lot for Money, the Café Strip for Aesthetic, the Mall for Drip, the Gym for Gains and the Library for Big Brain. The streets drop all five. Rank up to open their VIP rooms and Elite rooftops.",
-			tip = "🏃 Ctrl or the Sprint button runs. 🗺️ M opens the map.",
-			tipTouch = "🏃 The Sprint button runs. 🗺️ Tap the minimap for the full map."},
-		{art = "ranks", color = Color3.fromRGB(176, 132, 255), title = "RANK UP",
-			body = "All your points add up to your rank. Start as an NPC and climb all the way to LARP Maxxer.",
-			tip = "📈 The card in the top left shows how close your next rank is."},
-		{art = "larpoff", color = Color3.fromRGB(240, 124, 167), title = "LARP-OFF!",
-			body = "Click ⚔ Larp-off on the right to see everyone in the server and pick one, or walk up to someone and press R. The Practice Larper is always up for one too. You each play one scene per stat, and whoever wins more rounds wins.",
-			bodyTouch = "Tap ⚔ Larp-off on the right to see everyone in the server and pick one, or walk up to someone and tap the prompt over their head. The Practice Larper is always up for one too. You each play one scene per stat, and whoever wins more rounds wins.",
-			tip = "🎯 New? The Practice Larper is an easy first win."},
-		{art = "scenes", color = Color3.fromRGB(255, 170, 60), title = "BIGGER STATS, BIGGER SCENES",
-			body = "The higher a stat, the crazier its scene. The bus becomes a scooter, then a sports car, then a private jet. The badge next to each stat shows its tier.",
-			tip = "⬆️ Push a stat up to unlock its next scene."},
-		{art = "win", color = Color3.fromRGB(104, 222, 92), title = "WIN, UPSET, REMATCH",
-			body = "A win pays bonus points and a Win. Scenes have some luck in them, so the underdog can pull off an UPSET for double the bonus. Lost? Hit Rematch and run it back.",
-			tip = "🏆 Your Wins are on the right side of the screen."},
-		{art = "ranks", color = Color3.fromRGB(122, 214, 112), title = "TOUCH GRASS",
-			body = "At LARP Maxxer you can Touch Grass: start a new run from NPC with every stat at 0, but farm faster forever. +10% the first time, then +15%, +20%, +25% and +30% (up to 2x). You keep your Wins and cosmetics, and Touch Grass x1, x3, x5 and x10 each unlock an item and a nameplate title.",
-			tip = "🌱 Your nameplate shows how many times you've touched grass."},
-		{art = "item", icon = "👟", color = Color3.fromRGB(255, 206, 84), title = "DRIP & BOARDS",
-			body = "Larp-offs pay LarpCoins: a win pays more, an upset double. Spend them in the Shop's Drip tab on fits, hats, chains and skateboards, then pick what you wear in the Wardrobe.",
-			tip = "🛹 F (or the Skate button) hops on your board. Space pushes!",
-			tipTouch = "🛹 The Skate button hops on your board. Tap PUSH to get going!"},
-	},
-	-- tours the shop's ? button opens for an item with a `book` (Config.Store), in the How to
-	-- play book's style; `image` (an uploaded screenshot's rbxassetid) replaces a drawing
+	-- tours the shop's ? button opens for an item with a `book` (Config.Store), as a book
+	-- (Tutorial); `image` (an uploaded screenshot's rbxassetid) replaces a drawing
 	Books = {
 		Reality = {
 			{art = "item", icon = "🌆", color = Color3.fromRGB(80, 200, 255), title = "TURN LARP TO REALITY",
@@ -96,8 +101,10 @@ return {
 		{key = "showCosmetics", label = "Show cosmetics", default = true, persisted = true},
 		{key = "musicVolume", label = "Music volume", default = 1, persisted = true, step = 0.25},
 		{key = "sfxVolume", label = "SFX volume", default = 1, persisted = true, step = 0.25},
-		-- not shown in Settings: whether this player has read How to play (new players get a pointer to it)
-		{key = "tutorialSeen", label = "How to play read", default = false, persisted = true, hidden = true},
+		-- not shown in Settings: whether the first-run tour is over (finished or skipped)
+		{key = "tutorialSeen", label = "Tour over", default = false, persisted = true, hidden = true},
+		-- nor this: how many of the tour's steps are done, so a rejoin carries on from there
+		{key = "tourStep", label = "Tour progress", default = 0, persisted = true, hidden = true, max = 100},
 	},
 	MaxToasts = 3, ToastSeconds = 4, ToastMaxCharacters = 240,
 	Words = {
@@ -108,9 +115,11 @@ return {
 		Unavailable = "Still connecting. Try again shortly.",
 		SettingsUnavailable = "Settings will be available when your profile connects.",
 		ProfileTemporary = "Session progress only",
-		Nearby = "Nearby", DistanceUnit = "studs",
 		-- HUD
-		Help = "How to play", Wins = "WINS", NextLabel = "NEXT: %s", ToGo = "%s to go", MaxTier = "MAX", NewHere = "NEW? START HERE",
+		Guide = "Guide", Wins = "WINS", NextLabel = "NEXT: %s", ToGo = "%s to go", MaxTier = "MAX",
+		-- the first-run guide (Coach), which the HUD's Guide button runs again
+		TourEyebrow = "GUIDE  %d / %d", TourSkip = "Skip guide", TourJustPlay = "JUST PLAY", TourNext = "Next",
+		TourGrab = "GRAB IT!", TourProps = "%d / %d PROPS",
 		Combo = "COMBO", Request = "LARP-OFF REQUEST", Wants = "%s wants to larp-off",
 		-- full-screen moments
 		Promoted = "PROMOTED!", NextRank = "Next up: %s at %s points", TopRank = "Top of the ladder. Nobody larps harder.",
@@ -119,8 +128,8 @@ return {
 		Won = "YOU WON!", UpsetWon = "UPSET WIN!", Lost = "GG", CloseLoss = "SO CLOSE",
 		WinPlus = "+1 WIN  🏆", Bonus = "BONUS", NoBonus = "No bonus this time", RunItBack = "Hit Rematch to run it back",
 		UpsetTag = "UPSET x2",
-		-- the How to play book
-		TutorialTitle = "HOW TO PLAY", PageOf = "%d / %d", Next = "Next", Back = "Back", LetsGo = "LET'S GO!",
+		-- the shop's ? pages (a book: Tutorial)
+		TutorialTitle = "ABOUT", PageOf = "%d / %d", Next = "Next", Back = "Back", LetsGo = "LET'S GO!",
 		-- the shop
 		Shop = "Shop", ShopTitle = "SHOP", Codes = "CODES", EnterCode = "Enter a code", Redeem = "Redeem", Owned = "OWNED",
 		ComingSoon = "The shop opens soon. Check back later!", BoostLeft = "⚡ 2x BOOST  %d:%02d",

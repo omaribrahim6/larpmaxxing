@@ -1,7 +1,7 @@
--- The How to play book: one page per mechanic, each with a picture (TutorialArt draws it
--- from the game's own models) and a few lines of text, Back / Next, a dot per page and
--- "LET'S GO!" on the last. Opened from the HUD's How to play button; the pages live in
--- UIConfig.Tutorial.
+-- A book: one page per thing, each with a picture (TutorialArt draws it from the game's own
+-- models) and a few lines of text, Back / Next, a dot per page and "LET'S GO!" on the last.
+-- The shop's ? pages (UIConfig.Books) are one. It used to be How to play too, until the
+-- first-run guide (Coach) replaced it (owner 2026-09-15).
 local UserInputService = game:GetService("UserInputService")
 local Theme = require(script.Parent.Theme)
 local Juice = require(script.Parent.Juice)
@@ -20,7 +20,7 @@ local new = Theme.new
 function Tutorial.new(root, deps)
 	local c = deps.config.Colors
 	local words = deps.config.Words
-	local self = setmetatable({ deps = deps, root = root, pages = deps.pages or deps.config.Tutorial or {}, index = 1, open = false, dots = {} }, Tutorial)
+	local self = setmetatable({ deps = deps, root = root, pages = deps.pages or {}, index = 1, open = false, dots = {} }, Tutorial)
 	-- dims the game and keeps clicks off the HUD underneath
 	self.backdrop = new("Frame", root, { Name = "TutorialBackdrop", BackgroundColor3 = Color3.new(0, 0, 0), BackgroundTransparency = 0.4, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1), Active = true, ZIndex = 11, Visible = false })
 	self.frame = Theme.panel(root, { name = "Tutorial", anchor = MID, position = UDim2.fromScale(0.5, 0.5), box = UDim2.fromOffset(760, 470), z = 11, edge = c.Accent, edgeWidth = 3 })

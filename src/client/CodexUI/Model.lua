@@ -35,7 +35,8 @@ function Model:SetSetting(key, value)
 	for _, def in self.config.Settings do
 		if def.key == key then
 			if type(value) ~= type(def.default) then return false end
-			if type(value) == "number" and (not finite(value) or value < 0 or value > 1) then return false end
+			-- numbers run 0..1 (volumes) unless the setting says otherwise (tourStep)
+			if type(value) == "number" and (not finite(value) or value < 0 or value > (def.max or 1)) then return false end
 			self.settings[key] = value
 			return true, def.persisted
 		end

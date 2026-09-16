@@ -34,6 +34,7 @@ local SETTINGS_DEFAULTS = {
 	musicVolume = 1,
 	sfxVolume = 1,
 	tutorialSeen = false,
+	tourStep = 0,
 }
 
 function DataService.defaults()
