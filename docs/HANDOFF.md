@@ -853,3 +853,12 @@ that world, so LarpClient.Skate tests position against the floors at Map.Premium
 (the extents the minimap draws it by), re-checked twice a second while riding so speed drops on
 the way out. The camera's speed share divides by the same tuned top, or it would overshoot at
 122.
+
+### Reality UI on phones — Claude, 2026-09-15
+The speedometer (250 wide), the bench meter (380) and the fit picker (600) were fixed pixel
+sizes on every screen. Reality builds all its panels through one `panel` helper, so the scale
+went there and covers the bench meter, the fit picker and that world's other panels at once;
+the speedometer lives in Drive and got the same. Scale: 0.5 on a phone, up to 0.8 on a tablet,
+capped so nothing is wider than the screen, 1.0 on desktop, refitting if the viewport changes.
+Drive had no TOUCH local, so one was added beside its other locals. Phone sizes: fit picker
+300x125, bench 190x65, speedometer 125x46.

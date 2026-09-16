@@ -24,6 +24,8 @@ local Drive = {}
 local TAG = "LarpCar"
 local RAY_START = 1.2 -- each wheel's ray starts this far above its resting centre
 local MAX_RISE = 25 -- studs/s: the chassis never flies up faster than this
+-- a phone or tablet with no keyboard: the speedometer is drawn smaller there
+local TOUCH = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 local player = Players.LocalPlayer
 local hud = nil
 
@@ -39,6 +41,22 @@ local function makeHud()
 	gui.Enabled = false
 	gui.Parent = player:WaitForChild("PlayerGui")
 	local panel = Theme.panel(gui, { name = "Speedo", anchor = Vector2.new(0.5, 1), position = UDim2.new(0.5, 0, 1, -24), box = UDim2.fromOffset(250, 92), radius = 16, edgeWidth = 3 })
+	-- 250 wide whatever the screen, which is a lot of a phone for a number (owner 2026-09-15:
+	-- "reduce size of some of the UI for reality world on mobile, like mph speedometer"). It is
+	-- anchored at its bottom middle, so a UIScale shrinks it in place, clear of the jump button.
+	local fit = Instance.new("UIScale")
+	fit.Parent = panel
+	local function refit()
+		local camera = workspace.CurrentCamera
+		local size = if camera then camera.ViewportSize else Vector2.new(1280, 720)
+		local short = math.min(size.X, size.Y)
+		fit.Scale = if TOUCH or short < 540 then math.clamp(short / 900, 0.5, 0.8) else 1
+	end
+	refit()
+	local camera = workspace.CurrentCamera
+	if camera then
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(refit)
+	end
 	local speed = Theme.text(panel, { name = "Speed", font = Theme.Display, text = "0", size = 46, align = Enum.TextXAlignment.Center, position = UDim2.fromOffset(0, 2), box = UDim2.new(1, 0, 0, 52), stroke = 2.5 })
 	Theme.text(panel, { name = "Unit", font = Theme.Small, text = "MPH", size = 12, align = Enum.TextXAlignment.Center, position = UDim2.fromOffset(0, 50), box = UDim2.new(1, 0, 0, 14), stroke = false })
 	local hint = Theme.text(panel, { name = "Hint", font = Theme.Small, text = "SPACE: GET OUT  ·  H: HORN  ·  C: CAMERA", size = 11, align = Enum.TextXAlignment.Center, position = UDim2.fromOffset(0, 68), box = UDim2.new(1, 0, 0, 16), stroke = false })

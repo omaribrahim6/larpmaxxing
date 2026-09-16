@@ -115,10 +115,43 @@ local function hold(cf: CFrame, fov: number, follow: BasePart?)
 	end
 end
 
+-- Every panel in here is drawn at a fixed pixel size -- the fit picker is 600 wide, the bench
+-- meter 380 -- which swamps a phone (owner 2026-09-15: "reduce size of some of the UI for
+-- reality world on mobile, like ... the gym bench push thing, the pick your fit"). One UIScale
+-- per panel shrinks the whole thing, and since each is anchored where it belongs (the middle,
+-- or the bottom edge) it keeps sitting there as it shrinks.
+local function panelScale(width: number): number
+	local camera = workspace.CurrentCamera
+	local size = if camera then camera.ViewportSize else Vector2.new(1280, 720)
+	local short = math.min(size.X, size.Y)
+	local s = math.min(1, (size.X - 24) / width) -- never wider than the screen
+	if TOUCH or short < 540 then
+		s = math.min(s, math.clamp(short / 900, 0.5, 0.8))
+	end
+	return s
+end
+
 local function panel(name: string, props)
 	local p = Theme.panel(gui, props)
 	p.Name = name
+	local fit = Instance.new("UIScale")
+	fit.Parent = p
+	-- the size it was built at, which is what the scale is against (AbsoluteSize is this scaled,
+	-- and is 0 until the first frame anyway)
+	local width = if props.box then props.box.X.Offset else 0
+	if width <= 0 then
+		width = 400
+	end
+	local function refit()
+		fit.Scale = panelScale(width)
+	end
+	refit()
+	local camera = workspace.CurrentCamera
+	local conn = if camera then camera:GetPropertyChangedSignal("ViewportSize"):Connect(refit) else nil
 	table.insert(cleanup, function()
+		if conn then
+			conn:Disconnect()
+		end
 		p:Destroy()
 	end)
 	return p
