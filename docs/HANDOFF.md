@@ -837,3 +837,9 @@ Measured per location, before -> after: Library 40% -> 73% of its bounds, Cafe 3
 73% -> 73%, Mall and Car Lot 100%. The grass the rule was for belongs elsewhere (the city's lawn
 around the Cafe Strip, the Pocket Park's) and is still refused. Owner confirmed only the Library
 needed fixing.
+
+### Quiz pad size — Claude, 2026-09-15
+The answer pad was a fixed 560x280 on every screen, swamping a phone and running under the HUD
+along the bottom. A UIScale on the pad now sizes it from the viewport: 0.5 on a phone (280x140),
+up to 0.8 on a tablet, capped so it is never wider than the screen, 1.0 on desktop. It is
+anchored bottom-centre so it stays put as it shrinks, and it refits when the viewport changes.

@@ -323,6 +323,37 @@ local function buildHud()
 	panel.BackgroundTransparency = 0.12
 	panel.Parent = gui
 	corner(panel, 16)
+	-- The pad is drawn at 560 wide whatever the screen, which swamped a phone and ran under the
+	-- HUD at the bottom of it (owner 2026-09-15: "too big on mobile and goes below other UI
+	-- items, simply make it smaller"). One UIScale shrinks the whole thing -- it is anchored at
+	-- its bottom middle, so it keeps sitting there -- to about half size on a phone, a little
+	-- under full size on a tablet, and never wider than the screen it is on.
+	local fit = Instance.new("UIScale")
+	fit.Parent = panel
+	local function refit()
+		local camera = workspace.CurrentCamera
+		local size = if camera then camera.ViewportSize else Vector2.new(1280, 720)
+		local short = math.min(size.X, size.Y)
+		local s = math.min(1, (size.X - 24) / 560)
+		if TOUCH or short < 540 then
+			s = math.min(s, math.clamp(short / 900, 0.5, 0.8))
+		end
+		fit.Scale = s
+	end
+	local watching = nil
+	local function watch()
+		if watching then
+			watching:Disconnect()
+			watching = nil
+		end
+		local camera = workspace.CurrentCamera
+		if camera then
+			watching = camera:GetPropertyChangedSignal("ViewportSize"):Connect(refit)
+		end
+		refit()
+	end
+	watch()
+	workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(watch)
 	local stroke = Instance.new("UIStroke")
 	stroke.Color = Color3.fromRGB(80, 76, 104)
 	stroke.Thickness = 2
