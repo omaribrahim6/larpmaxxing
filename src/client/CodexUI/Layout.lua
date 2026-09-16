@@ -142,7 +142,12 @@ function Layout.compute(width, height, options)
 	out.combo = rect(kx, ky, kw, kh, ks)
 
 	out.challenge = rect((width - math.min(width * 0.9, 438)) / 2, (height - 250) / 2, math.min(width * 0.9, 438), 250)
-	out.settings = rect((width - math.min(width * 0.94, 450)) / 2, (height - math.min(height * 0.94, 480)) / 2, math.min(width * 0.94, 450), math.min(height * 0.94, 480))
+	-- Settings: a phone gets a smaller box than a monitor does (owner 2026-09-15: "settings a
+	-- tad too big on mobile"). The rows inside are a fixed height and the list scrolls, so a
+	-- shorter box shows fewer of them rather than squashing any.
+	local sw = math.min(width * (if compact then 0.86 else 0.94), if compact then 400 else 450)
+	local sh = math.min(height * (if compact then 0.86 else 0.94), if compact then 420 else 480)
+	out.settings = rect((width - sw) / 2, (height - sh) / 2, sw, sh)
 	out.rematch = rect((width - math.min(236, width - 32)) / 2, height - 64, math.min(236, width - 32), 52)
 	return out, { compact = compact, scale = s }
 end

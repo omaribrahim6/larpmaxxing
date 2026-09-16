@@ -870,3 +870,8 @@ createTouchButton false, so a phone has no horn and no chase-camera toggle at al
 moved to Config.Cars.words (hint, hintTouch), matching how Config.Skate and Config.Reality hold
 their text. If mobile should actually get a horn or the camera, those two BindAction calls need
 touch buttons -- flagged to the owner, not done.
+
+### Settings box — Claude, 2026-09-15
+Compact screens cap the settings panel at 400x420 and 86% of the viewport (was 450x480 and 94%
+everywhere). Desktop unchanged. Rows are fixed height and the list scrolls, so the shorter box
+shows fewer rows; scroll room stays well above the 100px the layout test requires.
