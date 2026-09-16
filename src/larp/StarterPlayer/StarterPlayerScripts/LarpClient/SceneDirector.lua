@@ -97,6 +97,37 @@ local function standHeight(model: Model): number
 	return 2 + root.Size.Y / 2
 end
 
+-- The character a side is played by. With streaming on an arena sits 6,000 studs from the city,
+-- so a client that has not streamed the other player in yet is handed nil for their model in
+-- the header, and the scene was built with nothing to copy: that player stayed invisible for
+-- the whole match while nothing retried (owner 2026-09-15: "during larpoff i couldnt see my
+-- opponent and they couldnt see me, tried again and it worked normally"). They are standing a
+-- few studs away and streaming in, so ask Players for the character instead.
+local function sideCharacter(info): Model?
+	local model = info and info.model
+	if model and model.Parent then
+		return model
+	end
+	if not info or info.kind ~= "Player" then
+		return nil
+	end
+	local other = Players:GetPlayerByUserId(info.userId)
+	local character = other and other.Character
+	return if character and character.Parent then character else nil
+end
+
+-- Gives both characters a moment to arrive before a scene is built from them. Returns at once
+-- when they are already there, which is every match but the unlucky one.
+local function awaitSides(header, seconds: number)
+	local deadline = os.clock() + seconds
+	while os.clock() < deadline do
+		if sideCharacter(header.a) and sideCharacter(header.b) then
+			return
+		end
+		task.wait(0.05)
+	end
+end
+
 -- A local, inert copy of a character for the scene set: no scripts, sounds, prompts or
 -- nameplate, root anchored on `mark`.
 local function avatarCopy(model: Model?, mark: CFrame, parent: Instance): Model?
@@ -300,9 +331,10 @@ local function buildContext(header, ui)
 	})
 	local function side(info, suffix: string, outward: number)
 		local mark = markers:FindFirstChild("Mark" .. suffix).CFrame
+		local model = sideCharacter(info) -- nil in the header means "still streaming in"
 		return {
-			character = info.model, -- the set's avatar copy in Screen mode
-			stageCharacter = info.model,
+			character = model, -- the set's avatar copy in Screen mode
+			stageCharacter = model,
 			name = info.name,
 			userId = info.userId,
 			kind = info.kind,
@@ -488,6 +520,18 @@ end
 
 local function playRound(ctx, pkg)
 	local kit = ctx.kit
+	-- one that was still streaming in when the scene was built: take it now rather than play
+	-- every remaining round without them
+	for key, which in { A = "a", B = "b" } do
+		local s = ctx.sides[key]
+		if s and not (s.stageCharacter and s.stageCharacter.Parent) then
+			local fresh = sideCharacter(ctx.header[which])
+			if fresh then
+				s.stageCharacter = fresh
+				s.character = fresh
+			end
+		end
+	end
 	if ctx.cctv then
 		local sc = streetScene(pkg.scene)
 		if not sc then
@@ -830,6 +874,9 @@ function SceneDirector.start(ui)
 		if current and current.id == header.matchId then
 			return current
 		end
+		-- a character may still be streaming in (see sideCharacter): a moment's wait beats a
+		-- match where one of the two is invisible from start to finish
+		awaitSides(header, 2)
 		if current then
 			finish(current, true, "replaced")
 		end
