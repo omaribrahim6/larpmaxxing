@@ -13,13 +13,13 @@ return {
 	passes = {
 		{ key = "Reality", id = 1975281737, icon = "🌆", name = "Turn LARP to Reality", line = "Your own world: drive the T5, walk a runway, bench 500, win a Nobel", price = 299, reality = true, book = "Reality" }, -- owner 2026-09-14: 999 was too much
 		{ key = "MegaBundle", id = 1979337527, icon = "🎁", name = "Mega Bundle", line = "2x Points, 2x Magnet and 2x Speed in one: save 40%", price = 299, bundle = { "DoublePickups", "Magnet", "Speed" },
-			about = "All three passes in one: every pickup is worth double, props come to you from twice as far, and you walk and sprint twice as fast. It costs less than buying the three on their own. Passes are yours forever." },
+			about = "All three passes in one: every pickup is worth double, props come to you from twice as far, and you walk, sprint and skate twice as fast. It costs less than buying the three on their own. Passes are yours forever." },
 		{ key = "DoublePickups", id = 1979631445, icon = "✨", name = "2x Points", line = "Every pickup is worth double, forever", price = 199, multiplier = 2,
 			about = "Every prop you pick up is worth twice the points, in every stat, forever. It stacks with a 2x Boost (that's 4x) and with your Touch Grass bonus." },
 		{ key = "Magnet", id = 1975197722, icon = "🧲", name = "2x Magnet", line = "Pull props in from twice as far", price = 149, magnet = 2,
 			about = "Props fly to you from twice as far away, so you grab more of them just walking past. Great on the busy streets and in the VIP rooms." },
-		{ key = "Speed", id = 1979865266, icon = "👟", name = "2x Speed", line = "Walk and sprint twice as fast", price = 149, speed = 2,
-			about = "You walk and sprint twice as fast, everywhere. Get to Legendary drops first and cross the city in seconds." },
+		{ key = "Speed", id = 1979865266, icon = "👟", name = "2x Speed", line = "Walk, sprint and skate twice as fast", price = 149, speed = 2,
+			about = "You walk and sprint twice as fast, and your board pushes harder and tops out twice as fast too, everywhere. Get to Legendary drops first and cross the city in seconds." },
 	},
 	products = {
 		{ key = "Boost", id = 3712831371, icon = "⚡", name = "2x Boost", line = "Double pickups for 15 minutes", price = 29, boostMinutes = 15,

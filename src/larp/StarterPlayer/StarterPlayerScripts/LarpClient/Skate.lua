@@ -90,9 +90,25 @@ local function realityCheck()
 	return inReality
 end
 
--- A tuning number, with the premium world's multiplier on it where there is one.
+-- The 2x Speed pass (MonetizationService sets SpeedMultiplier, and the Mega Bundle grants the
+-- same pass). It doubled walking and sprinting but not the board, which is half of how anyone
+-- gets about (owner 2026-09-16: "2x speed should be walk, sprint, AND skate twice as fast, for
+-- bundle and for just 2x speed"). Clamped the way SprintKit clamps it.
+local function passSpeed(): number
+	local boost = player:GetAttribute("SpeedMultiplier")
+	return if type(boost) == "number" then math.clamp(boost, 1, 3) else 1
+end
+
+-- What the pass multiplies: how hard a push is and how fast the board will go. Not the drag
+-- values -- a board that kept twice the speed as well would never slow down.
+local PASS_SCALES = { boost = true, top = true }
+
+-- A tuning number, with the pass's multiplier and the premium world's on it where they apply.
 local function tuned(key: string): number
 	local base = Skate[key]
+	if PASS_SCALES[key] then
+		base *= passSpeed()
+	end
 	if not inReality then
 		return base
 	end

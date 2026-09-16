@@ -925,3 +925,11 @@ rejoining through a friend's invite paid both sides. Added `newcomer(data)`: Cat
 == 0 and wins == 0 and rebirths == 0. Gating the single condition covers the invitee's reward,
 the inviter's, and the DataStore entry saved for an absent inviter. Veterans are left unmarked
 (referredBy stays 0), which cannot be farmed since their totals only grow.
+
+### 2x Speed and the board — Claude, 2026-09-16
+Skate now reads the SpeedMultiplier attribute (same 1-3 clamp as SprintKit), applied to `boost`
+and `top` only -- not the decay values, or the board would never slow down. Covers the Mega
+Bundle for free, since the bundle grants the Speed pass and both set the same attribute. City
+with the pass: push 36, top 128 (was 18/64). It stacks with Config.Skate.reality, so the premium
+board with the pass tops out at 243 studs/s -- flagged to the owner as possibly too fast to
+steer; capping would go in `tuned`. Store wording updated in three places.
