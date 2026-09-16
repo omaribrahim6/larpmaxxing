@@ -1,12 +1,18 @@
--- Friend referrals (Config.Referral): a player who joins from someone's invite (Roblox fills
--- Player:GetJoinData().ReferredByPlayerId for every kind of invite) gets a 2x boost once,
--- saved in their profile (`referredBy`), and so does the friend who invited them: at once if
--- they're here, otherwise on their next visit (a small DataStore of rewards waiting, capped).
--- Profiles count the rewarded invites (`invites`) for later rewards.
+-- Friend referrals (Config.Referral): a player new to the game who joins from someone's invite
+-- (Roblox fills Player:GetJoinData().ReferredByPlayerId for every kind of invite) gets a 2x
+-- boost once, saved in their profile (`referredBy`), and so does the friend who invited them:
+-- at once if they're here, otherwise on their next visit (a small DataStore of rewards waiting,
+-- capped). Profiles count the rewarded invites (`invites`) for later rewards.
+--
+-- New to the game, not merely new to invites (owner 2026-09-15: "i was already in game, and my
+-- brother invited me, the invite worked and we both got the 15min 2x boost... it should only
+-- work for new players"). An invite is meant to bring someone in, so a player who has scored a
+-- point, won a larp-off or touched grass earns nobody a reward by following one.
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
 
 local Larp = game:GetService("ReplicatedStorage"):WaitForChild("Larp")
+local Catalog = require(Larp.Shared.Catalog)
 local Referral = require(Larp.Config.Referral)
 local Net = require(Larp.Shared.Net)
 
@@ -18,6 +24,12 @@ local store = nil
 function ReferralService:Init(services)
 	self.Data = services.DataService
 	self.Money = services.MonetizationService
+end
+
+-- Someone who has not played yet: a first-timer's profile is all zeroes. Anyone with a point,
+-- a win or a rebirth behind them was already here, whatever link they arrived by.
+local function newcomer(data): boolean
+	return Catalog.total(data.stats or {}) == 0 and (data.wins or 0) == 0 and (data.rebirths or 0) == 0
 end
 
 local function notice(player: Player, text: string)
@@ -33,7 +45,7 @@ function ReferralService:_loaded(player: Player, data)
 	-- joined from an invite: both sides get the reward, once per friend
 	local ok, join = pcall(player.GetJoinData, player)
 	local by = if ok and type(join) == "table" then tonumber(join.ReferredByPlayerId) or 0 else 0
-	if by > 0 and by ~= player.UserId and (data.referredBy or 0) == 0 then
+	if by > 0 and by ~= player.UserId and (data.referredBy or 0) == 0 and newcomer(data) then
 		data.referredBy = by
 		self:_reward(player, 1)
 		local inviter = Players:GetPlayerByUserId(by)

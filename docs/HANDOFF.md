@@ -917,3 +917,11 @@ Deleted from the place (Workspace.Larp.Map.Plaza): three ArrowSign boards -- "LA
 first: no script anywhere in the place mentions ArrowSign, and LarpBuild is never required at
 runtime (it lives in ServerStorage and is run by hand), so nothing rebuilds them. This is a
 place change, not a repo one -- it needs the owner's Ctrl+S to stick.
+
+### Invite rewards — Claude, 2026-09-15
+ReferralService paid whenever GetJoinData().ReferredByPlayerId was set and data.referredBy was
+0, which is true of any established player who has never used an invite link -- so a veteran
+rejoining through a friend's invite paid both sides. Added `newcomer(data)`: Catalog.total(stats)
+== 0 and wins == 0 and rebirths == 0. Gating the single condition covers the invitee's reward,
+the inviter's, and the DataStore entry saved for an absent inviter. Veterans are left unmarked
+(referredBy stays 0), which cannot be farmed since their totals only grow.
